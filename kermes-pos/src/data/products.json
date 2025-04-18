@@ -1,0 +1,124 @@
+{
+  "products": [
+    {
+      "id": "1",
+      "name": "Döner Kebab",
+      "price": 7.50,
+      "category": "food",
+      "description": "Freshly grilled döner kebab with lettuce, tomato, and special sauce",
+      "inStock": true
+    },
+    {
+      "id": "2",
+      "name": "Lahmacun",
+      "price": 5.00,
+      "category": "food",
+      "description": "Thin flatbread topped with minced meat, vegetables, and herbs",
+      "inStock": true
+    },
+    {
+      "id": "3",
+      "name": "Pide",
+      "price": 6.50,
+      "category": "food",
+      "description": "Turkish flatbread with various toppings (cheese, meat, or mixed)",
+      "inStock": true
+    },
+    {
+      "id": "4",
+      "name": "Gözleme",
+      "price": 4.50,
+      "category": "food",
+      "description": "Hand-rolled flatbread with fillings like cheese, spinach, or potato",
+      "inStock": true
+    },
+    {
+      "id": "5",
+      "name": "Köfte",
+      "price": 8.00,
+      "category": "food",
+      "description": "Grilled meatballs served with rice, salad, and bread",
+      "inStock": true
+    },
+    {
+      "id": "6",
+      "name": "Mantı",
+      "price": 7.00,
+      "category": "food",
+      "description": "Turkish dumplings filled with minced meat, served with yogurt sauce",
+      "inStock": true
+    },
+    {
+      "id": "7",
+      "name": "Ayran",
+      "price": 2.00,
+      "category": "drink",
+      "description": "Traditional yogurt-based drink, perfect with savory dishes",
+      "inStock": true
+    },
+    {
+      "id": "8",
+      "name": "Turkish Tea",
+      "price": 1.50,
+      "category": "drink",
+      "description": "Traditional Turkish black tea served in a tulip-shaped glass",
+      "inStock": true
+    },
+    {
+      "id": "9",
+      "name": "Turkish Coffee",
+      "price": 2.50,
+      "category": "drink",
+      "description": "Strong Turkish coffee prepared in a cezve, served with a glass of water",
+      "inStock": true
+    },
+    {
+      "id": "10",
+      "name": "Fresh Lemonade",
+      "price": 3.00,
+      "category": "drink",
+      "description": "Freshly squeezed lemonade with mint leaves",
+      "inStock": true
+    },
+    {
+      "id": "11",
+      "name": "Künefe",
+      "price": 6.00,
+      "category": "dessert",
+      "description": "Traditional Turkish dessert made with shredded phyllo dough, cheese, and syrup",
+      "inStock": true
+    },
+    {
+      "id": "12",
+      "name": "Baklava",
+      "price": 5.50,
+      "category": "dessert",
+      "description": "Layered pastry dessert made of filo dough, filled with chopped nuts and sweetened with syrup",
+      "inStock": true
+    },
+    {
+      "id": "13",
+      "name": "Sütlaç",
+      "price": 4.00,
+      "category": "dessert",
+      "description": "Turkish rice pudding, baked with a caramelized top",
+      "inStock": true
+    },
+    {
+      "id": "14",
+      "name": "Kumpir",
+      "price": 7.00,
+      "category": "food",
+      "description": "Loaded baked potato with various toppings like cheese, butter, corn, and pickles",
+      "inStock": true
+    },
+    {
+      "id": "15",
+      "name": "Midye Dolma",
+      "price": 6.00,
+      "category": "food",
+      "description": "Stuffed mussels with seasoned rice, served with lemon",
+      "inStock": true
+    }
+  ]
+} 

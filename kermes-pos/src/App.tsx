@@ -1,138 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Container, CssBaseline, ThemeProvider, createTheme, AppBar, Toolbar, Typography, IconButton, Box, Paper, Badge } from '@mui/material';
+import { 
+  Container, 
+  CssBaseline, 
+  ThemeProvider, 
+  createTheme, 
+  AppBar, 
+  Toolbar, 
+  Typography, 
+  IconButton, 
+  Box, 
+  Paper, 
+  Badge,
+  Fab,
+} from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import AddIcon from '@mui/icons-material/Add';
 import ProductCard from './components/ProductCard';
 import Cart from './components/Cart';
+import ProductDialog from './components/ProductDialog';
 import { Product } from './types';
 import { useSelector } from 'react-redux';
 import { RootState } from './store';
-
-// Sample products data (you can replace this with your own data source)
-const sampleProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Hamburger',
-    price: 8.99,
-    category: 'food',
-    description: 'Classic beef hamburger with lettuce and tomato',
-    inStock: true,
-  },
-  {
-    id: '2',
-    name: 'Pizza',
-    price: 12.99,
-    category: 'food',
-    description: 'Margherita pizza with fresh basil',
-    inStock: true,
-  },
-  {
-    id: '3',
-    name: 'Cola',
-    price: 2.99,
-    category: 'drink',
-    description: 'Ice-cold cola',
-    inStock: true,
-  },
-  {
-    id: '4',
-    name: 'Water',
-    price: 1.99,
-    category: 'drink',
-    description: 'Mineral water',
-    inStock: true,
-  },
-  {
-    id: '5',
-    name: 'Cheeseburger',
-    price: 9.99,
-    category: 'food',
-    description: 'Beef hamburger with cheese, lettuce and tomato',
-    inStock: true,
-  },
-  {
-    id: '6',
-    name: 'Chicken Wings',
-    price: 11.99,
-    category: 'food',
-    description: 'Spicy chicken wings with blue cheese dip',
-    inStock: true,
-  },
-  {
-    id: '7',
-    name: 'French Fries',
-    price: 4.99,
-    category: 'food',
-    description: 'Crispy golden french fries',
-    inStock: true,
-  },
-  {
-    id: '8',
-    name: 'Caesar Salad',
-    price: 7.99,
-    category: 'food',
-    description: 'Fresh romaine lettuce with caesar dressing',
-    inStock: true,
-  },
-  {
-    id: '9',
-    name: 'Tea',
-    price: 5.99,
-    category: 'drink',
-    description: 'Standard tea',
-    inStock: true,
-  },
-  {
-    id: '10',
-    name: 'Lemonade',
-    price: 3.99,
-    category: 'drink',
-    description: 'Fresh squeezed lemonade',
-    inStock: true,
-  },
-  {
-    id: '11',
-    name: 'Ice Tea',
-    price: 2.99,
-    category: 'drink',
-    description: 'Fresh brewed iced tea',
-    inStock: true,
-  },
-  {
-    id: '12',
-    name: 'Hot Dog',
-    price: 6.99,
-    category: 'food',
-    description: 'Classic hot dog with mustard and ketchup',
-    inStock: true,
-  },
-  {
-    id: '13',
-    name: 'Nachos',
-    price: 8.99,
-    category: 'food',
-    description: 'Tortilla chips with cheese, salsa and guacamole',
-    inStock: true,
-  },
-  {
-    id: '14',
-    name: 'Milkshake',
-    price: 4.99,
-    category: 'drink',
-    description: 'Creamy vanilla milkshake',
-    inStock: true,
-  },
-  {
-    id: '15',
-    name: 'Coffee',
-    price: 3.49,
-    category: 'drink',
-    description: 'Fresh brewed coffee',
-    inStock: true,
-  }
-];
+import { productService } from './services/productService';
 
 const theme = createTheme({
   palette: {
@@ -146,18 +38,55 @@ const theme = createTheme({
 });
 
 function AppContent() {
-  const [products, setProducts] = useState(sampleProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | undefined>();
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
   const location = useLocation();
   const isProductsPage = location.pathname === '/';
-  
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = () => {
+    const loadedProducts = productService.getAllProducts();
+    setProducts(loadedProducts);
+  };
+
+  const handleAddProduct = () => {
+    setSelectedProduct(undefined);
+    setDialogOpen(true);
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setSelectedProduct(product);
+    setDialogOpen(true);
+  };
+
+  const handleDeleteProduct = (productId: string) => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      productService.deleteProduct(productId);
+      loadProducts();
+    }
+  };
+
+  const handleSaveProduct = (product: Product) => {
+    if (selectedProduct) {
+      productService.updateProduct(product);
+    } else {
+      productService.addProduct(product);
+    }
+    loadProducts();
+  };
+
   const handleStockChange = (productId: string, inStock: boolean) => {
-    setProducts(prevProducts =>
-      prevProducts.map(product =>
-        product.id === productId ? { ...product, inStock } : product
-      )
-    );
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      productService.updateProduct({ ...product, inStock });
+      loadProducts();
+    }
   };
   
   return (
@@ -199,7 +128,7 @@ function AppContent() {
             </Box>
           </Paper>
         )}
-        <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+        <Box sx={{ flex: 1, overflow: 'auto', p: 2, position: 'relative' }}>
           <Routes>
             <Route
               path="/"
@@ -214,8 +143,17 @@ function AppContent() {
                       key={product.id} 
                       product={product} 
                       onStockChange={handleStockChange}
+                      onEdit={handleEditProduct}
+                      onDelete={handleDeleteProduct}
                     />
                   ))}
+                  <Fab
+                    color="primary"
+                    sx={{ position: 'fixed', bottom: 16, right: 16 }}
+                    onClick={handleAddProduct}
+                  >
+                    <AddIcon />
+                  </Fab>
                 </Box>
               }
             />
@@ -251,6 +189,12 @@ function AppContent() {
           </Routes>
         </Box>
       </Box>
+      <ProductDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onSave={handleSaveProduct}
+        product={selectedProduct}
+      />
     </Box>
   );
 }
