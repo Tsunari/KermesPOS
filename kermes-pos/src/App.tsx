@@ -69,13 +69,6 @@ const sampleProducts: Product[] = [
     description: 'Fresh romaine lettuce with caesar dressing',
   },
   {
-    id: '9',
-    name: 'Beer',
-    price: 5.99,
-    category: 'drink',
-    description: 'Ice-cold draft beer',
-  },
-  {
     id: '10',
     name: 'Lemonade',
     price: 3.99,
