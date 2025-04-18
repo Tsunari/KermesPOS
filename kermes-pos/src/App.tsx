@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Container, CssBaseline, ThemeProvider, createTheme, AppBar, Toolbar, Typography, IconButton, Box, Paper, Badge } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -18,6 +18,7 @@ const sampleProducts: Product[] = [
     price: 8.99,
     category: 'food',
     description: 'Classic beef hamburger with lettuce and tomato',
+    inStock: true,
   },
   {
     id: '2',
@@ -25,6 +26,7 @@ const sampleProducts: Product[] = [
     price: 12.99,
     category: 'food',
     description: 'Margherita pizza with fresh basil',
+    inStock: true,
   },
   {
     id: '3',
@@ -32,6 +34,7 @@ const sampleProducts: Product[] = [
     price: 2.99,
     category: 'drink',
     description: 'Ice-cold cola',
+    inStock: true,
   },
   {
     id: '4',
@@ -39,6 +42,7 @@ const sampleProducts: Product[] = [
     price: 1.99,
     category: 'drink',
     description: 'Mineral water',
+    inStock: true,
   },
   {
     id: '5',
@@ -46,6 +50,7 @@ const sampleProducts: Product[] = [
     price: 9.99,
     category: 'food',
     description: 'Beef hamburger with cheese, lettuce and tomato',
+    inStock: true,
   },
   {
     id: '6',
@@ -53,6 +58,7 @@ const sampleProducts: Product[] = [
     price: 11.99,
     category: 'food',
     description: 'Spicy chicken wings with blue cheese dip',
+    inStock: true,
   },
   {
     id: '7',
@@ -60,6 +66,7 @@ const sampleProducts: Product[] = [
     price: 4.99,
     category: 'food',
     description: 'Crispy golden french fries',
+    inStock: true,
   },
   {
     id: '8',
@@ -67,6 +74,7 @@ const sampleProducts: Product[] = [
     price: 7.99,
     category: 'food',
     description: 'Fresh romaine lettuce with caesar dressing',
+    inStock: true,
   },
   {
     id: '9',
@@ -74,6 +82,7 @@ const sampleProducts: Product[] = [
     price: 5.99,
     category: 'drink',
     description: 'Standard tea',
+    inStock: true,
   },
   {
     id: '10',
@@ -81,6 +90,7 @@ const sampleProducts: Product[] = [
     price: 3.99,
     category: 'drink',
     description: 'Fresh squeezed lemonade',
+    inStock: true,
   },
   {
     id: '11',
@@ -88,6 +98,7 @@ const sampleProducts: Product[] = [
     price: 2.99,
     category: 'drink',
     description: 'Fresh brewed iced tea',
+    inStock: true,
   },
   {
     id: '12',
@@ -95,6 +106,7 @@ const sampleProducts: Product[] = [
     price: 6.99,
     category: 'food',
     description: 'Classic hot dog with mustard and ketchup',
+    inStock: true,
   },
   {
     id: '13',
@@ -102,6 +114,7 @@ const sampleProducts: Product[] = [
     price: 8.99,
     category: 'food',
     description: 'Tortilla chips with cheese, salsa and guacamole',
+    inStock: true,
   },
   {
     id: '14',
@@ -109,6 +122,7 @@ const sampleProducts: Product[] = [
     price: 4.99,
     category: 'drink',
     description: 'Creamy vanilla milkshake',
+    inStock: true,
   },
   {
     id: '15',
@@ -116,6 +130,7 @@ const sampleProducts: Product[] = [
     price: 3.49,
     category: 'drink',
     description: 'Fresh brewed coffee',
+    inStock: true,
   }
 ];
 
@@ -131,10 +146,19 @@ const theme = createTheme({
 });
 
 function AppContent() {
+  const [products, setProducts] = useState(sampleProducts);
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
   const location = useLocation();
   const isProductsPage = location.pathname === '/';
+  
+  const handleStockChange = (productId: string, inStock: boolean) => {
+    setProducts(prevProducts =>
+      prevProducts.map(product =>
+        product.id === productId ? { ...product, inStock } : product
+      )
+    );
+  };
   
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
@@ -185,8 +209,12 @@ function AppContent() {
                   gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
                   gap: 2
                 }}>
-                  {sampleProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                  {products.map((product) => (
+                    <ProductCard 
+                      key={product.id} 
+                      product={product} 
+                      onStockChange={handleStockChange}
+                    />
                   ))}
                 </Box>
               }

@@ -5,6 +5,7 @@ export interface Product {
   category: 'food' | 'drink';
   description?: string;
   image?: string;
+  inStock: boolean;
 }
 
 export interface CartItem {
