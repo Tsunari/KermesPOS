@@ -55,7 +55,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({
     }));
   };
 
-  const handleSelectChange = (e: SelectChangeEvent<'food' | 'drink'>) => {
+  const handleSelectChange = (e: SelectChangeEvent<'food' | 'drink' | 'dessert'>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -107,6 +107,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({
               >
                 <MenuItem value="food">Food</MenuItem>
                 <MenuItem value="drink">Drink</MenuItem>
+                <MenuItem value="dessert">Dessert</MenuItem>
               </Select>
             </FormControl>
             <TextField

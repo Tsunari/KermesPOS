@@ -21,6 +21,7 @@ import AddIcon from '@mui/icons-material/Add';
 import ProductCard from './components/ProductCard';
 import Cart from './components/Cart';
 import ProductDialog from './components/ProductDialog';
+import CategorySection from './components/CategorySection';
 import { Product } from './types';
 import { useSelector } from 'react-redux';
 import { RootState } from './store';
@@ -133,15 +134,21 @@ function AppContent() {
             <Route
               path="/"
               element={
-                <Box sx={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                  gap: 2
-                }}>
-                  {products.map((product) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
+                <Box sx={{ p: 2 }}>
+                  {Object.entries(
+                    products.reduce((acc, product) => {
+                      const category = product.category || 'Other';
+                      if (!acc[category]) {
+                        acc[category] = [];
+                      }
+                      acc[category].push(product);
+                      return acc;
+                    }, {} as Record<string, Product[]>)
+                  ).map(([category, categoryProducts]) => (
+                    <CategorySection
+                      key={category}
+                      category={category}
+                      products={categoryProducts}
                       onStockChange={handleStockChange}
                       onEdit={handleEditProduct}
                       onDelete={handleDeleteProduct}
