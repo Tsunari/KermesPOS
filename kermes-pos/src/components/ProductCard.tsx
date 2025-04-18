@@ -27,8 +27,8 @@ interface ProductCardProps {
 }
 
 const ModernSwitch = styled(Switch)(({ theme }) => ({
-  width: 42,
-  height: 26,
+  width: 36,
+  height: 20,
   padding: 0,
   '& .MuiSwitch-switchBase': {
     padding: 0,
@@ -46,8 +46,8 @@ const ModernSwitch = styled(Switch)(({ theme }) => ({
   },
   '& .MuiSwitch-thumb': {
     boxSizing: 'border-box',
-    width: 22,
-    height: 22,
+    width: 16,
+    height: 16,
   },
   '& .MuiSwitch-track': {
     borderRadius: 26 / 2,
@@ -71,6 +71,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const open = Boolean(anchorEl);
 
   const handleAddToCart = () => {
+    if (localStockStatus) {
+      dispatch(addToCart(product));
+    }
+  };
+
+  const handleDoubleClick = () => {
     if (localStockStatus) {
       dispatch(addToCart(product));
     }
@@ -107,58 +113,69 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   return (
-    <Card sx={{ 
-      width: 220,
-      height: 200,
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between'
-    }}>
+    <Card 
+      sx={{ 
+        width: 220,
+        height: 200,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        cursor: localStockStatus ? 'pointer' : 'default',
+        userSelect: 'none'
+      }}
+      onDoubleClick={handleDoubleClick}
+    >
       <CardContent sx={{ flexGrow: 1, pb: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Typography variant="h6" component="div" sx={{ fontSize: '1.1rem' }}>
             {product.name}
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <FormControlLabel
-              control={
-                <ModernSwitch
-                  checked={localStockStatus}
-                  onChange={handleStockChange}
-                  size="small"
-                />
-              }
-              label=""
-              sx={{ m: 0, mr: 0 }}
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'flex-end',
+            mt: 0.5,
+            gap: 0.25
+          }}>
+            <ModernSwitch
+              checked={localStockStatus}
+              onChange={handleStockChange}
+              size="small"
             />
             <IconButton
               size="small"
               onClick={handleMenuClick}
-              sx={{ ml: 0, p: 0.5 }}
+              sx={{ p: 0.25 }}
             >
-              <MoreVertIcon />
+              <MoreVertIcon fontSize="small" />
             </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleMenuClose}
-            >
-              <MenuItem onClick={handleEdit}>Edit</MenuItem>
-              <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>Delete</MenuItem>
-            </Menu>
           </Box>
         </Box>
+        <Menu
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleMenuClose}
+        >
+          <MenuItem onClick={handleEdit}>Edit</MenuItem>
+          <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>Delete</MenuItem>
+        </Menu>
         <Typography variant="body2" color="text.secondary" sx={{ 
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           display: '-webkit-box',
           WebkitLineClamp: 2,
           WebkitBoxOrient: 'vertical',
-          mb: 1
+          mb: 2
         }}>
           {product.description}
         </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          mt: 'auto',
+          pt: 1
+        }}>
           <Typography variant="body2" color="text.secondary">
             {product.category}
           </Typography>
