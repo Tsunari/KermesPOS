@@ -31,7 +31,7 @@ import { productService } from './services/productService';
 import Settings from './components/Settings';
 import SettingsPage from './components/SettingsPage';
 import ImportExport from './components/ImportExport';
-import { SettingsProvider } from './context/SettingsContext';
+import { SettingsProvider, useSettings } from './context/SettingsContext';
 
 const theme = createTheme({
   palette: {
@@ -48,7 +48,7 @@ function AppContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | undefined>();
-  const [devMode, setDevMode] = useState(false);
+  const { devMode, setDevMode } = useSettings();
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
   const location = useLocation();

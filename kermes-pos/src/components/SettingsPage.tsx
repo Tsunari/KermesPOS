@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Typography,
@@ -8,6 +8,7 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  Chip,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SecurityIcon from '@mui/icons-material/Security';
@@ -26,12 +27,20 @@ interface SettingsPageProps {
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
-  const [notifications, setNotifications] = useState(true);
-  const [security, setSecurity] = useState(true);
-  const [appearance, setAppearance] = useState(false);
-  const [language, setLanguage] = useState(false);
-  const [autoBackup, setAutoBackup] = useState(false);
-  const { useDoubleClick, setUseDoubleClick } = useSettings();
+  const {
+    useDoubleClick,
+    setUseDoubleClick,
+    notifications,
+    setNotifications,
+    security,
+    setSecurity,
+    appearance,
+    setAppearance,
+    language,
+    setLanguage,
+    autoBackup,
+    setAutoBackup,
+  } = useSettings();
 
   const handleDefineDefault = () => {
     if (window.confirm('Are you sure you want to define the current product list as the default? This will update the source code and cannot be undone.')) {
@@ -40,6 +49,42 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
       alert('Default products updated successfully! (Note: In a real application, this would update the source code)');
     }
   };
+
+  const renderSettingItem = (
+    icon: React.ReactNode,
+    primary: string,
+    secondary: string,
+    checked: boolean,
+    onChange: (checked: boolean) => void,
+    isActive: boolean = false
+  ) => (
+    <ListItem>
+      <ListItemIcon>
+        {icon}
+      </ListItemIcon>
+      <ListItemText 
+        primary={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {primary}
+            {isActive && (
+              <Chip
+                label="Active"
+                size="small"
+                color="success"
+                sx={{ ml: 1 }}
+              />
+            )}
+          </Box>
+        }
+        secondary={secondary}
+      />
+      <ModernSwitch
+        edge="end"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+    </ListItem>
+  );
 
   return (
     <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
@@ -53,122 +98,75 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
         </Typography>
         
         <List>
-          <ListItem>
-            <ListItemIcon>
-              <CodeIcon />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Dev Mode" 
-              secondary="Enable developer features for advanced product management"
-            />
-            <ModernSwitch
-              edge="end"
-              checked={devMode}
-              onChange={(e) => setDevMode(e.target.checked)}
-            />
-          </ListItem>
+          {renderSettingItem(
+            <CodeIcon />,
+            "Dev Mode",
+            "Enable developer features for advanced product management",
+            devMode,
+            setDevMode,
+            true
+          )}
           
           <Divider />
           
-          <ListItem>
-            <ListItemIcon>
-              <TouchAppIcon />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Double-Click to Add" 
-              secondary="Toggle between double-click and single-click to add items to cart"
-            />
-            <ModernSwitch
-              edge="end"
-              checked={useDoubleClick}
-              onChange={(e) => setUseDoubleClick(e.target.checked)}
-            />
-          </ListItem>
+          {renderSettingItem(
+            <TouchAppIcon />,
+            "Double-Click to Add",
+            "Toggle between double-click and single-click to add items to cart",
+            useDoubleClick,
+            setUseDoubleClick,
+            true
+          )}
           
           <Divider />
           
-          <ListItem>
-            <ListItemIcon>
-              <NotificationsIcon />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Notifications" 
-              secondary="Configure notification settings"
-            />
-            <ModernSwitch
-              edge="end"
-              checked={notifications}
-              onChange={(e) => setNotifications(e.target.checked)}
-            />
-          </ListItem>
+          {renderSettingItem(
+            <NotificationsIcon />,
+            "Notifications",
+            "Configure notification settings",
+            notifications,
+            setNotifications
+          )}
           
           <Divider />
           
-          <ListItem>
-            <ListItemIcon>
-              <SecurityIcon />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Security" 
-              secondary="Manage security settings"
-            />
-            <ModernSwitch
-              edge="end"
-              checked={security}
-              onChange={(e) => setSecurity(e.target.checked)}
-            />
-          </ListItem>
+          {renderSettingItem(
+            <SecurityIcon />,
+            "Security",
+            "Manage security settings",
+            security,
+            setSecurity
+          )}
           
           <Divider />
           
-          <ListItem>
-            <ListItemIcon>
-              <PaletteIcon />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Appearance" 
-              secondary="Customize the look and feel"
-            />
-            <ModernSwitch
-              edge="end"
-              checked={appearance}
-              onChange={(e) => setAppearance(e.target.checked)}
-            />
-          </ListItem>
+          {renderSettingItem(
+            <PaletteIcon />,
+            "Appearance",
+            "Customize the look and feel",
+            appearance,
+            setAppearance
+          )}
           
           <Divider />
           
-          <ListItem>
-            <ListItemIcon>
-              <LanguageIcon />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Language" 
-              secondary="Change application language"
-            />
-            <ModernSwitch
-              edge="end"
-              checked={language}
-              onChange={(e) => setLanguage(e.target.checked)}
-            />
-          </ListItem>
+          {renderSettingItem(
+            <LanguageIcon />,
+            "Language",
+            "Change application language",
+            language,
+            setLanguage
+          )}
           
           <Divider />
           
-          <ListItem>
-            <ListItemIcon>
-              <BackupIcon />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Auto Backup" 
-              secondary="Enable automatic data backup"
-            />
-            <ModernSwitch
-              edge="end"
-              checked={autoBackup}
-              onChange={(e) => setAutoBackup(e.target.checked)}
-            />
-          </ListItem>
+          {renderSettingItem(
+            <BackupIcon />,
+            "Auto Backup",
+            "Enable automatic data backup",
+            autoBackup,
+            setAutoBackup
+          )}
         </List>
       </Paper>
       
