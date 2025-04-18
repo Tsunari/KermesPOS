@@ -13,7 +13,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Paper
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { RootState } from '../store';
@@ -87,10 +88,12 @@ const Cart: React.FC = () => {
         Cart
       </Typography>
       <Divider />
+      
+      {/* Scrollable area with fixed height */}
       <Box sx={{ 
-        flex: 1,
+        height: 'calc(100% - 120px)', // Fixed height, leaving space for header and footer
         overflow: 'auto',
-        minHeight: 0 // This is important for proper scrolling
+        mb: 2
       }}>
         {cartItems.length === 0 ? (
           <Typography variant="body1" sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
@@ -119,12 +122,18 @@ const Cart: React.FC = () => {
           </List>
         )}
       </Box>
-      <Divider />
+      
+      {/* Fixed footer with total and buttons */}
       <Box sx={{ 
         p: 2,
         backgroundColor: 'background.paper',
         borderTop: 1,
-        borderColor: 'divider'
+        borderColor: 'divider',
+        position: 'sticky',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 10
       }}>
         <Typography variant="h6" gutterBottom>
           Total: ${total.toFixed(2)}
