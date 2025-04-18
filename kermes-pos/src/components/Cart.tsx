@@ -2,26 +2,18 @@ import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   List, 
-  ListItem, 
-  ListItemText, 
-  ListItemSecondaryAction,
-  IconButton,
   Typography,
-  Button,
   Box,
   Divider,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Paper
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
 import { RootState } from '../store';
 import { removeFromCart, clearCart, updateQuantity } from '../store/slices/cartSlice';
+import CartItemRow from './cart/CartItemRow';
+import CartFooter from './cart/CartFooter';
+import PrintDialog from './cart/PrintDialog';
+import { printReceipt } from '../utils/printing';
 
+// Main Cart component
 const Cart: React.FC = () => {
   const dispatch = useDispatch();
   const cartItems = useSelector((state: RootState) => state.cart.items);
@@ -53,42 +45,7 @@ const Cart: React.FC = () => {
   };
 
   const handlePrintConfirm = () => {
-    const receiptContent = `
-      Kermes POS Receipt
-      -----------------
-      ${cartItems.map(item => `
-        ${item.product.name} x${item.quantity}
-        $${(item.product.price * item.quantity).toFixed(2)}
-      `).join('\n')}
-      -----------------
-      Total: $${total.toFixed(2)}
-      -----------------
-      Thank you for your purchase!
-    `;
-
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Receipt</title>
-            <style>
-              body { font-family: monospace; }
-              pre { white-space: pre-wrap; }
-            </style>
-          </head>
-          <body>
-            <pre>${receiptContent}</pre>
-            <script>
-              window.onload = function() {
-                window.print();
-                window.close();
-              }
-            </script>
-          </body>
-        </html>
-      `);
-    }
+    printReceipt(cartItems, total);
     setPrintDialogOpen(false);
   };
 
@@ -116,96 +73,29 @@ const Cart: React.FC = () => {
         ) : (
           <List>
             {cartItems.map((item) => (
-              <ListItem key={item.product.id}>
-                <ListItemText
-                  primary={item.product.name}
-                  secondary={`$${item.product.price.toFixed(2)} x ${item.quantity}`}
-                />
-                <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mr: 0.5 }}>
-                    <IconButton 
-                      size="small" 
-                      onClick={() => handleDecrementQuantity(item.product.id, item.quantity)}
-                      sx={{ p: 0.25 }}
-                    >
-                      <RemoveIcon fontSize="small" />
-                    </IconButton>
-                    <Typography variant="body2" sx={{ minWidth: 16, textAlign: 'center', mx: 0.25 }}>
-                      {item.quantity}
-                    </Typography>
-                    <IconButton 
-                      size="small" 
-                      onClick={() => handleIncrementQuantity(item.product.id, item.quantity)}
-                      sx={{ p: 0.25 }}
-                    >
-                      <AddIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
-                  <IconButton 
-                    edge="end" 
-                    aria-label="delete"
-                    onClick={() => handleRemoveItem(item.product.id)}
-                    size="small"
-                    sx={{ ml: 0.25 }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </ListItemSecondaryAction>
-              </ListItem>
+              <CartItemRow
+                key={item.product.id}
+                item={item}
+                onIncrement={handleIncrementQuantity}
+                onDecrement={handleDecrementQuantity}
+                onRemove={handleRemoveItem}
+              />
             ))}
           </List>
         )}
       </Box>
       
-      {/* Fixed footer with total and buttons */}
-      <Box sx={{ 
-        p: 2,
-        backgroundColor: 'background.paper',
-        borderTop: 1,
-        borderColor: 'divider',
-        position: 'sticky',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 10
-      }}>
-        <Typography variant="h6" gutterBottom>
-          Total: ${total.toFixed(2)}
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button 
-            variant="outlined" 
-            color="error" 
-            onClick={handleClearCart}
-            fullWidth
-          >
-            Clear Cart
-          </Button>
-          <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={handlePrint}
-            fullWidth
-          >
-            Print Receipt
-          </Button>
-        </Box>
-      </Box>
+      <CartFooter 
+        total={total}
+        onClearCart={handleClearCart}
+        onPrint={handlePrint}
+      />
 
-      <Dialog open={printDialogOpen} onClose={() => setPrintDialogOpen(false)}>
-        <DialogTitle>Print Receipt</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to print the receipt?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPrintDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handlePrintConfirm} variant="contained" color="primary">
-            Print
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <PrintDialog 
+        open={printDialogOpen}
+        onClose={() => setPrintDialogOpen(false)}
+        onConfirm={handlePrintConfirm}
+      />
     </Box>
   );
 };
