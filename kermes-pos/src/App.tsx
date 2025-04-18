@@ -18,6 +18,8 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import AddIcon from '@mui/icons-material/Add';
+import SettingsIcon from '@mui/icons-material/Settings';
+import ImportExportIcon from '@mui/icons-material/ImportExport';
 import ProductCard from './components/ProductCard';
 import Cart from './components/Cart';
 import ProductDialog from './components/ProductDialog';
@@ -26,6 +28,9 @@ import { Product } from './types';
 import { useSelector } from 'react-redux';
 import { RootState } from './store';
 import { productService } from './services/productService';
+import Settings from './components/Settings';
+import SettingsPage from './components/SettingsPage';
+import ImportExport from './components/ImportExport';
 
 const theme = createTheme({
   palette: {
@@ -42,6 +47,7 @@ function AppContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | undefined>();
+  const [devMode, setDevMode] = useState(false);
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
   const location = useLocation();
@@ -108,6 +114,16 @@ function AppContent() {
             <Link to="/statistics" style={{ color: 'inherit', textDecoration: 'none' }}>
               <IconButton color="inherit" size="large">
                 <BarChartIcon />
+              </IconButton>
+            </Link>
+            <Link to="/import-export" style={{ color: 'inherit', textDecoration: 'none' }}>
+              <IconButton color="inherit" size="large">
+                <ImportExportIcon />
+              </IconButton>
+            </Link>
+            <Link to="/settings" style={{ color: 'inherit', textDecoration: 'none' }}>
+              <IconButton color="inherit" size="large">
+                <SettingsIcon />
               </IconButton>
             </Link>
           </Box>
@@ -192,6 +208,14 @@ function AppContent() {
                   </Box>
                 </Box>
               } 
+            />
+            <Route 
+              path="/import-export" 
+              element={<ImportExport refreshProducts={loadProducts} devMode={devMode} />} 
+            />
+            <Route 
+              path="/settings" 
+              element={<SettingsPage devMode={devMode} setDevMode={setDevMode} />} 
             />
           </Routes>
         </Box>

@@ -2,7 +2,7 @@ export interface Product {
   id: string;
   name: string;
   price: number;
-  category: 'food' | 'drink';
+  category: 'food' | 'drink' | 'dessert';
   description?: string;
   image?: string;
   inStock: boolean;

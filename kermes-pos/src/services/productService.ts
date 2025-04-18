@@ -8,10 +8,20 @@ class ProductService {
   private products: Product[];
 
   constructor() {
-    // Clear localStorage to ensure we use the products from the JSON file
-    localStorage.removeItem('products');
-    this.products = typedProducts;
-    this.loadProducts(); // Load any saved products from localStorage
+    // Try to load from localStorage first, fall back to JSON file if nothing exists
+    const savedProducts = localStorage.getItem('products');
+    if (savedProducts) {
+      try {
+        this.products = JSON.parse(savedProducts) as Product[];
+      } catch (error) {
+        console.error('Error loading products from localStorage:', error);
+        this.products = typedProducts;
+      }
+    } else {
+      this.products = typedProducts;
+      // Save the initial products to localStorage
+      this.saveProducts();
+    }
   }
 
   getAllProducts(): Product[] {
@@ -19,7 +29,36 @@ class ProductService {
   }
 
   addProduct(product: Product): void {
-    this.products.push(product);
+    // Generate a new ID based on the category
+    let newId = '';
+    if (product.category === 'food') {
+      // Find the highest food ID and increment
+      const foodIds = this.products
+        .filter(p => p.category === 'food')
+        .map(p => parseInt(p.id.substring(1))); // Extract the number after the first digit
+      const maxFoodId = Math.max(...foodIds, 0);
+      newId = `1${(maxFoodId + 1).toString().padStart(3, '0')}`;
+    } else if (product.category === 'drink') {
+      // Find the highest drink ID and increment
+      const drinkIds = this.products
+        .filter(p => p.category === 'drink')
+        .map(p => parseInt(p.id.substring(1))); // Extract the number after the first digit
+      const maxDrinkId = Math.max(...drinkIds, 0);
+      newId = `2${(maxDrinkId + 1).toString().padStart(3, '0')}`;
+    } else if (product.category === 'dessert') {
+      // Find the highest dessert ID and increment
+      const dessertIds = this.products
+        .filter(p => p.category === 'dessert')
+        .map(p => parseInt(p.id.substring(1))); // Extract the number after the first digit
+      const maxDessertId = Math.max(...dessertIds, 0);
+      newId = `3${(maxDessertId + 1).toString().padStart(3, '0')}`;
+    } else {
+      // Default ID generation
+      newId = Date.now().toString();
+    }
+    
+    // Add the product with the new ID
+    this.products.push({ ...product, id: newId });
     this.saveProducts();
   }
 
@@ -36,22 +75,35 @@ class ProductService {
     this.saveProducts();
   }
 
-  private saveProducts(): void {
-    // In a real application, this would make an API call
-    // For now, we'll just update the local state
-    localStorage.setItem('products', JSON.stringify(this.products));
+  // Export products to a JSON file
+  exportProducts(): string {
+    return JSON.stringify({ products: this.products }, null, 2);
   }
 
-  private loadProducts(): void {
-    const savedProducts = localStorage.getItem('products');
-    if (savedProducts) {
-      try {
-        const parsed = JSON.parse(savedProducts) as Product[];
-        this.products = parsed;
-      } catch (error) {
-        console.error('Error loading products from localStorage:', error);
+  // Import products from a JSON string
+  importProducts(jsonString: string): boolean {
+    try {
+      const data = JSON.parse(jsonString);
+      if (Array.isArray(data.products)) {
+        this.products = data.products as Product[];
+        this.saveProducts();
+        return true;
       }
+      return false;
+    } catch (error) {
+      console.error('Error importing products:', error);
+      return false;
     }
+  }
+
+  // Reset to default products from JSON file
+  resetToDefault(): void {
+    this.products = typedProducts;
+    this.saveProducts();
+  }
+
+  private saveProducts(): void {
+    localStorage.setItem('products', JSON.stringify(this.products));
   }
 }
 
