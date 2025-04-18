@@ -7,11 +7,10 @@ import {
 
 interface CartFooterProps {
   total: number;
-  onClearCart: () => void;
   onPrint: () => void;
 }
 
-const CartFooter: React.FC<CartFooterProps> = ({ total, onClearCart, onPrint }) => {
+const CartFooter: React.FC<CartFooterProps> = ({ total, onPrint }) => {
   return (
     <Box sx={{ 
       p: 2,
@@ -27,24 +26,14 @@ const CartFooter: React.FC<CartFooterProps> = ({ total, onClearCart, onPrint }) 
       <Typography variant="h6" gutterBottom>
         Total: ${total.toFixed(2)}
       </Typography>
-      <Box sx={{ display: 'flex', gap: 1 }}>
-        <Button 
-          variant="outlined" 
-          color="error" 
-          onClick={onClearCart}
-          fullWidth
-        >
-          Clear Cart
-        </Button>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={onPrint}
-          fullWidth
-        >
-          Print Receipt
-        </Button>
-      </Box>
+      <Button 
+        variant="contained" 
+        color="primary" 
+        onClick={onPrint}
+        fullWidth
+      >
+        Print Receipt
+      </Button>
     </Box>
   );
 };

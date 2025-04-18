@@ -5,7 +5,10 @@ import {
   Typography,
   Box,
   Divider,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import { RootState } from '../store';
 import { removeFromCart, clearCart, updateQuantity } from '../store/slices/cartSlice';
 import CartItemRow from './cart/CartItemRow';
@@ -55,9 +58,28 @@ const Cart: React.FC = () => {
       flexDirection: 'column',
       height: '100%'
     }}>
-      <Typography variant="h6" gutterBottom>
-        Cart
-      </Typography>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        mb: 1
+      }}>
+        <Typography variant="h6">
+          Cart
+        </Typography>
+        {cartItems.length > 0 && (
+          <Tooltip title="Clear Cart">
+            <IconButton 
+              color="error" 
+              size="small" 
+              onClick={handleClearCart}
+              aria-label="clear cart"
+            >
+              <DeleteSweepIcon />
+            </IconButton>
+          </Tooltip>
+        )}
+      </Box>
       <Divider />
       
       {/* Scrollable area with fixed height */}
@@ -87,7 +109,6 @@ const Cart: React.FC = () => {
       
       <CartFooter 
         total={total}
-        onClearCart={handleClearCart}
         onPrint={handlePrint}
       />
 
