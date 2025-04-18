@@ -2,15 +2,17 @@ import React from 'react';
 import { 
   Box,
   Typography,
-  Button
+  Button,
+  Tooltip
 } from '@mui/material';
 
 interface CartFooterProps {
   total: number;
   onPrint: () => void;
+  hasItems: boolean;
 }
 
-const CartFooter: React.FC<CartFooterProps> = ({ total, onPrint }) => {
+const CartFooter: React.FC<CartFooterProps> = ({ total, onPrint, hasItems }) => {
   return (
     <Box sx={{ 
       p: 2,
@@ -24,16 +26,21 @@ const CartFooter: React.FC<CartFooterProps> = ({ total, onPrint }) => {
       zIndex: 10
     }}>
       <Typography variant="h6" gutterBottom>
-        Total: ${total.toFixed(2)}
+        Total: {total.toFixed(2)}€
       </Typography>
-      <Button 
-        variant="contained" 
-        color="primary" 
-        onClick={onPrint}
-        fullWidth
-      >
-        Print Receipt
-      </Button>
+      <Tooltip title={hasItems ? "Print Receipt" : "Add items to cart to print receipt"}>
+        <span>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={onPrint}
+            fullWidth
+            disabled={!hasItems}
+          >
+            Print Receipt
+          </Button>
+        </span>
+      </Tooltip>
     </Box>
   );
 };

@@ -29,7 +29,7 @@ const CartItemRow: React.FC<CartItemRowProps> = ({
     <ListItem>
       <ListItemText
         primary={item.product.name}
-        secondary={`$${item.product.price.toFixed(2)} x ${item.quantity}`}
+        secondary={`${item.product.price.toFixed(2)}€ x ${item.quantity}`}
       />
       <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mr: 0.5 }}>

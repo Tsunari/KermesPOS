@@ -6,10 +6,10 @@ export const printReceipt = (cartItems: CartItem[], total: number): void => {
     -----------------
     ${cartItems.map(item => `
       ${item.product.name} x${item.quantity}
-      $${(item.product.price * item.quantity).toFixed(2)}
+      ${(item.product.price * item.quantity).toFixed(2)}€
     `).join('\n')}
     -----------------
-    Total: $${total.toFixed(2)}
+    Total: ${total.toFixed(2)}€
     -----------------
     Thank you for your purchase!
   `;
@@ -45,4 +45,4 @@ export const printReceipt = (cartItems: CartItem[], total: number): void => {
       printWindow.close();
     };
   }
-}; 
+};

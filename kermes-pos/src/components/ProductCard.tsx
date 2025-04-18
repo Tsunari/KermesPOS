@@ -49,8 +49,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <Typography variant="body2" color="text.secondary">
             {product.category}
           </Typography>
-          <Typography variant="h6" color="primary" sx={{ fontSize: '1.1rem' }}>
-            ${product.price.toFixed(2)}
+          <Typography variant="h6" component="div">
+            {product.price.toFixed(2)}€
           </Typography>
         </Box>
       </CardContent>

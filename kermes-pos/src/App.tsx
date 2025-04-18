@@ -205,7 +205,7 @@ function AppContent() {
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 2, mt: 2 }}>
                       <Paper sx={{ p: 2 }}>
                         <Typography variant="subtitle1">Total Sales</Typography>
-                        <Typography variant="h4">$1,234.56</Typography>
+                        <Typography variant="h4">1,234.56€</Typography>
                       </Paper>
                       <Paper sx={{ p: 2 }}>
                         <Typography variant="subtitle1">Items Sold</Typography>
@@ -213,7 +213,7 @@ function AppContent() {
                       </Paper>
                       <Paper sx={{ p: 2 }}>
                         <Typography variant="subtitle1">Average Order Value</Typography>
-                        <Typography variant="h4">$29.39</Typography>
+                        <Typography variant="h4">29.39€</Typography>
                       </Paper>
                     </Box>
                   </Box>

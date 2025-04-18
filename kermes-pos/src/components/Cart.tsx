@@ -110,6 +110,7 @@ const Cart: React.FC = () => {
       <CartFooter 
         total={total}
         onPrint={handlePrint}
+        hasItems={cartItems.length > 0}
       />
 
       <PrintDialog 
