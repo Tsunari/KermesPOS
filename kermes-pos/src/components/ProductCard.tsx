@@ -18,6 +18,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Product } from '../types';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../store/slices/cartSlice';
+import { useSettings } from '../context/SettingsContext';
 
 interface ProductCardProps {
   product: Product;
@@ -66,6 +67,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   onDelete,
 }) => {
   const dispatch = useDispatch();
+  const { useDoubleClick } = useSettings();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [localStockStatus, setLocalStockStatus] = React.useState(product.inStock);
   const open = Boolean(anchorEl);
@@ -76,8 +78,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
+  const handleClick = () => {
+    if (!useDoubleClick && localStockStatus) {
+      dispatch(addToCart(product));
+    }
+  };
+
   const handleDoubleClick = () => {
-    if (localStockStatus) {
+    if (useDoubleClick && localStockStatus) {
       dispatch(addToCart(product));
     }
   };
@@ -123,6 +131,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         cursor: localStockStatus ? 'pointer' : 'default',
         userSelect: 'none'
       }}
+      onClick={handleClick}
       onDoubleClick={handleDoubleClick}
     >
       <CardContent sx={{ flexGrow: 1, pb: 1 }}>

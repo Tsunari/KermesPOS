@@ -31,6 +31,7 @@ import { productService } from './services/productService';
 import Settings from './components/Settings';
 import SettingsPage from './components/SettingsPage';
 import ImportExport from './components/ImportExport';
+import { SettingsProvider } from './context/SettingsContext';
 
 const theme = createTheme({
   palette: {
@@ -234,9 +235,11 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
-        <AppContent />
-      </Router>
+      <SettingsProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </SettingsProvider>
     </ThemeProvider>
   );
 }

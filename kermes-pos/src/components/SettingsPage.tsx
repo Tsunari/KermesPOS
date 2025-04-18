@@ -15,8 +15,10 @@ import PaletteIcon from '@mui/icons-material/Palette';
 import LanguageIcon from '@mui/icons-material/Language';
 import BackupIcon from '@mui/icons-material/Backup';
 import CodeIcon from '@mui/icons-material/Code';
+import TouchAppIcon from '@mui/icons-material/TouchApp';
 import ModernSwitch from './ui/ModernSwitch';
 import { productService } from '../services/productService';
+import { useSettings } from '../context/SettingsContext';
 
 interface SettingsPageProps {
   devMode: boolean;
@@ -29,6 +31,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
   const [appearance, setAppearance] = useState(false);
   const [language, setLanguage] = useState(false);
   const [autoBackup, setAutoBackup] = useState(false);
+  const { useDoubleClick, setUseDoubleClick } = useSettings();
 
   const handleDefineDefault = () => {
     if (window.confirm('Are you sure you want to define the current product list as the default? This will update the source code and cannot be undone.')) {
@@ -62,6 +65,23 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
               edge="end"
               checked={devMode}
               onChange={(e) => setDevMode(e.target.checked)}
+            />
+          </ListItem>
+          
+          <Divider />
+          
+          <ListItem>
+            <ListItemIcon>
+              <TouchAppIcon />
+            </ListItemIcon>
+            <ListItemText 
+              primary="Double-Click to Add" 
+              secondary="Toggle between double-click and single-click to add items to cart"
+            />
+            <ModernSwitch
+              edge="end"
+              checked={useDoubleClick}
+              onChange={(e) => setUseDoubleClick(e.target.checked)}
             />
           </ListItem>
           
