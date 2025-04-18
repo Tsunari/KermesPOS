@@ -17,8 +17,10 @@ import {
   Paper
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import { RootState } from '../store';
-import { removeFromCart, clearCart } from '../store/slices/cartSlice';
+import { removeFromCart, clearCart, updateQuantity } from '../store/slices/cartSlice';
 
 const Cart: React.FC = () => {
   const dispatch = useDispatch();
@@ -36,6 +38,18 @@ const Cart: React.FC = () => {
 
   const handlePrint = () => {
     setPrintDialogOpen(true);
+  };
+
+  const handleIncrementQuantity = (id: string, currentQuantity: number) => {
+    dispatch(updateQuantity({ id, quantity: currentQuantity + 1 }));
+  };
+
+  const handleDecrementQuantity = (id: string, currentQuantity: number) => {
+    if (currentQuantity > 1) {
+      dispatch(updateQuantity({ id, quantity: currentQuantity - 1 }));
+    } else {
+      dispatch(removeFromCart(id));
+    }
   };
 
   const handlePrintConfirm = () => {
@@ -107,12 +121,32 @@ const Cart: React.FC = () => {
                   primary={item.product.name}
                   secondary={`$${item.product.price.toFixed(2)} x ${item.quantity}`}
                 />
-                <ListItemSecondaryAction>
+                <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mr: 0.5 }}>
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleDecrementQuantity(item.product.id, item.quantity)}
+                      sx={{ p: 0.25 }}
+                    >
+                      <RemoveIcon fontSize="small" />
+                    </IconButton>
+                    <Typography variant="body2" sx={{ minWidth: 16, textAlign: 'center', mx: 0.25 }}>
+                      {item.quantity}
+                    </Typography>
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleIncrementQuantity(item.product.id, item.quantity)}
+                      sx={{ p: 0.25 }}
+                    >
+                      <AddIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
                   <IconButton 
                     edge="end" 
                     aria-label="delete"
                     onClick={() => handleRemoveItem(item.product.id)}
                     size="small"
+                    sx={{ ml: 0.25 }}
                   >
                     <DeleteIcon />
                   </IconButton>
