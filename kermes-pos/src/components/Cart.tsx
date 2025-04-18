@@ -7,6 +7,12 @@ import {
   Divider,
   IconButton,
   Tooltip,
+  ListItem,
+  ListItemText,
+  Button,
+  Paper,
+  useTheme,
+  alpha,
 } from '@mui/material';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import { RootState } from '../store';
@@ -15,10 +21,14 @@ import CartItemRow from './cart/CartItemRow';
 import CartFooter from './cart/CartFooter';
 import PrintDialog from './cart/PrintDialog';
 import { printReceipt } from '../utils/printing';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 
 // Main Cart component
 const Cart: React.FC = () => {
   const dispatch = useDispatch();
+  const theme = useTheme();
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const total = useSelector((state: RootState) => state.cart.total);
   const [printDialogOpen, setPrintDialogOpen] = useState(false);
@@ -51,6 +61,49 @@ const Cart: React.FC = () => {
     printReceipt(cartItems, total);
     setPrintDialogOpen(false);
   };
+
+  // Group items by category
+  const groupedItems = cartItems.reduce((groups, item) => {
+    const category = item.product.category || 'Other';
+    if (!groups[category]) {
+      groups[category] = [];
+    }
+    groups[category].push(item);
+    return groups;
+  }, {} as Record<string, typeof cartItems>);
+
+  // Get category-specific styling - matching exactly with CategorySection
+  const getCategoryStyle = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'food':
+        return {
+          bgColor: alpha(theme.palette.primary.main, 0.05),
+          borderColor: theme.palette.primary.main,
+          name: 'Food',
+        };
+      case 'drink':
+        return {
+          bgColor: alpha(theme.palette.info.main, 0.05),
+          borderColor: theme.palette.info.main,
+          name: 'Drinks',
+        };
+      case 'dessert':
+        return {
+          bgColor: alpha(theme.palette.secondary.main, 0.05),
+          borderColor: theme.palette.secondary.main,
+          name: 'Desserts',
+        };
+      default:
+        return {
+          bgColor: alpha(theme.palette.grey[500], 0.05),
+          borderColor: theme.palette.grey[500],
+          name: 'Other',
+        };
+    }
+  };
+
+  // Define the order of categories to ensure food is always at the top
+  const categoryOrder = ['food', 'drink', 'dessert', 'Other'];
 
   return (
     <Box sx={{ 
@@ -94,15 +147,44 @@ const Cart: React.FC = () => {
           </Typography>
         ) : (
           <List>
-            {cartItems.map((item) => (
-              <CartItemRow
-                key={item.product.id}
-                item={item}
-                onIncrement={handleIncrementQuantity}
-                onDecrement={handleDecrementQuantity}
-                onRemove={handleRemoveItem}
-              />
-            ))}
+            {categoryOrder
+              .filter(category => groupedItems[category] && groupedItems[category].length > 0)
+              .map(category => {
+                const categoryStyle = getCategoryStyle(category);
+                return (
+                  <React.Fragment key={category}>
+                    <Box
+                      sx={{
+                        p: 1,
+                        backgroundColor: categoryStyle.bgColor,
+                        borderLeft: 3,
+                        borderColor: categoryStyle.borderColor,
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          color: categoryStyle.borderColor,
+                          fontWeight: 'bold',
+                          pl: 1,
+                        }}
+                      >
+                        {categoryStyle.name}
+                      </Typography>
+                    </Box>
+                    {groupedItems[category].map((item) => (
+                      <CartItemRow
+                        key={item.product.id}
+                        item={item}
+                        onRemove={handleRemoveItem}
+                        onIncrement={handleIncrementQuantity}
+                        onDecrement={handleDecrementQuantity}
+                      />
+                    ))}
+                    <Divider />
+                  </React.Fragment>
+                );
+              })}
           </List>
         )}
       </Box>
