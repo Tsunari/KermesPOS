@@ -209,28 +209,34 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                     sx={{
                       display: 'grid',
                       gridTemplateColumns: {
-                        xs: 'repeat(3, 1fr)',
-                        sm: 'repeat(4, 1fr)',
-                        md: 'repeat(6, 1fr)',
-                        lg: 'repeat(8, 1fr)',
+                        xs: 'repeat(4, 1fr)',
+                        sm: 'repeat(6, 1fr)',
+                        md: 'repeat(8, 1fr)',
+                        lg: 'repeat(10, 1fr)',
                       },
-                      gap: 1,
+                      gap: 0.5,
                       minHeight: 'fit-content',
                       width: '100%',
                       boxSizing: 'border-box',
                     }}
                   >
-                    {groupedProducts[category].map((product) => (
-                      <SortableProductCard
-                        key={product.id}
-                        product={product}
-                        onStockChange={onStockChange}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                        showDescription={showDescription}
-                        onClick={() => onProductClick(product)}
-                        categoryStyle={categoryStyle}
-                      />
+                    {groupedProducts[category].map((product, index) => (
+                      <React.Fragment key={product.id}>
+                        <Box sx={{ width: '100%' }}>
+                          <SortableProductCard
+                            product={product}
+                            onStockChange={onStockChange}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                            showDescription={showDescription}
+                            onClick={() => onProductClick(product)}
+                            categoryStyle={categoryStyle}
+                          />
+                        </Box>
+                        {(index + 1) % 8 === 0 && (
+                          <Box sx={{ gridColumn: '1 / -1', height: '0.5px', width: '100%', bgcolor: 'divider' }} />
+                        )}
+                      </React.Fragment>
                     ))}
                   </Box>
                 </SortableContext>
