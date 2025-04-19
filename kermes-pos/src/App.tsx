@@ -24,9 +24,11 @@ import ProductCard from './components/ProductCard';
 import Cart from './components/Cart';
 import ProductDialog from './components/ProductDialog';
 import ProductGrid from './components/ProductGrid';
+import NumericKeypad from './components/NumericKeypad';
 import { Product } from './types/index';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from './store';
+import { addToCart } from './store/slices/cartSlice';
 import { productService } from './services/productService';
 import Settings from './components/Settings';
 import SettingsPage from './components/SettingsPage';
@@ -45,10 +47,12 @@ const theme = createTheme({
 });
 
 function AppContent() {
+  const dispatch = useDispatch();
   const [products, setProducts] = useState<Product[]>([]);
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   const [devMode, setDevMode] = useState(false);
+  const [selectedQuantity, setSelectedQuantity] = useState(0);
   const location = useLocation();
   const isProductsPage = location.pathname === '/';
   const cartItems = useSelector((state: RootState) => state.cart.items);
@@ -96,7 +100,26 @@ function AppContent() {
       loadProducts();
     }
   };
-  
+
+  const handleNumberClick = (number: number) => {
+    setSelectedQuantity(number);
+  };
+
+  const handleClearQuantity = () => {
+    setSelectedQuantity(0);
+  };
+
+  const handleProductClick = (product: Product) => {
+    if (selectedQuantity > 0) {
+      for (let i = 0; i < selectedQuantity; i++) {
+        dispatch(addToCart(product));
+      }
+      setSelectedQuantity(0);
+    } else {
+      dispatch(addToCart(product));
+    }
+  };
+
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
       <AppBar position="fixed" sx={{ width: '64px', height: '100vh', left: 0, top: 0 }}>
@@ -138,10 +161,19 @@ function AppContent() {
               width: '300px',
               height: '100%',
               borderRadius: 0,
-              overflow: 'auto'
+              overflow: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
-            <Box sx={{ p: 2 }}>
+            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+              <NumericKeypad
+                onNumberClick={handleNumberClick}
+                onClear={handleClearQuantity}
+                selectedQuantity={selectedQuantity}
+              />
+            </Box>
+            <Box sx={{ p: 2, flex: 1, overflow: 'auto' }}>
               <Cart />
             </Box>
           </Paper>
@@ -157,6 +189,7 @@ function AppContent() {
                     onStockChange={handleStockChange}
                     onEdit={handleEditProduct}
                     onDelete={handleDeleteProduct}
+                    onProductClick={handleProductClick}
                   />
                   <Fab
                     color="primary"

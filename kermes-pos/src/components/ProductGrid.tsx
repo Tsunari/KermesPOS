@@ -9,6 +9,7 @@ interface ProductGridProps {
   onStockChange: (productId: string, inStock: boolean) => void;
   onEdit: (product: Product) => void;
   onDelete: (productId: string) => void;
+  onProductClick: (product: Product) => void;
 }
 
 const ProductGrid: React.FC<ProductGridProps> = ({
@@ -16,6 +17,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   onStockChange,
   onEdit,
   onDelete,
+  onProductClick,
 }) => {
   const { showDescription } = useSettings();
   const theme = useTheme();
@@ -128,19 +130,21 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                   </Typography>
                 </Typography>
               </Box>
-              <Box sx={{ 
-                display: 'grid',
-                gridTemplateColumns: {
-                  xs: 'repeat(3, 1fr)',
-                  sm: 'repeat(4, 1fr)',
-                  md: 'repeat(6, 1fr)',
-                  lg: 'repeat(8, 1fr)',
-                },
-                gap: 1,
-                minHeight: 'fit-content',
-                width: '100%',
-                boxSizing: 'border-box',
-              }}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: {
+                    xs: 'repeat(3, 1fr)',
+                    sm: 'repeat(4, 1fr)',
+                    md: 'repeat(6, 1fr)',
+                    lg: 'repeat(8, 1fr)',
+                  },
+                  gap: 1,
+                  minHeight: 'fit-content',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                }}
+              >
                 {groupedProducts[category].map((product) => (
                   <Box key={product.id} sx={{ width: '100%' }}>
                     <ProductCard
@@ -149,6 +153,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                       onEdit={onEdit}
                       onDelete={onDelete}
                       showDescription={showDescription}
+                      onClick={() => onProductClick(product)}
                     />
                   </Box>
                 ))}

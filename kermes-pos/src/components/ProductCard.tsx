@@ -22,6 +22,7 @@ interface ProductCardProps {
   onEdit?: (product: Product) => void;
   onDelete?: (productId: string) => void;
   showDescription?: boolean;
+  onClick?: () => void;
 }
 
 const CompactSwitch = styled(Switch)(({ theme }) => ({
@@ -63,6 +64,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   onEdit,
   onDelete,
   showDescription = false,
+  onClick,
 }) => {
   const dispatch = useDispatch();
   const { useDoubleClick } = useSettings();
@@ -80,13 +82,21 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
     
     if (!useDoubleClick && localStockStatus) {
-      dispatch(addToCart(product));
+      if (onClick) {
+        onClick();
+      } else {
+        dispatch(addToCart(product));
+      }
     }
   };
 
   const handleDoubleClick = () => {
     if (useDoubleClick && localStockStatus) {
-      dispatch(addToCart(product));
+      if (onClick) {
+        onClick();
+      } else {
+        dispatch(addToCart(product));
+      }
     }
   };
 
