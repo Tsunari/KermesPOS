@@ -29,6 +29,7 @@ const FONT_SIZE_NORMAL = GS + '!' + '\x00';
 const FONT_SIZE_LARGE = GS + '!' + '\x11';
 const FONT_SIZE_XLARGE = GS + '!' + '\x22';
 const CUT_PAPER = GS + 'V' + '\x41' + '\x00';
+const EXIT = ESC + '@'; // Exit command to reset printer
 
 // Format price with currency symbol
 const formatPrice = (price: number): string => {
@@ -81,25 +82,21 @@ const generateItemReceipt = (item: CartItem): string => {
     `Quantity: ${quantity}\n` +
     `Price: ${formatPrice(product.price)} each\n` +
     `Total: ${formatPrice(product.price * quantity)}\n` +
-    '--------------------------------\n'
+    `Date: ${new Date().toLocaleString()}\n` +
+    '--------------------------------\n' +
+    CUT_PAPER // Add paper cut after each item
   );
 };
 
 // Generate full cart receipt
-const generateCartReceipt = (items: CartItem[], total: number): string => {
-  let receipt = generateHeader();
+const generateCartReceipt = (items: CartItem[]): string => {
+  let receipt = '';
   
   items.forEach(item => {
     receipt += generateItemReceipt(item);
   });
   
-  receipt +=
-    ALIGN_RIGHT +
-    BOLD_ON +
-    `TOTAL: ${formatPrice(total)}\n` +
-    BOLD_OFF +
-    ALIGN_LEFT +
-    generateFooter();
+  receipt += EXIT; // Add exit command at the end
     
   return receipt;
 };
@@ -118,7 +115,7 @@ export const printItem = async (item: CartItem, config: PrinterConfig = defaultC
 // Print the entire cart
 export const printCart = async (items: CartItem[], total: number, config: PrinterConfig = defaultConfig): Promise<boolean> => {
   try {
-    const receipt = generateCartReceipt(items, total);
+    const receipt = generateCartReceipt(items);
     return await sendToPrinter(receipt, config);
   } catch (error) {
     console.error('Error printing cart:', error);

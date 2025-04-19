@@ -21,6 +21,7 @@ import {
   DialogActions,
   Snackbar,
   Alert,
+  Popover,
 } from '@mui/material';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import PrintIcon from '@mui/icons-material/Print';
@@ -29,20 +30,20 @@ import { RootState } from '../store';
 import { removeFromCart, clearCart, updateQuantity } from '../store/slices/cartSlice';
 import CartItemRow from './cart/CartItemRow';
 import CartFooter from './cart/CartFooter';
-import PrintDialog from './cart/PrintDialog';
-import { printReceipt, printWithPrinter } from '../utils/printing';
 import PrinterSettings from './PrinterSettings';
+import ReceiptPreview from './cart/ReceiptPreview';
 import { CartItem } from '../types/index';
+import { printCart } from '../services/printerService';
 
 const Cart: React.FC = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const total = useSelector((state: RootState) => state.cart.total);
-  const [printDialogOpen, setPrintDialogOpen] = useState(false);
   const [printerSettingsOpen, setPrinterSettingsOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [previewAnchorEl, setPreviewAnchorEl] = useState<HTMLElement | null>(null);
 
   const handleRemoveItem = (id: string) => {
     dispatch(removeFromCart(id));
@@ -52,11 +53,14 @@ const Cart: React.FC = () => {
     dispatch(clearCart());
   };
 
-  const handlePrintConfirm = () => {
+  const handlePrint = async () => {
     try {
-      printReceipt(cartItems, total);
-      setSuccessMessage('Receipt printed successfully');
-      setPrintDialogOpen(false);
+      const success = await printCart(cartItems, total);
+      if (success) {
+        setSuccessMessage('Receipt printed successfully');
+      } else {
+        setErrorMessage('Failed to print receipt. Please try again.');
+      }
     } catch (error) {
       setErrorMessage('Failed to print receipt. Please try again.');
     }
@@ -81,15 +85,15 @@ const Cart: React.FC = () => {
     }
   };
 
-  // Printer-specific function for the top print button
-  const handlePrintWithPrinter = () => {
-    try {
-      printWithPrinter(cartItems, total);
-      setSuccessMessage('Receipt printed with printer settings');
-    } catch (error) {
-      setErrorMessage('Failed to print with printer settings. Please try again.');
-    }
+  const handlePrintPreviewOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setPreviewAnchorEl(event.currentTarget);
   };
+
+  const handlePrintPreviewClose = () => {
+    setPreviewAnchorEl(null);
+  };
+
+  const previewOpen = Boolean(previewAnchorEl);
 
   // Group items by category
   const groupedItems = cartItems.reduce((groups, item) => {
@@ -152,15 +156,36 @@ const Cart: React.FC = () => {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {cartItems.length > 0 && (
             <>
-              <Tooltip title="Print with Printer Settings">
+              <Tooltip title="Preview Receipt">
                 <IconButton
-                  onClick={handlePrintWithPrinter}
+                  onMouseEnter={handlePrintPreviewOpen}
+                  onMouseLeave={handlePrintPreviewClose}
                   disabled={cartItems.length === 0}
                   color="primary"
                 >
                   <PrintIcon />
                 </IconButton>
               </Tooltip>
+              <Popover
+                open={previewOpen}
+                anchorEl={previewAnchorEl}
+                onClose={handlePrintPreviewClose}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                sx={{
+                  pointerEvents: 'none',
+                }}
+              >
+                <Box sx={{ p: 2 }}>
+                  <ReceiptPreview items={cartItems} total={total} />
+                </Box>
+              </Popover>
               <Tooltip title="Printer Settings">
                 <IconButton 
                   color="primary" 
@@ -249,16 +274,8 @@ const Cart: React.FC = () => {
       
       <CartFooter 
         total={total}
-        onPrint={() => setPrintDialogOpen(true)}
+        onPrint={handlePrint}
         hasItems={cartItems.length > 0}
-      />
-      
-      <PrintDialog
-        open={printDialogOpen}
-        onClose={() => setPrintDialogOpen(false)}
-        onConfirm={handlePrintConfirm}
-        items={cartItems}
-        total={total}
       />
       
       <Dialog
