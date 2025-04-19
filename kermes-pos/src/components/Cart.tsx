@@ -81,7 +81,7 @@ const Cart: React.FC = () => {
     }
   };
 
-  // New printer-specific function for the top print button
+  // Printer-specific function for the top print button
   const handlePrintWithPrinter = () => {
     try {
       printWithPrinter(cartItems, total);
@@ -252,15 +252,15 @@ const Cart: React.FC = () => {
         onPrint={() => setPrintDialogOpen(true)}
         hasItems={cartItems.length > 0}
       />
-
-      <PrintDialog 
+      
+      <PrintDialog
         open={printDialogOpen}
         onClose={() => setPrintDialogOpen(false)}
         onConfirm={handlePrintConfirm}
         items={cartItems}
         total={total}
       />
-
+      
       <Dialog
         open={printerSettingsOpen}
         onClose={handlePrinterSettingsClose}
@@ -275,23 +275,23 @@ const Cart: React.FC = () => {
           <Button onClick={handlePrinterSettingsClose}>Close</Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={!!errorMessage}
-        autoHideDuration={6000}
+      
+      <Snackbar 
+        open={!!errorMessage} 
+        autoHideDuration={6000} 
         onClose={() => setErrorMessage(null)}
       >
-        <Alert onClose={() => setErrorMessage(null)} severity="error">
+        <Alert onClose={() => setErrorMessage(null)} severity="error" sx={{ width: '100%' }}>
           {errorMessage}
         </Alert>
       </Snackbar>
-
-      <Snackbar
-        open={!!successMessage}
-        autoHideDuration={6000}
+      
+      <Snackbar 
+        open={!!successMessage} 
+        autoHideDuration={6000} 
         onClose={() => setSuccessMessage(null)}
       >
-        <Alert onClose={() => setSuccessMessage(null)} severity="success">
+        <Alert onClose={() => setSuccessMessage(null)} severity="success" sx={{ width: '100%' }}>
           {successMessage}
         </Alert>
       </Snackbar>
