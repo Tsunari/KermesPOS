@@ -78,7 +78,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
-  const handleClick = () => {
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    // Don't add to cart if clicking on the switch or menu button
+    if (
+      (event.target as HTMLElement).closest('.MuiSwitch-root') || 
+      (event.target as HTMLElement).closest('.MuiIconButton-root')
+    ) {
+      return;
+    }
+    
     if (!useDoubleClick && localStockStatus) {
       dispatch(addToCart(product));
     }
