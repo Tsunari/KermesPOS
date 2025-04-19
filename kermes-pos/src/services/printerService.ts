@@ -11,7 +11,7 @@ interface PrinterConfig {
 // Default configuration for TSP100III Series
 const defaultConfig: PrinterConfig = {
   printerName: 'TSP100III',
-  paperWidth: 72, // Standard 72mm paper width
+  paperWidth: 80,
   fontSize: 12,
   bold: true,
 };

@@ -9,6 +9,8 @@ import {
   MenuItem,
   Switch,
   styled,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Product } from '../types/index';
@@ -23,6 +25,11 @@ interface ProductCardProps {
   onDelete?: (productId: string) => void;
   showDescription?: boolean;
   onClick?: () => void;
+  categoryStyle?: {
+    bgColor: string;
+    borderColor: string;
+    icon: string;
+  };
 }
 
 const CompactSwitch = styled(Switch)(({ theme }) => ({
@@ -65,6 +72,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   onDelete,
   showDescription = false,
   onClick,
+  categoryStyle,
 }) => {
   const dispatch = useDispatch();
   const { useDoubleClick } = useSettings();
@@ -106,6 +114,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     if (onStockChange) {
       onStockChange(product.id, newStatus);
     }
+    event.stopPropagation();
   };
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -141,8 +150,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
         border: '1px solid',
         borderColor: localStockStatus ? 'divider' : 'error.main',
         position: 'relative',
+        bgcolor: categoryStyle?.bgColor,
         '&:hover': {
-          borderColor: localStockStatus ? 'primary.main' : 'error.main',
+          borderColor: localStockStatus ? categoryStyle?.borderColor : 'error.main',
           boxShadow: 1,
         },
         '&::after': !localStockStatus ? {
@@ -184,20 +194,23 @@ const ProductCard: React.FC<ProductCardProps> = ({
               WebkitBoxOrient: 'vertical',
               lineHeight: 1.2,
               color: localStockStatus ? 'text.primary' : 'text.disabled',
+              userSelect: 'none',
             }}
           >
             {product.name}
           </Typography>
-          <CompactSwitch
-            checked={localStockStatus}
-            onChange={handleStockChange}
-            onClick={(e) => e.stopPropagation()}
-            sx={{
-              '& .MuiSwitch-track': {
-                backgroundColor: localStockStatus ? 'primary.main' : 'error.main',
+          <IconButton
+            size="small"
+            onClick={handleMenuClick}
+            sx={{ 
+              p: 0.5,
+              '&:hover': {
+                backgroundColor: 'action.hover',
               },
             }}
-          />
+          >
+            <MoreVertIcon />
+          </IconButton>
         </Box>
 
         <Typography 
@@ -214,6 +227,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             opacity: showDescription ? 1 : 0,
             transition: 'opacity 0.2s, min-height 0.2s',
             color: localStockStatus ? 'text.secondary' : 'text.disabled',
+            userSelect: 'none',
           }}
         >
           {product.description}
@@ -230,22 +244,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
             sx={{ 
               color: localStockStatus ? 'primary.main' : 'error.main',
               textDecoration: localStockStatus ? 'none' : 'line-through',
+              userSelect: 'none',
             }}
           >
             {product.price.toFixed(2)}€
           </Typography>
-          <IconButton
-            size="small"
-            onClick={handleMenuClick}
-            sx={{ 
-              p: 0.5,
-              '&:hover': {
-                backgroundColor: 'action.hover',
-              },
-            }}
-          >
-            <MoreVertIcon />
-          </IconButton>
         </Box>
       </CardContent>
 
@@ -254,9 +257,48 @@ const ProductCard: React.FC<ProductCardProps> = ({
         open={open}
         onClose={handleMenuClose}
         onClick={(e) => e.stopPropagation()}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        sx={{
+          '& .MuiPaper-root': {
+            minWidth: '180px',
+          },
+        }}
       >
-        <MenuItem onClick={handleEdit}>Edit</MenuItem>
-        <MenuItem onClick={handleDelete}>Delete</MenuItem>
+        <MenuItem onClick={handleEdit}>
+          <ListItemText>Edit</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleDelete}>
+          <ListItemText>Delete</ListItemText>
+        </MenuItem>
+        <MenuItem 
+          onClick={(e) => e.stopPropagation()}
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
+          <ListItemText>Stock Status</ListItemText>
+          <ListItemIcon sx={{ minWidth: 0, ml: 2 }}>
+            <CompactSwitch
+              checked={localStockStatus}
+              onChange={handleStockChange}
+              sx={{
+                '& .MuiSwitch-track': {
+                  backgroundColor: localStockStatus ? 'primary.main' : 'error.main',
+                },
+              }}
+            />
+          </ListItemIcon>
+        </MenuItem>
       </Menu>
     </Card>
   );

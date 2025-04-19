@@ -96,42 +96,6 @@ const ProductGrid: React.FC<ProductGridProps> = ({
             <Box key={category} sx={{ mb: 2, width: '100%' }}>
               <Box
                 sx={{
-                  p: 1,
-                  bgcolor: categoryStyle.bgColor,
-                  borderLeft: 2,
-                  borderColor: categoryStyle.borderColor,
-                  mb: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  position: 'sticky',
-                  top: 0,
-                  zIndex: 1,
-                  width: '100%',
-                }}
-              >
-                <span role="img" aria-label={category}>
-                  {categoryStyle.icon}
-                </span>
-                <Typography
-                  variant="subtitle1"
-                  sx={{
-                    color: categoryStyle.borderColor,
-                    fontWeight: 'bold',
-                  }}
-                >
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                  <Typography
-                    component="span"
-                    variant="body2"
-                    sx={{ ml: 1, color: 'text.secondary' }}
-                  >
-                    ({groupedProducts[category].length})
-                  </Typography>
-                </Typography>
-              </Box>
-              <Box
-                sx={{
                   display: 'grid',
                   gridTemplateColumns: {
                     xs: 'repeat(3, 1fr)',
@@ -154,6 +118,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                       onDelete={onDelete}
                       showDescription={showDescription}
                       onClick={() => onProductClick(product)}
+                      categoryStyle={categoryStyle}
                     />
                   </Box>
                 ))}
