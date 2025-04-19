@@ -45,19 +45,19 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(4, 1fr)',
           gap: 1,
         }}
       >
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((number) => (
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((number) => (
           <Button
             key={number}
             variant="contained"
             onClick={() => onNumberClick(number)}
             sx={{
               minWidth: 0,
-              height: 50,
-              fontSize: '1.2rem',
+              height: 40,
+              fontSize: '1rem',
               fontWeight: 'bold',
               bgcolor: 'primary.main',
               '&:hover': {
@@ -74,8 +74,8 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
           onClick={onClear}
           sx={{
             minWidth: 0,
-            height: 50,
-            fontSize: '1.2rem',
+            height: 40,
+            fontSize: '1rem',
             fontWeight: 'bold',
             gridColumn: '1 / -1',
           }}

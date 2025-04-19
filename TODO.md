@@ -16,5 +16,5 @@ OSMAN ABI TODO:
 - [ ] Sprache
 - [ ] Compact (delete category dividers)
 - [x] Switches in dropdown
-- [ ] Numpad 1-12
-- [ ] Drag and drop for products
+- [x] Numpad 1-12
+- [x] Drag and drop for products
