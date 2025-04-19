@@ -100,6 +100,8 @@ class ProductService {
   resetToDefault(): void {
     this.products = typedProducts;
     this.saveProducts();
+    // Clear the product order from localStorage
+    localStorage.removeItem('product_order');
   }
 
   private saveProducts(): void {
