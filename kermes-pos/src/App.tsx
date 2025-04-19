@@ -24,7 +24,7 @@ import ProductCard from './components/ProductCard';
 import Cart from './components/Cart';
 import ProductDialog from './components/ProductDialog';
 import CategorySection from './components/CategorySection';
-import { Product } from './types';
+import { Product } from './types/index';
 import { useSelector } from 'react-redux';
 import { RootState } from './store';
 import { productService } from './services/productService';

@@ -13,7 +13,7 @@ import {
   Box,
   SelectChangeEvent,
 } from '@mui/material';
-import { Product } from '../types';
+import { Product } from '../types/index';
 
 interface ProductDialogProps {
   open: boolean;
@@ -94,7 +94,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({
               onChange={handleTextChange}
               required
               fullWidth
-              inputProps={{ step: 0.01, min: 0 }}
+              inputProps={{ step: 0.50, min: 0 }}
             />
             <FormControl fullWidth>
               <InputLabel>Category</InputLabel>

@@ -4,4 +4,5 @@
 - [ ] Statistics Page with (total sale, total profit, total items sold by product)
 - [ ] Print each product separately
 - [ ] Make the Default products save stuff work
+- [ ] Drag and drop for products
 

@@ -5,12 +5,12 @@ import {
   ListItemSecondaryAction,
   IconButton,
   Typography,
-  Box
+  Box,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import { CartItem } from '../../types';
+import { CartItem } from '../../types/index';
 
 interface CartItemRowProps {
   item: CartItem;
@@ -23,13 +23,13 @@ const CartItemRow: React.FC<CartItemRowProps> = ({
   item, 
   onIncrement, 
   onDecrement, 
-  onRemove 
+  onRemove,
 }) => {
   return (
     <ListItem>
       <ListItemText
         primary={item.product.name}
-        secondary={`${item.product.price.toFixed(2)}€ x ${item.quantity}`}
+        secondary={`${item.product.price.toFixed(2).replace('.', ',')}€ x ${item.quantity}`}
       />
       <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mr: 0.5 }}>

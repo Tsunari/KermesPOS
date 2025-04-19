@@ -7,7 +7,7 @@ import {
   useTheme,
   alpha,
 } from '@mui/material';
-import { Product } from '../types';
+import { Product } from '../types/index';
 import ProductCard from './ProductCard';
 
 interface CategorySectionProps {

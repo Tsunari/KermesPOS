@@ -13,25 +13,36 @@ import {
   Paper,
   useTheme,
   alpha,
+  Menu,
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
+import PrintIcon from '@mui/icons-material/Print';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { RootState } from '../store';
 import { removeFromCart, clearCart, updateQuantity } from '../store/slices/cartSlice';
 import CartItemRow from './cart/CartItemRow';
 import CartFooter from './cart/CartFooter';
 import PrintDialog from './cart/PrintDialog';
-import { printReceipt } from '../utils/printing';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
+import { printReceipt, printWithPrinter } from '../utils/printing';
+import PrinterSettings from './PrinterSettings';
+import { CartItem } from '../types/index';
 
-// Main Cart component
 const Cart: React.FC = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const total = useSelector((state: RootState) => state.cart.total);
   const [printDialogOpen, setPrintDialogOpen] = useState(false);
+  const [printerSettingsOpen, setPrinterSettingsOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleRemoveItem = (id: string) => {
     dispatch(removeFromCart(id));
@@ -41,25 +52,43 @@ const Cart: React.FC = () => {
     dispatch(clearCart());
   };
 
-  const handlePrint = () => {
-    setPrintDialogOpen(true);
-  };
-
-  const handleIncrementQuantity = (id: string, currentQuantity: number) => {
-    dispatch(updateQuantity({ id, quantity: currentQuantity + 1 }));
-  };
-
-  const handleDecrementQuantity = (id: string, currentQuantity: number) => {
-    if (currentQuantity > 1) {
-      dispatch(updateQuantity({ id, quantity: currentQuantity - 1 }));
-    } else {
-      dispatch(removeFromCart(id));
+  const handlePrintConfirm = () => {
+    try {
+      printReceipt(cartItems, total);
+      setSuccessMessage('Receipt printed successfully');
+      setPrintDialogOpen(false);
+    } catch (error) {
+      setErrorMessage('Failed to print receipt. Please try again.');
     }
   };
 
-  const handlePrintConfirm = () => {
-    printReceipt(cartItems, total);
-    setPrintDialogOpen(false);
+  const handlePrinterSettingsOpen = () => {
+    setPrinterSettingsOpen(true);
+  };
+
+  const handlePrinterSettingsClose = () => {
+    setPrinterSettingsOpen(false);
+  };
+
+  const handlePrinterSettingsSave = (config: any) => {
+    try {
+      console.log('Printer settings saved:', config);
+      setSuccessMessage('Printer settings saved successfully!');
+      handlePrinterSettingsClose();
+    } catch (error) {
+      console.error('Settings error:', error);
+      setErrorMessage('Failed to save printer settings.');
+    }
+  };
+
+  // New printer-specific function for the top print button
+  const handlePrintWithPrinter = () => {
+    try {
+      printWithPrinter(cartItems, total);
+      setSuccessMessage('Receipt printed with printer settings');
+    } catch (error) {
+      setErrorMessage('Failed to print with printer settings. Please try again.');
+    }
   };
 
   // Group items by category
@@ -120,24 +149,47 @@ const Cart: React.FC = () => {
         <Typography variant="h6">
           Cart
         </Typography>
-        {cartItems.length > 0 && (
-          <Tooltip title="Clear Cart">
-            <IconButton 
-              color="error" 
-              size="small" 
-              onClick={handleClearCart}
-              aria-label="clear cart"
-            >
-              <DeleteSweepIcon />
-            </IconButton>
-          </Tooltip>
-        )}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {cartItems.length > 0 && (
+            <>
+              <Tooltip title="Print with Printer Settings">
+                <IconButton
+                  onClick={handlePrintWithPrinter}
+                  disabled={cartItems.length === 0}
+                  color="primary"
+                >
+                  <PrintIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Printer Settings">
+                <IconButton 
+                  color="primary" 
+                  size="small" 
+                  onClick={handlePrinterSettingsOpen}
+                  aria-label="printer settings"
+                  sx={{ mr: 1 }}
+                >
+                  <SettingsIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Clear Cart">
+                <IconButton 
+                  color="error" 
+                  size="small" 
+                  onClick={handleClearCart}
+                  aria-label="clear cart"
+                >
+                  <DeleteSweepIcon />
+                </IconButton>
+              </Tooltip>
+            </>
+          )}
+        </Box>
       </Box>
       <Divider />
       
-      {/* Scrollable area with fixed height */}
       <Box sx={{ 
-        height: 'calc(100% - 120px)', // Fixed height, leaving space for header and footer
+        height: 'calc(100% - 120px)',
         overflow: 'auto',
         mb: 2
       }}>
@@ -172,13 +224,19 @@ const Cart: React.FC = () => {
                         {categoryStyle.name}
                       </Typography>
                     </Box>
-                    {groupedItems[category].map((item) => (
+                    {groupedItems[category].map((item: CartItem) => (
                       <CartItemRow
                         key={item.product.id}
                         item={item}
                         onRemove={handleRemoveItem}
-                        onIncrement={handleIncrementQuantity}
-                        onDecrement={handleDecrementQuantity}
+                        onIncrement={(id, quantity) => dispatch(updateQuantity({ id, quantity: quantity + 1 }))}
+                        onDecrement={(id, quantity) => {
+                          if (quantity > 1) {
+                            dispatch(updateQuantity({ id, quantity: quantity - 1 }));
+                          } else {
+                            dispatch(removeFromCart(id));
+                          }
+                        }}
                       />
                     ))}
                     <Divider />
@@ -191,7 +249,7 @@ const Cart: React.FC = () => {
       
       <CartFooter 
         total={total}
-        onPrint={handlePrint}
+        onPrint={() => setPrintDialogOpen(true)}
         hasItems={cartItems.length > 0}
       />
 
@@ -199,7 +257,44 @@ const Cart: React.FC = () => {
         open={printDialogOpen}
         onClose={() => setPrintDialogOpen(false)}
         onConfirm={handlePrintConfirm}
+        items={cartItems}
+        total={total}
       />
+
+      <Dialog
+        open={printerSettingsOpen}
+        onClose={handlePrinterSettingsClose}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Printer Settings</DialogTitle>
+        <DialogContent>
+          <PrinterSettings onSave={handlePrinterSettingsSave} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handlePrinterSettingsClose}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={!!errorMessage}
+        autoHideDuration={6000}
+        onClose={() => setErrorMessage(null)}
+      >
+        <Alert onClose={() => setErrorMessage(null)} severity="error">
+          {errorMessage}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={() => setSuccessMessage(null)}
+      >
+        <Alert onClose={() => setSuccessMessage(null)} severity="success">
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

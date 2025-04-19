@@ -1,4 +1,4 @@
-import { Product } from '../types';
+import { Product } from '../types/index';
 import productsData from '../data/products.json';
 
 // Type assertion to ensure the JSON data matches our Product type

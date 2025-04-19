@@ -26,7 +26,7 @@ const CartFooter: React.FC<CartFooterProps> = ({ total, onPrint, hasItems }) => 
       zIndex: 10
     }}>
       <Typography variant="h6" gutterBottom>
-        Total: {total.toFixed(2)}€
+        Total: {total.toFixed(2).replace('.', ',')}€
       </Typography>
       <Tooltip title={hasItems ? "Print Receipt" : "Add items to cart to print receipt"}>
         <span>

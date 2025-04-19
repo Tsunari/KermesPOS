@@ -15,7 +15,7 @@ import {
   styled,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { Product } from '../types';
+import { Product } from '../types/index';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../store/slices/cartSlice';
 import { useSettings } from '../context/SettingsContext';
@@ -197,7 +197,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             {product.category}
           </Typography>
           <Typography variant="h6" component="div">
-            {product.price.toFixed(2)}€
+            {product.price.toFixed(2).replace('.', ',')}€
           </Typography>
         </Box>
       </CardContent>
