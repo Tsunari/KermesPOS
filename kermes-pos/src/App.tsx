@@ -12,12 +12,18 @@ import {
   Paper, 
   Badge,
   Fab,
+  SpeedDial,
+  SpeedDialIcon,
+  SpeedDialAction,
 } from '@mui/material';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import AddIcon from '@mui/icons-material/Add';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
+import MenuIcon from '@mui/icons-material/Menu';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import Cart from './components/Cart';
 import ProductDialog from './components/ProductDialog';
 import ProductGrid from './components/ProductGrid';
@@ -49,6 +55,7 @@ function AppContent() {
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   const [devMode, setDevMode] = useState(false);
   const [selectedQuantity, setSelectedQuantity] = useState(0);
+  const [isAppBarVisible, setIsAppBarVisible] = useState(true);
   const location = useLocation();
   const isProductsPage = location.pathname === '/';
   const cartItems = useSelector((state: RootState) => state.cart.items);
@@ -116,40 +123,57 @@ function AppContent() {
     }
   };
 
+  const actions = [
+    { icon: <AddIcon />, name: 'Add Product', onClick: handleAddProduct },
+    { 
+      icon: isAppBarVisible ? <VisibilityOffIcon /> : <VisibilityIcon />, 
+      name: isAppBarVisible ? 'Hide App Bar' : 'Show App Bar', 
+      onClick: () => setIsAppBarVisible(!isAppBarVisible) 
+    },
+  ];
+
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
-      <AppBar position="fixed" sx={{ width: '64px', height: '100vh', left: 0, top: 0 }}>
-        <Toolbar sx={{ flexDirection: 'column', height: '100%', justifyContent: 'flex-start', pt: 2 }}>
-          <Typography variant="h6" component="div" sx={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', mb: 4 }}>
-            Kermes POS
-          </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
-              <IconButton color="inherit" size="large">
-                <Badge badgeContent={totalQuantity} color="secondary">
-                  <RestaurantMenuIcon />
-                </Badge>
-              </IconButton>
-            </Link>
-            <Link to="/statistics" style={{ color: 'inherit', textDecoration: 'none' }}>
-              <IconButton color="inherit" size="large">
-                <BarChartIcon />
-              </IconButton>
-            </Link>
-            <Link to="/import-export" style={{ color: 'inherit', textDecoration: 'none' }}>
-              <IconButton color="inherit" size="large">
-                <ImportExportIcon />
-              </IconButton>
-            </Link>
-            <Link to="/settings" style={{ color: 'inherit', textDecoration: 'none' }}>
-              <IconButton color="inherit" size="large">
-                <SettingsIcon />
-              </IconButton>
-            </Link>
-          </Box>
-        </Toolbar>
-      </AppBar>
-      <Box component="main" sx={{ flexGrow: 1, ml: '64px', display: 'flex', height: '100vh' }}>
+      {isAppBarVisible && (
+        <AppBar position="fixed" sx={{ width: '64px', height: '100vh', left: 0, top: 0 }}>
+          <Toolbar sx={{ flexDirection: 'column', height: '100%', justifyContent: 'flex-start', pt: 2 }}>
+            <Typography variant="h6" component="div" sx={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', mb: 4 }}>
+              Kermes POS
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <IconButton color="inherit" size="large">
+                  <Badge badgeContent={totalQuantity} color="secondary">
+                    <RestaurantMenuIcon />
+                  </Badge>
+                </IconButton>
+              </Link>
+              <Link to="/statistics" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <IconButton color="inherit" size="large">
+                  <BarChartIcon />
+                </IconButton>
+              </Link>
+              <Link to="/import-export" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <IconButton color="inherit" size="large">
+                  <ImportExportIcon />
+                </IconButton>
+              </Link>
+              <Link to="/settings" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <IconButton color="inherit" size="large">
+                  <SettingsIcon />
+                </IconButton>
+              </Link>
+            </Box>
+          </Toolbar>
+        </AppBar>
+      )}
+      <Box component="main" sx={{ 
+        flexGrow: 1, 
+        ml: isAppBarVisible ? '64px' : 0,
+        display: 'flex', 
+        height: '100vh',
+        transition: 'margin-left 0.3s ease-in-out'
+      }}>
         {isProductsPage && (
           <Paper 
             elevation={3} 
@@ -187,13 +211,20 @@ function AppContent() {
                     onDelete={handleDeleteProduct}
                     onProductClick={handleProductClick}
                   />
-                  <Fab
-                    color="primary"
+                  <SpeedDial
+                    ariaLabel="SpeedDial"
                     sx={{ position: 'fixed', bottom: 16, right: 16 }}
-                    onClick={handleAddProduct}
+                    icon={<SpeedDialIcon openIcon={<MenuIcon />} />}
                   >
-                    <AddIcon />
-                  </Fab>
+                    {actions.map((action) => (
+                      <SpeedDialAction
+                        key={action.name}
+                        icon={action.icon}
+                        tooltipTitle={action.name}
+                        onClick={action.onClick}
+                      />
+                    ))}
+                  </SpeedDial>
                 </Box>
               }
             />
