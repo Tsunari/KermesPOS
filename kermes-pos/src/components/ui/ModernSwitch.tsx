@@ -1,6 +1,6 @@
-import { Switch, styled } from '@mui/material';
+import { Switch, styled, Theme } from '@mui/material';
 
-const ModernSwitch = styled(Switch)(({ theme }) => ({
+const ModernSwitch = styled(Switch)(({ theme }: { theme: Theme }) => ({
   width: 42,
   height: 26,
   padding: 0,

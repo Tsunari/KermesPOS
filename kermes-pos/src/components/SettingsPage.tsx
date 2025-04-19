@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ChangeEvent } from 'react';
 import {
   Box,
   Typography,
@@ -84,7 +84,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
       <ModernSwitch
         edge="end"
         checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
+        onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.checked)}
       />
     </ListItem>
   );

@@ -11,6 +11,7 @@ import {
   styled,
   ListItemIcon,
   ListItemText,
+  Theme,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Product } from '../types/index';
@@ -32,7 +33,7 @@ interface ProductCardProps {
   };
 }
 
-const CompactSwitch = styled(Switch)(({ theme }) => ({
+const CompactSwitch = styled(Switch)(({ theme }: { theme: Theme }) => ({
   width: 32,
   height: 16,
   padding: 0,

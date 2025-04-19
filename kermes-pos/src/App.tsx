@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { 
-  Container, 
   CssBaseline, 
   ThemeProvider, 
   createTheme, 
@@ -14,13 +13,11 @@ import {
   Badge,
   Fab,
 } from '@mui/material';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import AddIcon from '@mui/icons-material/Add';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
-import ProductCard from './components/ProductCard';
 import Cart from './components/Cart';
 import ProductDialog from './components/ProductDialog';
 import ProductGrid from './components/ProductGrid';
@@ -30,7 +27,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from './store';
 import { addToCart } from './store/slices/cartSlice';
 import { productService } from './services/productService';
-import Settings from './components/Settings';
 import SettingsPage from './components/SettingsPage';
 import ImportExport from './components/ImportExport';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
