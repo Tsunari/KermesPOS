@@ -23,7 +23,7 @@ import ImportExportIcon from '@mui/icons-material/ImportExport';
 import ProductCard from './components/ProductCard';
 import Cart from './components/Cart';
 import ProductDialog from './components/ProductDialog';
-import CategorySection from './components/CategorySection';
+import ProductGrid from './components/ProductGrid';
 import { Product } from './types/index';
 import { useSelector } from 'react-redux';
 import { RootState } from './store';
@@ -46,13 +46,13 @@ const theme = createTheme({
 
 function AppContent() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | undefined>();
-  const { devMode, setDevMode } = useSettings();
-  const cartItems = useSelector((state: RootState) => state.cart.items);
-  const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
+  const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+  const [devMode, setDevMode] = useState(false);
   const location = useLocation();
   const isProductsPage = location.pathname === '/';
+  const cartItems = useSelector((state: RootState) => state.cart.items);
+  const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   useEffect(() => {
     loadProducts();
@@ -64,13 +64,13 @@ function AppContent() {
   };
 
   const handleAddProduct = () => {
-    setSelectedProduct(undefined);
-    setDialogOpen(true);
+    setEditingProduct(undefined);
+    setIsAddProductOpen(true);
   };
 
   const handleEditProduct = (product: Product) => {
-    setSelectedProduct(product);
-    setDialogOpen(true);
+    setEditingProduct(product);
+    setIsAddProductOpen(true);
   };
 
   const handleDeleteProduct = (productId: string) => {
@@ -81,7 +81,7 @@ function AppContent() {
   };
 
   const handleSaveProduct = (product: Product) => {
-    if (selectedProduct) {
+    if (editingProduct) {
       productService.updateProduct(product);
     } else {
       productService.addProduct(product);
@@ -152,25 +152,12 @@ function AppContent() {
               path="/"
               element={
                 <Box sx={{ p: 2 }}>
-                  {Object.entries(
-                    products.reduce((acc, product) => {
-                      const category = product.category || 'Other';
-                      if (!acc[category]) {
-                        acc[category] = [];
-                      }
-                      acc[category].push(product);
-                      return acc;
-                    }, {} as Record<string, Product[]>)
-                  ).map(([category, categoryProducts]) => (
-                    <CategorySection
-                      key={category}
-                      category={category}
-                      products={categoryProducts}
-                      onStockChange={handleStockChange}
-                      onEdit={handleEditProduct}
-                      onDelete={handleDeleteProduct}
-                    />
-                  ))}
+                  <ProductGrid
+                    products={products}
+                    onStockChange={handleStockChange}
+                    onEdit={handleEditProduct}
+                    onDelete={handleDeleteProduct}
+                  />
                   <Fab
                     color="primary"
                     sx={{ position: 'fixed', bottom: 16, right: 16 }}
@@ -222,10 +209,10 @@ function AppContent() {
         </Box>
       </Box>
       <ProductDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
+        open={isAddProductOpen}
+        onClose={() => setIsAddProductOpen(false)}
         onSave={handleSaveProduct}
-        product={selectedProduct}
+        product={editingProduct}
       />
     </Box>
   );

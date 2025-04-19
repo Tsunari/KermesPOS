@@ -20,6 +20,7 @@ import TouchAppIcon from '@mui/icons-material/TouchApp';
 import ModernSwitch from './ui/ModernSwitch';
 import { productService } from '../services/productService';
 import { useSettings } from '../context/SettingsContext';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 interface SettingsPageProps {
   devMode: boolean;
@@ -40,6 +41,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
     setLanguage,
     autoBackup,
     setAutoBackup,
+    showDescription,
+    setShowDescription,
   } = useSettings();
 
   const handleDefineDefault = () => {
@@ -115,6 +118,17 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
             "Toggle between double-click and single-click to add items to cart",
             useDoubleClick,
             setUseDoubleClick,
+            true
+          )}
+          
+          <Divider />
+          
+          {renderSettingItem(
+            <VisibilityIcon />,
+            "Show Descriptions",
+            "Display product descriptions in the product grid",
+            showDescription,
+            setShowDescription,
             true
           )}
           

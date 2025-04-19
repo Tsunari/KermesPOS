@@ -1,163 +1,227 @@
 {
   "products": [
     {
-      "id": "101",
-      "name": "Adana Kebab",
-      "price": 8.50,
-      "category": "food",
-      "description": "Spicy minced meat kebab grilled on skewers, served with rice and salad",
-      "inStock": true
-    },
-    {
-      "id": "102",
-      "name": "Döner Kebab",
-      "price": 7.50,
+      "id": "1001",
+      "name": "Döner",
+      "price": 8.00,
       "category": "food",
       "description": "Freshly grilled döner kebab with lettuce, tomato, and special sauce",
       "inStock": true
     },
     {
-      "id": "103",
-      "name": "Gözleme",
-      "price": 4.50,
+      "id": "1002",
+      "name": "Döner Dürüm",
+      "price": 9.00,
       "category": "food",
-      "description": "Hand-rolled flatbread with fillings like cheese, spinach, or potato",
+      "description": "Döner kebab wrapped in thin flatbread with fresh vegetables",
       "inStock": true
     },
     {
-      "id": "104",
-      "name": "Köfte",
+      "id": "1003",
+      "name": "Döner Tabak",
+      "price": 13.00,
+      "category": "food",
+      "description": "Döner kebab served on a plate with rice and salad",
+      "inStock": true
+    },
+    {
+      "id": "1004",
+      "name": "Adana",
       "price": 8.00,
       "category": "food",
-      "description": "Grilled meatballs served with rice, salad, and bread",
+      "description": "Spicy minced meat kebab grilled on skewers",
       "inStock": true
     },
     {
-      "id": "105",
-      "name": "Lahmacun",
+      "id": "1005",
+      "name": "Balik",
+      "price": 10.00,
+      "category": "food",
+      "description": "Fresh grilled fish served with salad",
+      "inStock": true
+    },
+    {
+      "id": "1006",
+      "name": "Balik Ekmek",
+      "price": 8.00,
+      "category": "food",
+      "description": "Grilled fish sandwich with fresh vegetables",
+      "inStock": true
+    },
+    {
+      "id": "1007",
+      "name": "Tantuni",
+      "price": 8.00,
+      "category": "food",
+      "description": "Spicy minced meat wrapped in thin flatbread",
+      "inStock": true
+    },
+    {
+      "id": "1008",
+      "name": "Tantuni Tabak",
+      "price": 13.00,
+      "category": "food",
+      "description": "Tantuni served on a plate with rice and salad",
+      "inStock": true
+    },
+    {
+      "id": "1009",
+      "name": "Köfte Ekmek",
+      "price": 8.00,
+      "category": "food",
+      "description": "Grilled meatball sandwich with fresh vegetables",
+      "inStock": true
+    },
+    {
+      "id": "1010",
+      "name": "Köfte Tabak",
+      "price": 10.00,
+      "category": "food",
+      "description": "Grilled meatballs served with rice and salad",
+      "inStock": true
+    },
+    {
+      "id": "1011",
+      "name": "1/2 Yarim Tavuk",
+      "price": 8.00,
+      "category": "food",
+      "description": "Half grilled chicken with rice and salad",
+      "inStock": true
+    },
+    {
+      "id": "1012",
+      "name": "1 Tam Tavuk",
+      "price": 15.00,
+      "category": "food",
+      "description": "Whole grilled chicken with rice and salad",
+      "inStock": true
+    },
+    {
+      "id": "1013",
+      "name": "Hamsi Tava",
+      "price": 10.00,
+      "category": "food",
+      "description": "Fried anchovies served with salad",
+      "inStock": true
+    },
+    {
+      "id": "1014",
+      "name": "Kumpir",
+      "price": 8.00,
+      "category": "food",
+      "description": "Baked potato with various toppings",
+      "inStock": true
+    },
+    {
+      "id": "1015",
+      "name": "Talebe Yemek",
       "price": 5.00,
       "category": "food",
-      "description": "Thin flatbread topped with minced meat, vegetables, and herbs",
+      "description": "Student meal special with rice and salad",
       "inStock": true
     },
     {
-      "id": "106",
-      "name": "Mantı",
-      "price": 7.00,
-      "category": "food",
-      "description": "Turkish dumplings filled with minced meat, served with yogurt sauce",
+      "id": "2001",
+      "name": "Cay",
+      "price": 1.00,
+      "category": "drink",
+      "description": "Traditional Turkish black tea",
       "inStock": true
     },
     {
-      "id": "107",
-      "name": "Pide",
-      "price": 6.50,
-      "category": "food",
-      "description": "Turkish flatbread with various toppings (cheese, meat, or mixed)",
-      "inStock": true
-    },
-    {
-      "id": "108",
-      "name": "Pommes",
-      "price": 3.50,
-      "category": "food",
-      "description": "Crispy French fries served with ketchup",
-      "inStock": true
-    },
-    {
-      "id": "109",
-      "name": "Talebe Yemek",
-      "price": 6.00,
-      "category": "food",
-      "description": "Student meal special with rice, beans, and salad",
-      "inStock": true
-    },
-    {
-      "id": "110",
-      "name": "Tantuni",
-      "price": 7.00,
-      "category": "food",
-      "description": "Spicy minced meat wrapped in thin flatbread with tomatoes and onions",
-      "inStock": true
-    },
-    {
-      "id": "111",
-      "name": "Tavuk",
-      "price": 7.50,
-      "category": "food",
-      "description": "Grilled chicken served with rice and salad",
-      "inStock": true
-    },
-    {
-      "id": "112",
-      "name": "Çorba",
-      "price": 4.00,
-      "category": "food",
-      "description": "Traditional Turkish soup (lentil, tomato, or chicken)",
-      "inStock": true
-    },
-    {
-      "id": "201",
-      "name": "Ayran",
+      "id": "2002",
+      "name": "Kahve",
       "price": 2.00,
       "category": "drink",
-      "description": "Traditional yogurt-based drink, perfect with savory dishes",
+      "description": "Turkish coffee",
       "inStock": true
     },
     {
-      "id": "202",
-      "name": "Limonata",
-      "price": 3.00,
-      "category": "drink",
-      "description": "Freshly squeezed lemonade with mint leaves",
-      "inStock": true
-    },
-    {
-      "id": "203",
-      "name": "Kahve",
-      "price": 2.50,
-      "category": "drink",
-      "description": "Strong Turkish coffee prepared in a cezve, served with a glass of water",
-      "inStock": true
-    },
-    {
-      "id": "204",
-      "name": "Çay",
+      "id": "2003",
+      "name": "Su",
       "price": 1.50,
       "category": "drink",
-      "description": "Traditional Turkish black tea served in a tulip-shaped glass",
+      "description": "Mineral water",
       "inStock": true
     },
     {
-      "id": "205",
-      "name": "Meşrubat",
-      "price": 2.50,
+      "id": "2004",
+      "name": "Ayran",
+      "price": 1.50,
       "category": "drink",
-      "description": "Carbonated soft drink (Cola, Fanta, Sprite)",
+      "description": "Traditional yogurt drink",
       "inStock": true
     },
     {
-      "id": "301",
-      "name": "Baklava",
-      "price": 5.50,
-      "category": "dessert",
-      "description": "Layered pastry dessert made of filo dough, filled with chopped nuts and sweetened with syrup",
+      "id": "2005",
+      "name": "Acik Yayik Ayran",
+      "price": 2.00,
+      "category": "drink",
+      "description": "Homemade yogurt drink",
       "inStock": true
     },
     {
-      "id": "302",
-      "name": "Künefe",
+      "id": "2006",
+      "name": "Mesrubat",
+      "price": 2.00,
+      "category": "drink",
+      "description": "Soft drink (Cola, Fanta, Sprite)",
+      "inStock": true
+    },
+    {
+      "id": "2007",
+      "name": "Spezi",
+      "price": 2.00,
+      "category": "drink",
+      "description": "Cola and Fanta mix",
+      "inStock": true
+    },
+    {
+      "id": "2008",
+      "name": "Iskembe Corba",
       "price": 6.00,
-      "category": "dessert",
-      "description": "Traditional Turkish dessert made with shredded phyllo dough, cheese, and syrup",
+      "category": "drink",
+      "description": "Traditional tripe soup",
       "inStock": true
     },
     {
-      "id": "303",
-      "name": "Pasta",
+      "id": "2009",
+      "name": "Mercimek Corba",
       "price": 5.00,
+      "category": "drink",
+      "description": "Lentil soup",
+      "inStock": true
+    },
+    {
+      "id": "3001",
+      "name": "Pommes",
+      "price": 3.00,
       "category": "dessert",
-      "description": "Freshly baked cake with various flavors and toppings",
+      "description": "French fries with ketchup",
+      "inStock": true
+    },
+    {
+      "id": "3002",
+      "name": "Lahmacun",
+      "price": 3.00,
+      "category": "dessert",
+      "description": "Thin flatbread with minced meat",
+      "inStock": true
+    },
+    {
+      "id": "3003",
+      "name": "Gözleme",
+      "price": 3.00,
+      "category": "dessert",
+      "description": "Hand-rolled flatbread with fillings",
+      "inStock": true
+    },
+    {
+      "id": "3004",
+      "name": "Katmer",
+      "price": 3.00,
+      "category": "dessert",
+      "description": "Sweet pastry with clotted cream",
       "inStock": true
     }
   ]

@@ -15,6 +15,8 @@ interface SettingsContextType {
   setLanguage: (value: boolean) => void;
   autoBackup: boolean;
   setAutoBackup: (value: boolean) => void;
+  showDescription: boolean;
+  setShowDescription: (value: boolean) => void;
 }
 
 type Settings = {
@@ -25,16 +27,18 @@ type Settings = {
   appearance: boolean;
   language: boolean;
   autoBackup: boolean;
+  showDescription: boolean;
 };
 
 const defaultSettings: Settings = {
-  useDoubleClick: true,
+  useDoubleClick: false,
   devMode: false,
   notifications: true,
   security: true,
-  appearance: false,
-  language: false,
-  autoBackup: false,
+  appearance: true,
+  language: true,
+  autoBackup: true,
+  showDescription: false,
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -69,6 +73,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       setLanguage: (value) => updateSetting('language', value),
       autoBackup: settings.autoBackup,
       setAutoBackup: (value) => updateSetting('autoBackup', value),
+      showDescription: settings.showDescription,
+      setShowDescription: (value) => updateSetting('showDescription', value),
     }}>
       {children}
     </SettingsContext.Provider>

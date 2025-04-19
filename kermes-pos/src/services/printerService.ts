@@ -36,35 +36,6 @@ const formatPrice = (price: number): string => {
   return price.toFixed(2) + '€';
 };
 
-// Generate receipt header
-const generateHeader = (): string => {
-  return (
-    INIT +
-    ALIGN_CENTER +
-    BOLD_ON +
-    FONT_SIZE_XLARGE +
-    'KERMES POS\n' +
-    FONT_SIZE_NORMAL +
-    'Receipt\n' +
-    new Date().toLocaleString() + '\n' +
-    '--------------------------------\n' +
-    BOLD_OFF +
-    ALIGN_LEFT
-  );
-};
-
-// Generate receipt footer
-const generateFooter = (): string => {
-  return (
-    ALIGN_CENTER +
-    BOLD_ON +
-    'Thank you for your purchase!\n' +
-    BOLD_OFF +
-    ALIGN_LEFT +
-    CUT_PAPER
-  );
-};
-
 // Generate item receipt
 const generateItemReceipt = (item: CartItem): string => {
   const { product, quantity } = item;
@@ -99,17 +70,6 @@ const generateCartReceipt = (items: CartItem[]): string => {
   receipt += EXIT; // Add exit command at the end
     
   return receipt;
-};
-
-// Print a single item
-export const printItem = async (item: CartItem, config: PrinterConfig = defaultConfig): Promise<boolean> => {
-  try {
-    const receipt = generateItemReceipt(item);
-    return await sendToPrinter(receipt, config);
-  } catch (error) {
-    console.error('Error printing item:', error);
-    return false;
-  }
 };
 
 // Print the entire cart

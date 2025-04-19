@@ -2,16 +2,12 @@ import React from 'react';
 import {
   Card,
   CardContent,
-  CardMedia,
   Typography,
-  Button,
-  CardActions,
   Box,
-  Switch,
-  FormControlLabel,
   IconButton,
   Menu,
   MenuItem,
+  Switch,
   styled,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -25,15 +21,16 @@ interface ProductCardProps {
   onStockChange?: (productId: string, inStock: boolean) => void;
   onEdit?: (product: Product) => void;
   onDelete?: (productId: string) => void;
+  showDescription?: boolean;
 }
 
-const ModernSwitch = styled(Switch)(({ theme }) => ({
-  width: 36,
-  height: 20,
+const CompactSwitch = styled(Switch)(({ theme }) => ({
+  width: 32,
+  height: 16,
   padding: 0,
   '& .MuiSwitch-switchBase': {
     padding: 0,
-    margin: 2,
+    margin: 0,
     transitionDuration: '300ms',
     '&.Mui-checked': {
       transform: 'translateX(16px)',
@@ -51,8 +48,8 @@ const ModernSwitch = styled(Switch)(({ theme }) => ({
     height: 16,
   },
   '& .MuiSwitch-track': {
-    borderRadius: 26 / 2,
-    backgroundColor: theme.palette.grey[400],
+    borderRadius: 16 / 2,
+    backgroundColor: theme.palette.mode === 'dark' ? '#E9E9EA' : '#E9E9EA',
     opacity: 1,
     transition: theme.transitions.create(['background-color'], {
       duration: 500,
@@ -61,22 +58,17 @@ const ModernSwitch = styled(Switch)(({ theme }) => ({
 }));
 
 const ProductCard: React.FC<ProductCardProps> = ({ 
-  product, 
+  product,
   onStockChange,
   onEdit,
   onDelete,
+  showDescription = false,
 }) => {
   const dispatch = useDispatch();
   const { useDoubleClick } = useSettings();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [localStockStatus, setLocalStockStatus] = React.useState(product.inStock);
   const open = Boolean(anchorEl);
-
-  const handleAddToCart = () => {
-    if (localStockStatus) {
-      dispatch(addToCart(product));
-    }
-  };
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     // Don't add to cart if clicking on the switch or menu button
@@ -131,87 +123,131 @@ const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <Card 
       sx={{ 
-        width: 220,
-        height: 200,
+        width: 180,
+        height: 140,
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
-        cursor: localStockStatus ? 'pointer' : 'default',
-        userSelect: 'none'
+        cursor: localStockStatus ? 'pointer' : 'not-allowed',
+        border: '1px solid',
+        borderColor: localStockStatus ? 'divider' : 'error.main',
+        position: 'relative',
+        '&:hover': {
+          borderColor: localStockStatus ? 'primary.main' : 'error.main',
+          boxShadow: 1,
+        },
+        '&::after': !localStockStatus ? {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.1)',
+          pointerEvents: 'none',
+        } : {},
       }}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
     >
-      <CardContent sx={{ flexGrow: 1, pb: 1 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography variant="h6" component="div" sx={{ fontSize: '1.1rem' }}>
+      <CardContent sx={{ 
+        flex: 1,
+        p: 1.5,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0.5,
+        opacity: localStockStatus ? 1 : 0.7,
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'flex-start',
+          mb: 0.5,
+        }}>
+          <Typography 
+            variant="subtitle1" 
+            sx={{ 
+              fontWeight: 'medium',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              lineHeight: 1.2,
+              color: localStockStatus ? 'text.primary' : 'text.disabled',
+            }}
+          >
             {product.name}
           </Typography>
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'flex-end',
-            mt: 0.5,
-            gap: 0.25
-          }}>
-            <ModernSwitch
-              checked={localStockStatus}
-              onChange={handleStockChange}
-              size="small"
-            />
-            <IconButton
-              size="small"
-              onClick={handleMenuClick}
-              sx={{ p: 0.25 }}
-            >
-              <MoreVertIcon fontSize="small" />
-            </IconButton>
-          </Box>
+          <CompactSwitch
+            checked={localStockStatus}
+            onChange={handleStockChange}
+            onClick={(e) => e.stopPropagation()}
+            sx={{
+              '& .MuiSwitch-track': {
+                backgroundColor: localStockStatus ? 'primary.main' : 'error.main',
+              },
+            }}
+          />
         </Box>
-        <Menu
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleMenuClose}
+
+        <Typography 
+          variant="body2" 
+          color="text.secondary"
+          sx={{ 
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            lineHeight: 1.2,
+            minHeight: showDescription ? '2.4em' : 0,
+            opacity: showDescription ? 1 : 0,
+            transition: 'opacity 0.2s, min-height 0.2s',
+            color: localStockStatus ? 'text.secondary' : 'text.disabled',
+          }}
         >
-          <MenuItem onClick={handleEdit}>Edit</MenuItem>
-          <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>Delete</MenuItem>
-        </Menu>
-        <Typography variant="body2" color="text.secondary" sx={{ 
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          mb: 2
-        }}>
           {product.description}
         </Typography>
+
         <Box sx={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center',
           mt: 'auto',
-          pt: 1
         }}>
-          <Typography variant="body2" color="text.secondary">
-            {product.category}
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              color: localStockStatus ? 'primary.main' : 'error.main',
+              textDecoration: localStockStatus ? 'none' : 'line-through',
+            }}
+          >
+            {product.price.toFixed(2)}€
           </Typography>
-          <Typography variant="h6" component="div">
-            {product.price.toFixed(2).replace('.', ',')}€
-          </Typography>
+          <IconButton
+            size="small"
+            onClick={handleMenuClick}
+            sx={{ 
+              p: 0.5,
+              '&:hover': {
+                backgroundColor: 'action.hover',
+              },
+            }}
+          >
+            <MoreVertIcon />
+          </IconButton>
         </Box>
       </CardContent>
-      <CardActions sx={{ p: 1, pt: 0 }}>
-        <Button 
-          size="small" 
-          variant="contained" 
-          fullWidth 
-          onClick={handleAddToCart}
-          disabled={!localStockStatus}
-        >
-          {localStockStatus ? 'Add to Cart' : 'Out of Stock'}
-        </Button>
-      </CardActions>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleMenuClose}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <MenuItem onClick={handleEdit}>Edit</MenuItem>
+        <MenuItem onClick={handleDelete}>Delete</MenuItem>
+      </Menu>
     </Card>
   );
 };
