@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ThemeProvider as MUIThemeProvider, createTheme } from '@mui/material/styles';
+import { GlobalStyles } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
+import { useSettings } from '../context/SettingsContext';
 
 type ThemeContextType = {
   isDarkMode: boolean;
@@ -27,6 +29,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     return savedTheme === 'dark';
   });
+
+  const { showPageScrollbars, showComponentScrollbars } = useSettings();
 
   useEffect(() => {
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
@@ -72,6 +76,55 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
       <MUIThemeProvider theme={theme}>
         <CssBaseline />
+        <GlobalStyles
+          styles={{
+            'html, body': {
+              scrollbarWidth: showPageScrollbars ? 'auto' : 'none',
+              msOverflowStyle: showPageScrollbars ? 'auto' : 'none',
+              '&::-webkit-scrollbar': {
+                display: showPageScrollbars ? 'block' : 'none',
+                width: '8px',
+                height: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: isDarkMode ? '#1e1e1e' : '#f5f5f5',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: isDarkMode ? '#424242' : '#bdbdbd',
+                borderRadius: '4px',
+                '&:hover': {
+                  background: isDarkMode ? '#616161' : '#9e9e9e',
+                },
+              },
+            },
+            '*': {
+              scrollbarWidth: showComponentScrollbars ? 'auto' : 'none',
+              msOverflowStyle: showComponentScrollbars ? 'auto' : 'none',
+              '&::-webkit-scrollbar': {
+                display: showComponentScrollbars ? 'block' : 'none',
+                width: '8px',
+                height: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: isDarkMode ? '#1e1e1e' : '#f5f5f5',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: isDarkMode ? '#424242' : '#bdbdbd',
+                borderRadius: '4px',
+                '&:hover': {
+                  background: isDarkMode ? '#616161' : '#9e9e9e',
+                },
+              },
+            },
+            'input::-webkit-outer-spin-button, input::-webkit-inner-spin-button': {
+              WebkitAppearance: showComponentScrollbars ? 'auto' : 'none',
+              margin: 0,
+            },
+            'input[type=number]': {
+              MozAppearance: showComponentScrollbars ? 'textfield' : 'none',
+            },
+          }}
+        />
         {children}
       </MUIThemeProvider>
     </ThemeContext.Provider>

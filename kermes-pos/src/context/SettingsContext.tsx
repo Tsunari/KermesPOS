@@ -1,10 +1,21 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
-interface SettingsContextType {
+type Settings = {
+  useDoubleClick: boolean;
+  notifications: boolean;
+  security: boolean;
+  appearance: boolean;
+  language: boolean;
+  autoBackup: boolean;
+  showDescription: boolean;
+  showScrollbars: boolean;
+  showPageScrollbars: boolean;
+  showComponentScrollbars: boolean;
+};
+
+type SettingsContextType = {
   useDoubleClick: boolean;
   setUseDoubleClick: (value: boolean) => void;
-  devMode: boolean;
-  setDevMode: (value: boolean) => void;
   notifications: boolean;
   setNotifications: (value: boolean) => void;
   security: boolean;
@@ -17,74 +28,78 @@ interface SettingsContextType {
   setAutoBackup: (value: boolean) => void;
   showDescription: boolean;
   setShowDescription: (value: boolean) => void;
-}
-
-type Settings = {
-  useDoubleClick: boolean;
-  devMode: boolean;
-  notifications: boolean;
-  security: boolean;
-  appearance: boolean;
-  language: boolean;
-  autoBackup: boolean;
-  showDescription: boolean;
-};
-
-const defaultSettings: Settings = {
-  useDoubleClick: false,
-  devMode: false,
-  notifications: true,
-  security: true,
-  appearance: true,
-  language: true,
-  autoBackup: true,
-  showDescription: false,
+  showScrollbars: boolean;
+  setShowScrollbars: (value: boolean) => void;
+  showPageScrollbars: boolean;
+  setShowPageScrollbars: (value: boolean) => void;
+  showComponentScrollbars: boolean;
+  setShowComponentScrollbars: (value: boolean) => void;
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
-export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [settings, setSettings] = useState<Settings>(() => {
-    const savedSettings = localStorage.getItem('kermesSettings');
-    return savedSettings ? JSON.parse(savedSettings) : defaultSettings;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('kermesSettings', JSON.stringify(settings));
-  }, [settings]);
-
-  const updateSetting = (key: keyof Settings, value: boolean) => {
-    setSettings((prev: Settings) => ({ ...prev, [key]: value }));
-  };
-
-  return (
-    <SettingsContext.Provider value={{
-      useDoubleClick: settings.useDoubleClick,
-      setUseDoubleClick: (value) => updateSetting('useDoubleClick', value),
-      devMode: settings.devMode,
-      setDevMode: (value) => updateSetting('devMode', value),
-      notifications: settings.notifications,
-      setNotifications: (value) => updateSetting('notifications', value),
-      security: settings.security,
-      setSecurity: (value) => updateSetting('security', value),
-      appearance: settings.appearance,
-      setAppearance: (value) => updateSetting('appearance', value),
-      language: settings.language,
-      setLanguage: (value) => updateSetting('language', value),
-      autoBackup: settings.autoBackup,
-      setAutoBackup: (value) => updateSetting('autoBackup', value),
-      showDescription: settings.showDescription,
-      setShowDescription: (value) => updateSetting('showDescription', value),
-    }}>
-      {children}
-    </SettingsContext.Provider>
-  );
-};
-
 export const useSettings = () => {
   const context = useContext(SettingsContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useSettings must be used within a SettingsProvider');
   }
   return context;
+};
+
+export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [settings, setSettings] = useState<Settings>(() => {
+    const savedSettings = localStorage.getItem('settings');
+    if (savedSettings) {
+      return JSON.parse(savedSettings);
+    }
+    return {
+      useDoubleClick: false,
+      notifications: true,
+      security: false,
+      appearance: false,
+      language: false,
+      autoBackup: false,
+      showDescription: true,
+      showScrollbars: true,
+      showPageScrollbars: true,
+      showComponentScrollbars: true,
+    };
+  });
+
+  const updateSetting = (key: keyof Settings, value: boolean) => {
+    setSettings(prev => {
+      const newSettings = { ...prev, [key]: value };
+      localStorage.setItem('settings', JSON.stringify(newSettings));
+      return newSettings;
+    });
+  };
+
+  return (
+    <SettingsContext.Provider
+      value={{
+        useDoubleClick: settings.useDoubleClick,
+        setUseDoubleClick: (value) => updateSetting('useDoubleClick', value),
+        notifications: settings.notifications,
+        setNotifications: (value) => updateSetting('notifications', value),
+        security: settings.security,
+        setSecurity: (value) => updateSetting('security', value),
+        appearance: settings.appearance,
+        setAppearance: (value) => updateSetting('appearance', value),
+        language: settings.language,
+        setLanguage: (value) => updateSetting('language', value),
+        autoBackup: settings.autoBackup,
+        setAutoBackup: (value) => updateSetting('autoBackup', value),
+        showDescription: settings.showDescription,
+        setShowDescription: (value) => updateSetting('showDescription', value),
+        showScrollbars: settings.showScrollbars,
+        setShowScrollbars: (value) => updateSetting('showScrollbars', value),
+        showPageScrollbars: settings.showPageScrollbars,
+        setShowPageScrollbars: (value) => updateSetting('showPageScrollbars', value),
+        showComponentScrollbars: settings.showComponentScrollbars,
+        setShowComponentScrollbars: (value) => updateSetting('showComponentScrollbars', value),
+      }}
+    >
+      {children}
+    </SettingsContext.Provider>
+  );
 }; 

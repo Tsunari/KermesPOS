@@ -14,6 +14,7 @@ import {
   SpeedDialIcon,
   SpeedDialAction,
   Container,
+  GlobalStyles,
 } from '@mui/material';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import BarChartIcon from '@mui/icons-material/BarChart';
@@ -38,6 +39,7 @@ import ImportExport from './components/ImportExport';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { ThemeToggle } from './components/ThemeToggle';
 import { ThemeProvider } from './contexts/ThemeContext';
+import AppearanceSettings from './components/AppearanceSettings';
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -51,6 +53,7 @@ function AppContent() {
   const isProductsPage = location.pathname === '/';
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
+  const { showScrollbars } = useSettings();
 
   useEffect(() => {
     loadProducts();
@@ -399,6 +402,10 @@ function AppContent() {
               path="/settings" 
               element={<SettingsPage devMode={devMode} setDevMode={setDevMode} />} 
             />
+            <Route 
+              path="/settings/appearance" 
+              element={<AppearanceSettings />} 
+            />
           </Routes>
         </Box>
       </Box>
@@ -412,17 +419,22 @@ function AppContent() {
   );
 }
 
-function App() {
+const AppWrapper: React.FC = () => {
   return (
     <ThemeProvider>
-      <CssBaseline />
-      <SettingsProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </SettingsProvider>
+      <Router>
+        <AppContent />
+      </Router>
     </ThemeProvider>
   );
-}
+};
+
+const App: React.FC = () => {
+  return (
+    <SettingsProvider>
+      <AppWrapper />
+    </SettingsProvider>
+  );
+};
 
 export default App;

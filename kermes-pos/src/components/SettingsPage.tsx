@@ -9,7 +9,9 @@ import {
   ListItemIcon,
   ListItemText,
   Chip,
+  Button,
 } from '@mui/material';
+import { Link } from 'react-router-dom';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SecurityIcon from '@mui/icons-material/Security';
 import PaletteIcon from '@mui/icons-material/Palette';
@@ -43,6 +45,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
     setAutoBackup,
     showDescription,
     setShowDescription,
+    showScrollbars,
+    setShowScrollbars,
   } = useSettings();
 
   const handleDefineDefault = () => {
@@ -59,7 +63,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
     secondary: string,
     checked: boolean,
     onChange: (checked: boolean) => void,
-    isActive: boolean = false
+    isActive: boolean = false,
+    linkTo?: string
   ) => (
     <ListItem>
       <ListItemIcon>
@@ -81,11 +86,17 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
         }
         secondary={secondary}
       />
-      <ModernSwitch
-        edge="end"
-        checked={checked}
-        onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.checked)}
-      />
+      {linkTo ? (
+        <Button component={Link} to={linkTo} variant="outlined" size="small">
+          Configure
+        </Button>
+      ) : (
+        <ModernSwitch
+          edge="end"
+          checked={checked}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.checked)}
+        />
+      )}
     </ListItem>
   );
 
@@ -159,7 +170,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
             "Appearance",
             "Customize the look and feel",
             appearance,
-            setAppearance
+            setAppearance,
+            true,
+            "/settings/appearance"
           )}
           
           <Divider />

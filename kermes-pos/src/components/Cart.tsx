@@ -34,10 +34,12 @@ import PrinterSettings from './PrinterSettings';
 import ReceiptPreview from './cart/ReceiptPreview';
 import { CartItem } from '../types/index';
 import { printCart } from '../services/printerService';
+import { useSettings } from '../context/SettingsContext';
 
 const Cart: React.FC = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
+  const { showScrollbars } = useSettings();
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const total = useSelector((state: RootState) => state.cart.total);
   const [printerSettingsOpen, setPrinterSettingsOpen] = useState(false);
@@ -142,7 +144,21 @@ const Cart: React.FC = () => {
     <Box sx={{ 
       display: 'flex', 
       flexDirection: 'column',
-      height: '100%'
+      height: '100%',
+      '&::-webkit-scrollbar': {
+        width: '8px',
+      },
+      '&::-webkit-scrollbar-track': {
+        background: theme.palette.mode === 'dark' ? theme.palette.grey[900] : theme.palette.grey[100],
+        borderRadius: '4px',
+      },
+      '&::-webkit-scrollbar-thumb': {
+        background: theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[400],
+        borderRadius: '4px',
+        '&:hover': {
+          background: theme.palette.mode === 'dark' ? theme.palette.grey[600] : theme.palette.grey[500],
+        },
+      },
     }}>
       <Box sx={{ 
         display: 'flex', 
@@ -216,7 +232,14 @@ const Cart: React.FC = () => {
       <Box sx={{ 
         height: 'calc(100% - 120px)',
         overflow: 'auto',
-        mb: 2
+        mb: 2,
+        ...(!showScrollbars && {
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }),
       }}>
         {cartItems.length === 0 ? (
           <Typography variant="body1" sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
