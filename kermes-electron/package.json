@@ -1,0 +1,26 @@
+{
+  "name": "kermes-electron",
+  "version": "1.0.0",
+  "description": "Electron app for Kermes POS with USB printer support",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "28.1.0",
+    "electron-builder": "24.9.1"
+  },
+  "dependencies": {
+    "escpos": "2.5.2"
+  },
+  "build": {
+    "appId": "com.kermes.pos",
+    "win": {
+      "target": "nsis"
+    }
+  }
+}

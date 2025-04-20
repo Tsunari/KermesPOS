@@ -24,6 +24,7 @@ import ImportExportIcon from '@mui/icons-material/ImportExport';
 import MenuIcon from '@mui/icons-material/Menu';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import PrintIcon from '@mui/icons-material/Print';
 import Cart from './components/Cart';
 import ProductDialog from './components/ProductDialog';
 import ProductGrid from './components/ProductGrid';
@@ -129,6 +130,108 @@ function AppContent() {
       icon: isAppBarVisible ? <VisibilityOffIcon /> : <VisibilityIcon />, 
       name: isAppBarVisible ? 'Hide App Bar' : 'Show App Bar', 
       onClick: () => setIsAppBarVisible(!isAppBarVisible) 
+    },
+    {
+      icon: <PrintIcon />,
+      name: 'Test Print',
+      onClick: async () => {
+        try {
+          const response = await fetch("http://localhost:3001/api/print", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              text: "Test Print from App\n" +
+                    "-------------------\n" +
+                    "This is a test print\n" +
+                    "from the main app\n" +
+                    "-------------------\n"
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const result = await response.text();
+          console.log('Print server response:', result);
+          alert(result);
+        } catch (error) {
+          console.error('Error printing:', error);
+          alert("Failed to send print request");
+        }
+      }
+    },
+    {
+      icon: <PrintIcon />,
+      name: 'Electron Print',
+      onClick: async () => {
+        try {
+          console.log('Electron Print button clicked');
+          
+          // Check if electron object exists
+          if (!window.electron) {
+            console.error('window.electron is not defined');
+            alert('Electron integration is not available');
+            return;
+          }
+
+          console.log('window.electron exists:', window.electron);
+          
+          // Create a simple receipt HTML content
+          const receiptContent = `
+            <html>
+              <head>
+                <style>
+                  body {
+                    font-family: Arial, sans-serif;
+                    width: 80mm;
+                    margin: 0;
+                    padding: 10px;
+                  }
+                  .header {
+                    text-align: center;
+                    margin-bottom: 10px;
+                  }
+                  .divider {
+                    border-top: 1px dashed #000;
+                    margin: 10px 0;
+                  }
+                  .footer {
+                    text-align: center;
+                    margin-top: 10px;
+                  }
+                </style>
+              </head>
+              <body>
+                <div class="header">
+                  <h2>Kermes POS</h2>
+                  <p>Test Receipt</p>
+                </div>
+                <div class="divider"></div>
+                <p>Date: ${new Date().toLocaleString()}</p>
+                <p>Items: ${cartItems.length}</p>
+                <p>Total: $${cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0).toFixed(2)}</p>
+                <div class="divider"></div>
+                <div class="footer">
+                  <p>Thank you for your purchase!</p>
+                </div>
+              </body>
+            </html>
+          `;
+
+          console.log('Calling nativePrint with content:', receiptContent);
+          
+          // Call the native print function
+          const result = await window.electron.nativePrint(receiptContent);
+          console.log('Native print result:', result);
+          alert(result);
+        } catch (error: any) {
+          console.error('Error with native print:', error);
+          alert(`Failed to print using native printer: ${error.message}`);
+        }
+      }
     },
   ];
 

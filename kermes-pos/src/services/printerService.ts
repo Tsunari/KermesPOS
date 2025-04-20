@@ -85,19 +85,26 @@ export const printCart = async (items: CartItem[], total: number, config: Printe
 
 // Send data to the printer
 const sendToPrinter = async (data: string, config: PrinterConfig): Promise<boolean> => {
-  // This is a placeholder for the actual printer communication
-  // In a real implementation, you would use a library like node-thermal-printer
-  // or a browser-based solution like WebUSB API for direct printer communication
-  
-  console.log('Sending to printer:', config.printerName);
-  console.log('Data:', data);
-  
-  // For now, we'll just simulate successful printing
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(true);
-    }, 1000);
-  });
+  try {
+    const response = await fetch('http://localhost:3001/api/print', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text: data }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.text();
+    console.log('Print server response:', result);
+    return true;
+  } catch (error) {
+    console.error('Error sending to printer:', error);
+    return false;
+  }
 };
 
 // Get available printers
