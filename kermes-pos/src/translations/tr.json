@@ -16,7 +16,31 @@
     "warning": "Uyarı",
     "info": "Bilgi",
     "active": "Aktif",
-    "configure": "Yapılandır"
+    "configure": "Yapılandır",
+    "hide": "Uygulama Çubuğunu Gizle",
+    "show": "Uygulama Çubuğunu Göster",
+    "testPrint": "Test Yazdırma",
+    "testPrintMessage": "Bu bir test yazdırmasıdır",
+    "fromMainApp": "ana uygulamadan",
+    "httpError": "HTTP hatası! durum: ",
+    "printServerResponse": "Yazdırma sunucusu yanıtı:",
+    "printError": "Yazdırma hatası:",
+    "printRequestFailed": "Yazdırma isteği başarısız oldu",
+    "electronPrint": "Electron Yazdırma",
+    "electronPrintClicked": "Electron yazdırma butonuna tıklandı",
+    "electronNotDefined": "window.electron tanımlı değil",
+    "electronNotAvailable": "Electron entegrasyonu mevcut değil",
+    "electronExists": "window.electron mevcut:",
+    "kermesPos": "Kermes POS",
+    "testReceipt": "Test Fişi",
+    "date": "Tarih",
+    "items": "Ürünler",
+    "total": "Toplam",
+    "thankYou": "Alışverişiniz için teşekkür ederiz!",
+    "callingNativePrint": "NativePrint çağrılıyor, içerik:",
+    "nativePrintResult": "Native yazdırma sonucu:",
+    "nativePrintError": "Native yazdırma hatası:",
+    "failedToPrint": "Native yazıcı ile yazdırma başarısız oldu"
   },
   "settings": {
     "title": "Ayarlar",
@@ -145,11 +169,19 @@
       "ofTotal": "toplamın"
     },
     "cart": {
+      "total": "Toplam",
       "previewReceipt": "Fiş Önizleme",
-      "printerSettings": "Yazıcı Ayarları",
       "clearCart": "Sepeti Temizle",
-      "emptyCart": "Sepetiniz boş",
-      "addItems": "Başlamak için ürün ekleyin"
+      "emptyCart": "Sepet boş",
+      "printSuccess": "Fiş başarıyla yazdırıldı",
+      "printFailed": "Fiş yazdırılamadı. Lütfen tekrar deneyin.",
+      "printerSettingsSaved": "Yazıcı ayarları kaydedildi:",
+      "printerSettingsSavedSuccess": "Yazıcı ayarları başarıyla kaydedildi!",
+      "settingsError": "Ayarlar hatası:",
+      "printerSettingsSaveFailed": "Yazıcı ayarları kaydedilemedi.",
+      "printReceipt": "Fiş Yazdır",
+      "addItemsToPrint": "Fiş yazdırmak için sepete ürün ekleyin",
+      "printerSettings": "Yazıcı Ayarları"
     },
     "product": {
       "categories": {
@@ -167,6 +199,12 @@
       "drink": "Örnek İçecek",
       "dessert": "Örnek Tatlı",
       "description": "Açıklama buraya"
+    },
+    "numpad": {
+      "clear": "Temizle",
+      "confirm": "Onayla",
+      "selectQuantity": "Miktar Seç",
+      "quantity": "Miktar"
     }
   }
 } 

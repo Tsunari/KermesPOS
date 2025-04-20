@@ -16,7 +16,31 @@
     "warning": "Warning",
     "info": "Info",
     "active": "Active",
-    "configure": "Configure"
+    "configure": "Configure",
+    "hide": "Hide App Bar",
+    "show": "Show App Bar",
+    "testPrint": "Test Print",
+    "testPrintMessage": "This is a test print",
+    "fromMainApp": "from the main app",
+    "httpError": "HTTP error! status: ",
+    "printServerResponse": "Print server response:",
+    "printError": "Error printing:",
+    "printRequestFailed": "Failed to send print request",
+    "electronPrint": "Electron Print",
+    "electronPrintClicked": "Electron Print button clicked",
+    "electronNotDefined": "window.electron is not defined",
+    "electronNotAvailable": "Electron integration is not available",
+    "electronExists": "window.electron exists:",
+    "kermesPos": "Kermes POS",
+    "testReceipt": "Test Receipt",
+    "date": "Date",
+    "items": "Items",
+    "total": "Total",
+    "thankYou": "Thank you for your purchase!",
+    "callingNativePrint": "Calling nativePrint with content:",
+    "nativePrintResult": "Native print result:",
+    "nativePrintError": "Error with native print:",
+    "failedToPrint": "Failed to print using native printer"
   },
   "settings": {
     "title": "Settings",
@@ -145,11 +169,19 @@
       "ofTotal": "of total"
     },
     "cart": {
+      "total": "Total",
       "previewReceipt": "Preview Receipt",
-      "printerSettings": "Printer Settings",
       "clearCart": "Clear Cart",
-      "emptyCart": "Your cart is empty",
-      "addItems": "Add items to get started"
+      "emptyCart": "Cart is empty",
+      "printSuccess": "Receipt printed successfully",
+      "printFailed": "Failed to print receipt. Please try again.",
+      "printerSettingsSaved": "Printer settings saved:",
+      "printerSettingsSavedSuccess": "Printer settings saved successfully!",
+      "settingsError": "Settings error:",
+      "printerSettingsSaveFailed": "Failed to save printer settings.",
+      "printReceipt": "Print Receipt",
+      "addItemsToPrint": "Add items to cart to print receipt",
+      "printerSettings": "Printer Settings"
     },
     "product": {
       "categories": {
@@ -167,6 +199,12 @@
       "drink": "Example Drink",
       "dessert": "Example Dessert",
       "description": "Description here"
+    },
+    "numpad": {
+      "clear": "Clear",
+      "confirm": "Confirm",
+      "selectQuantity": "Select Quantity",
+      "quantity": "Quantity"
     }
   }
 } 

@@ -35,8 +35,10 @@ import ReceiptPreview from './cart/ReceiptPreview';
 import { CartItem } from '../types/index';
 import { printCart } from '../services/printerService';
 import { useSettings } from '../context/SettingsContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Cart: React.FC = () => {
+  const { t } = useLanguage();
   const dispatch = useDispatch();
   const theme = useTheme();
   const { showScrollbars } = useSettings();
@@ -59,12 +61,12 @@ const Cart: React.FC = () => {
     try {
       const success = await printCart(cartItems, total);
       if (success) {
-        setSuccessMessage('Receipt printed successfully');
+        setSuccessMessage(t('app.cart.printSuccess'));
       } else {
-        setErrorMessage('Failed to print receipt. Please try again.');
+        setErrorMessage(t('app.cart.printFailed'));
       }
     } catch (error) {
-      setErrorMessage('Failed to print receipt. Please try again.');
+      setErrorMessage(t('app.cart.printFailed'));
     }
   };
 
@@ -78,12 +80,12 @@ const Cart: React.FC = () => {
 
   const handlePrinterSettingsSave = (config: any) => {
     try {
-      console.log('Printer settings saved:', config);
-      setSuccessMessage('Printer settings saved successfully!');
+      console.log(t('app.cart.printerSettingsSaved'), config);
+      setSuccessMessage(t('app.cart.printerSettingsSavedSuccess'));
       handlePrinterSettingsClose();
     } catch (error) {
-      console.error('Settings error:', error);
-      setErrorMessage('Failed to save printer settings.');
+      console.error(t('app.cart.settingsError'), error);
+      setErrorMessage(t('app.cart.printerSettingsSaveFailed'));
     }
   };
 
@@ -167,12 +169,12 @@ const Cart: React.FC = () => {
         mb: 1
       }}>
         <Typography variant="h6">
-          Cart
+          {t('sales.cart')}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {cartItems.length > 0 && (
             <>
-              <Tooltip title="Preview Receipt">
+              <Tooltip title={t('app.cart.previewReceipt')}>
                 <IconButton
                   onMouseEnter={handlePrintPreviewOpen}
                   onMouseLeave={handlePrintPreviewClose}
@@ -202,23 +204,23 @@ const Cart: React.FC = () => {
                   <ReceiptPreview items={cartItems} total={total} />
                 </Box>
               </Popover>
-              <Tooltip title="Printer Settings">
+              <Tooltip title={t('app.cart.printerSettings')}>
                 <IconButton 
                   color="primary" 
                   size="small" 
                   onClick={handlePrinterSettingsOpen}
-                  aria-label="printer settings"
+                  aria-label={t('app.cart.printerSettings')}
                   sx={{ mr: 1 }}
                 >
                   <SettingsIcon />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Clear Cart">
+              <Tooltip title={t('app.cart.clearCart')}>
                 <IconButton 
                   color="error" 
                   size="small" 
                   onClick={handleClearCart}
-                  aria-label="clear cart"
+                  aria-label={t('app.cart.clearCart')}
                 >
                   <DeleteSweepIcon />
                 </IconButton>
@@ -243,7 +245,7 @@ const Cart: React.FC = () => {
       }}>
         {cartItems.length === 0 ? (
           <Typography variant="body1" sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
-            Cart is empty
+            {t('app.cart.emptyCart')}
           </Typography>
         ) : (
           <List>
@@ -307,12 +309,12 @@ const Cart: React.FC = () => {
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>Printer Settings</DialogTitle>
+        <DialogTitle>{t('printer.title')}</DialogTitle>
         <DialogContent>
           <PrinterSettings onSave={handlePrinterSettingsSave} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handlePrinterSettingsClose}>Close</Button>
+          <Button onClick={handlePrinterSettingsClose}>{t('common.cancel')}</Button>
         </DialogActions>
       </Dialog>
       

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Button, Typography, useTheme } from '@mui/material';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface NumericKeypadProps {
   onNumberClick: (number: number) => void;
@@ -13,6 +14,11 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
   selectedQuantity,
 }) => {
   const theme = useTheme();
+  const { t } = useLanguage();
+
+  const handleNumberClick = (number: number) => {
+    onNumberClick(number);
+  };
 
   return (
     <Box
@@ -39,7 +45,9 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
         }}
       >
         <Typography variant="h6">
-          {selectedQuantity > 0 ? `Quantity: ${selectedQuantity}` : 'Select Quantity'}
+          {selectedQuantity > 0 
+            ? `${t('app.numpad.quantity')}: ${selectedQuantity}` 
+            : t('app.numpad.selectQuantity')}
         </Typography>
       </Box>
       <Box
@@ -53,7 +61,7 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
           <Button
             key={number}
             variant="contained"
-            onClick={() => onNumberClick(number)}
+            onClick={() => handleNumberClick(number)}
             sx={{
               minWidth: 0,
               height: 40,
@@ -80,7 +88,7 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
             gridColumn: '1 / -1',
           }}
         >
-          Clear
+          {t('app.numpad.clear')}
         </Button>
       </Box>
     </Box>

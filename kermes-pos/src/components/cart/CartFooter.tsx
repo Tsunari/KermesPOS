@@ -5,6 +5,7 @@ import {
   Button,
   Tooltip
 } from '@mui/material';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface CartFooterProps {
   total: number;
@@ -13,6 +14,8 @@ interface CartFooterProps {
 }
 
 const CartFooter: React.FC<CartFooterProps> = ({ total, onPrint, hasItems }) => {
+  const { t } = useLanguage();
+
   return (
     <Box sx={{ 
       p: 2,
@@ -26,9 +29,9 @@ const CartFooter: React.FC<CartFooterProps> = ({ total, onPrint, hasItems }) => 
       zIndex: 10
     }}>
       <Typography variant="h6" gutterBottom>
-        Total: {total.toFixed(2).replace('.', ',')}€
+        {t('app.cart.total')}: {total.toFixed(2).replace('.', ',')}€
       </Typography>
-      <Tooltip title={hasItems ? "Print Receipt" : "Add items to cart to print receipt"}>
+      <Tooltip title={hasItems ? "" : t('app.cart.addItemsToPrint')}>
         <span>
           <Button 
             variant="contained" 
@@ -37,7 +40,7 @@ const CartFooter: React.FC<CartFooterProps> = ({ total, onPrint, hasItems }) => 
             fullWidth
             disabled={!hasItems}
           >
-            Print Receipt
+            {t('app.cart.printReceipt')}
           </Button>
         </span>
       </Tooltip>

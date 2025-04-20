@@ -16,7 +16,31 @@
     "warning": "Warnung",
     "info": "Info",
     "active": "Aktiv",
-    "configure": "Konfigurieren"
+    "configure": "Konfigurieren",
+    "hide": "App-Leiste ausblenden",
+    "show": "App-Leiste einblenden",
+    "testPrint": "Testdruck",
+    "testPrintMessage": "Dies ist ein Testdruck",
+    "fromMainApp": "von der Hauptanwendung",
+    "httpError": "HTTP-Fehler! Status: ",
+    "printServerResponse": "Druckserver-Antwort:",
+    "printError": "Druckfehler:",
+    "printRequestFailed": "Druckanfrage fehlgeschlagen",
+    "electronPrint": "Electron-Druck",
+    "electronPrintClicked": "Electron-Druck-Button geklickt",
+    "electronNotDefined": "window.electron ist nicht definiert",
+    "electronNotAvailable": "Electron-Integration nicht verfügbar",
+    "electronExists": "window.electron existiert:",
+    "kermesPos": "Kermes POS",
+    "testReceipt": "Testbeleg",
+    "date": "Datum",
+    "items": "Artikel",
+    "total": "Gesamt",
+    "thankYou": "Vielen Dank für Ihren Einkauf!",
+    "callingNativePrint": "NativePrint wird aufgerufen mit Inhalt:",
+    "nativePrintResult": "Native-Druck-Ergebnis:",
+    "nativePrintError": "Fehler beim nativen Druck:",
+    "failedToPrint": "Fehler beim Drucken mit dem nativen Drucker"
   },
   "settings": {
     "title": "Einstellungen",
@@ -145,11 +169,19 @@
       "ofTotal": "vom Gesamtumsatz"
     },
     "cart": {
+      "total": "Gesamt",
       "previewReceipt": "Belegvorschau",
-      "printerSettings": "Druckereinstellungen",
       "clearCart": "Warenkorb leeren",
-      "emptyCart": "Ihr Warenkorb ist leer",
-      "addItems": "Fügen Sie Artikel hinzu, um zu beginnen"
+      "emptyCart": "Warenkorb ist leer",
+      "printSuccess": "Beleg erfolgreich gedruckt",
+      "printFailed": "Beleg konnte nicht gedruckt werden. Bitte versuchen Sie es erneut.",
+      "printerSettingsSaved": "Druckereinstellungen gespeichert:",
+      "printerSettingsSavedSuccess": "Druckereinstellungen erfolgreich gespeichert!",
+      "settingsError": "Einstellungsfehler:",
+      "printerSettingsSaveFailed": "Druckereinstellungen konnten nicht gespeichert werden.",
+      "printReceipt": "Beleg drucken",
+      "addItemsToPrint": "Fügen Sie Artikel zum Warenkorb hinzu, um einen Beleg zu drucken",
+      "printerSettings": "Druckereinstellungen"
     },
     "product": {
       "categories": {
@@ -167,6 +199,12 @@
       "drink": "Beispiel Getränk",
       "dessert": "Beispiel Dessert",
       "description": "Beschreibung hier"
+    },
+    "numpad": {
+      "clear": "Löschen",
+      "confirm": "Bestätigen",
+      "selectQuantity": "Menge auswählen",
+      "quantity": "Menge"
     }
   }
 } 

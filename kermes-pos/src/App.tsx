@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { 
-  CssBaseline, 
   AppBar, 
   Toolbar, 
   Typography, 
@@ -9,12 +8,9 @@ import {
   Box, 
   Paper, 
   Badge,
-  Fab,
   SpeedDial,
   SpeedDialIcon,
   SpeedDialAction,
-  Container,
-  GlobalStyles,
 } from '@mui/material';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import BarChartIcon from '@mui/icons-material/BarChart';
@@ -40,9 +36,10 @@ import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { ThemeToggle } from './components/ThemeToggle';
 import { ThemeProvider } from './contexts/ThemeContext';
 import AppearanceSettings from './components/AppearanceSettings';
-import { LanguageProvider } from './contexts/LanguageContext';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 
 function AppContent() {
+  const { t } = useLanguage();
   const dispatch = useDispatch();
   const [products, setProducts] = useState<Product[]>([]);
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -54,7 +51,6 @@ function AppContent() {
   const isProductsPage = location.pathname === '/';
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
-  const { showScrollbars } = useSettings();
 
   useEffect(() => {
     loadProducts();
@@ -119,15 +115,15 @@ function AppContent() {
   };
 
   const actions = [
-    { icon: <AddIcon />, name: 'Add Product', onClick: handleAddProduct },
+    { icon: <AddIcon />, name: t("products.add"), onClick: handleAddProduct },
     { 
       icon: isAppBarVisible ? <VisibilityOffIcon /> : <VisibilityIcon />, 
-      name: isAppBarVisible ? 'Hide App Bar' : 'Show App Bar', 
+      name: isAppBarVisible ? t("common.hide") : t("common.show"), 
       onClick: () => setIsAppBarVisible(!isAppBarVisible) 
     },
     {
       icon: <PrintIcon />,
-      name: 'Test Print',
+      name: t("common.testPrint"),
       onClick: async () => {
         try {
           const response = await fetch("http://localhost:3001/api/print", {
@@ -136,44 +132,42 @@ function AppContent() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              text: "Test Print from App\n" +
+              text: t("common.testPrint") + "\n" +
                     "-------------------\n" +
-                    "This is a test print\n" +
-                    "from the main app\n" +
+                    t("common.testPrintMessage") + "\n" +
+                    t("common.fromMainApp") + "\n" +
                     "-------------------\n"
             }),
           });
 
           if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(t("common.httpError") + response.status);
           }
 
           const result = await response.text();
-          console.log('Print server response:', result);
+          console.log(t("common.printServerResponse"), result);
           alert(result);
         } catch (error) {
-          console.error('Error printing:', error);
-          alert("Failed to send print request");
+          console.error(t("common.printError"), error);
+          alert(t("common.printRequestFailed"));
         }
       }
     },
     {
       icon: <PrintIcon />,
-      name: 'Electron Print',
+      name: t("common.electronPrint"),
       onClick: async () => {
         try {
-          console.log('Electron Print button clicked');
+          console.log(t("common.electronPrintClicked"));
           
-          // Check if electron object exists
           if (!window.electron) {
-            console.error('window.electron is not defined');
-            alert('Electron integration is not available');
+            console.error(t("common.electronNotDefined"));
+            alert(t("common.electronNotAvailable"));
             return;
           }
 
-          console.log('window.electron exists:', window.electron);
+          console.log(t("common.electronExists"), window.electron);
           
-          // Create a simple receipt HTML content
           const receiptContent = `
             <html>
               <head>
@@ -200,30 +194,29 @@ function AppContent() {
               </head>
               <body>
                 <div class="header">
-                  <h2>Kermes POS</h2>
-                  <p>Test Receipt</p>
+                  <h2>${t("common.kermesPos")}</h2>
+                  <p>${t("common.testReceipt")}</p>
                 </div>
                 <div class="divider"></div>
-                <p>Date: ${new Date().toLocaleString()}</p>
-                <p>Items: ${cartItems.length}</p>
-                <p>Total: $${cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0).toFixed(2)}</p>
+                <p>${t("common.date")}: ${new Date().toLocaleString()}</p>
+                <p>${t("common.items")}: ${cartItems.length}</p>
+                <p>${t("common.total")}: $${cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0).toFixed(2)}</p>
                 <div class="divider"></div>
                 <div class="footer">
-                  <p>Thank you for your purchase!</p>
+                  <p>${t("common.thankYou")}</p>
                 </div>
               </body>
             </html>
           `;
 
-          console.log('Calling nativePrint with content:', receiptContent);
+          console.log(t("common.callingNativePrint"), receiptContent);
           
-          // Call the native print function
           const result = await window.electron.nativePrint(receiptContent);
-          console.log('Native print result:', result);
+          console.log(t("common.nativePrintResult"), result);
           alert(result);
         } catch (error: any) {
-          console.error('Error with native print:', error);
-          alert(`Failed to print using native printer: ${error.message}`);
+          console.error(t("common.nativePrintError"), error);
+          alert(`${t("common.failedToPrint")}: ${error.message}`);
         }
       }
     },
@@ -250,14 +243,14 @@ function AppContent() {
                   <BarChartIcon />
                 </IconButton>
               </Link>
-              <Link to="/settings" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <IconButton color="inherit" size="large">
-                  <SettingsIcon />
-                </IconButton>
-              </Link>
               <Link to="/import-export" style={{ color: 'inherit', textDecoration: 'none' }}>
                 <IconButton color="inherit" size="large">
                   <ImportExportIcon />
+                </IconButton>
+              </Link>
+              <Link to="/settings" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <IconButton color="inherit" size="large">
+                  <SettingsIcon />
                 </IconButton>
               </Link>
               <ThemeToggle />
@@ -318,7 +311,7 @@ function AppContent() {
                       <SpeedDialAction
                         key={action.name}
                         icon={action.icon}
-                        tooltipTitle={action.name}
+                        title={action.name}
                         onClick={action.onClick}
                       />
                     ))}
