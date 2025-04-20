@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Paper } from '@mui/material';
+import { Box, Typography, Paper, ToggleButton, ToggleButtonGroup, IconButton, Dialog, DialogTitle, DialogContent, Tooltip } from '@mui/material';
+import GridViewIcon from '@mui/icons-material/GridView';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Product } from '../types/index';
 import { cartTransactionService } from '../services/cartTransactionService';
@@ -27,21 +28,36 @@ interface ProductStats {
   revenue: number;
 }
 
+interface CartTransaction {
+  id: number;
+  transaction_date: string;
+  total_amount: number;
+  items_count: number;
+  items_data: string;
+  payment_method: string;
+}
+
 const StatisticsPage: React.FC<StatisticsPageProps> = ({ products }) => {
   const { t } = useLanguage();
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
   const [categoryStats, setCategoryStats] = useState<CategoryStats[]>([]);
   const [topProducts, setTopProducts] = useState<ProductStats[]>([]);
+  const [sortBy, setSortBy] = useState<'revenue' | 'units'>('revenue');
+  const [showAllProducts, setShowAllProducts] = useState(false);
+  const [allProductStats, setAllProductStats] = useState<ProductStats[]>([]);
+  const [transactions, setTransactions] = useState<CartTransaction[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [dailyStatsData, categoryStatsData] = await Promise.all([
+        const [dailyStatsData, categoryStatsData, transactionsData] = await Promise.all([
           cartTransactionService.getDailyStats(),
-          cartTransactionService.getCategoryStats()
+          cartTransactionService.getCategoryStats(),
+          cartTransactionService.getTransactions()
         ]);
         
         setDailyStats(dailyStatsData);
+        setTransactions(transactionsData);
         
         // Calculate revenue for each category
         const categoryStatsWithRevenue = categoryStatsData.map(stat => {
@@ -57,11 +73,8 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products }) => {
         // Calculate product-level statistics
         const productStats = new Map<string, ProductStats>();
         
-        // Get all transactions to analyze product-level sales
-        const transactions = await cartTransactionService.getTransactions();
-        
         // Process each transaction to get product-level stats
-        transactions.forEach(transaction => {
+        transactionsData.forEach(transaction => {
           try {
             const items = JSON.parse(transaction.items_data);
             items.forEach((item: any) => {
@@ -87,20 +100,20 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products }) => {
           }
         });
 
-        // Convert to array, sort by revenue, and take top 4
-        const topProductsData = Array.from(productStats.values())
-          .filter(stat => stat.product && stat.count > 0) // Only include products that exist and have sales
-          .sort((a, b) => b.revenue - a.revenue)
-          .slice(0, 4);
+        // Convert to array and filter valid products
+        const allProductsData = Array.from(productStats.values())
+          .filter(stat => stat.product && stat.count > 0)
+          .sort((a, b) => sortBy === 'revenue' ? b.revenue - a.revenue : b.count - a.count);
 
-        setTopProducts(topProductsData);
+        setAllProductStats(allProductsData);
+        setTopProducts(allProductsData.slice(0, 4));
       } catch (error) {
         console.error('Error loading statistics:', error);
       }
     };
 
     loadData();
-  }, [products]);
+  }, [products, sortBy]);
 
   const todayStats = dailyStats[0] || { total_revenue: 0, total_items: 0, transaction_count: 0 };
   const yesterdayStats = dailyStats[1] || { total_revenue: 0, total_items: 0 };
@@ -145,7 +158,52 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products }) => {
       </Box>
 
       <Box sx={{ mt: 4 }}>
-        <Typography variant="h5" gutterBottom>{t('app.statistics.topSelling')}</Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h5">{t('app.statistics.topSelling')}</Typography>
+            <Tooltip title={t('app.statistics.viewAll')}>
+              <IconButton 
+                onClick={() => setShowAllProducts(true)}
+                sx={{ 
+                  color: 'primary.main',
+                  '&:hover': {
+                    bgcolor: 'primary.light',
+                    color: 'primary.dark'
+                  }
+                }}
+              >
+                <GridViewIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+          <ToggleButtonGroup
+            value={sortBy}
+            exclusive
+            onChange={(_, newValue) => newValue && setSortBy(newValue)}
+            size="small"
+            sx={{ 
+              '& .MuiToggleButton-root': {
+                textTransform: 'none',
+                px: 2,
+                py: 1,
+                '&.Mui-selected': {
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  '&:hover': {
+                    bgcolor: 'primary.dark',
+                  }
+                }
+              }
+            }}
+          >
+            <ToggleButton value="revenue">
+              {t('app.statistics.byRevenue')}
+            </ToggleButton>
+            <ToggleButton value="units">
+              {t('app.statistics.byUnits')}
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
         <Paper sx={{ p: 2, width: 'fit-content' }}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             {topProducts.length > 0 ? (
@@ -169,23 +227,119 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products }) => {
         <Typography variant="h5" gutterBottom>{t('app.statistics.salesByCategory')}</Typography>
         <Paper sx={{ p: 2, width: 'fit-content' }}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            {categoryStats.map((stat) => {
-              const totalRevenue = categoryStats.reduce((sum, s) => sum + (s.revenue || 0), 0);
-              const percentage = totalRevenue > 0 ? ((stat.revenue || 0) / totalRevenue * 100).toFixed(0) : '0';
-              const categoryColor = stat.categories === 'food' ? 'primary' : 
-                                  stat.categories === 'drink' ? 'info' : 'secondary';
+            {(() => {
+              // Calculate revenue for each category from transactions
+              const categoryRevenues = new Map<string, number>();
               
-              return (
-                <Paper key={stat.categories} sx={{ p: 2, bgcolor: `${categoryColor}.light`, color: `${categoryColor}.contrastText`, minWidth: '200px' }}>
-                  <Typography variant="subtitle1">{t(`app.product.categories.${stat.categories}`)}</Typography>
-                  <Typography variant="h6">{(stat.revenue || 0).toFixed(2)}€</Typography>
-                  <Typography variant="body2">{percentage}% {t('app.statistics.ofTotal')}</Typography>
-                </Paper>
-              );
-            })}
+              // Process all transactions to get actual revenue per category
+              transactions.forEach(transaction => {
+                try {
+                  const items = JSON.parse(transaction.items_data);
+                  items.forEach((item: any) => {
+                    if (item?.product?.id) {
+                      const product = products.find(p => p.id === item.product.id);
+                      if (product && product.category) {
+                        const revenue = (item.quantity || 0) * product.price;
+                        const currentRevenue = categoryRevenues.get(product.category) || 0;
+                        categoryRevenues.set(product.category, currentRevenue + revenue);
+                      }
+                    }
+                  });
+                } catch (error) {
+                  console.error('Error parsing transaction items:', error);
+                }
+              });
+
+              // Calculate total revenue
+              const totalRevenue = Array.from(categoryRevenues.values()).reduce((sum, revenue) => sum + revenue, 0);
+
+              // Create array of category stats with correct revenue
+              return Array.from(categoryRevenues.entries()).map(([category, revenue]) => {
+                const percentage = totalRevenue > 0 ? ((revenue / totalRevenue) * 100).toFixed(0) : '0';
+                const categoryColor = category === 'food' ? 'primary' : 
+                                    category === 'drink' ? 'info' : 'secondary';
+                
+                return (
+                  <Paper key={category} sx={{ p: 2, bgcolor: `${categoryColor}.light`, color: `${categoryColor}.contrastText`, minWidth: '200px' }}>
+                    <Typography variant="subtitle1">{t(`app.product.categories.${category}`)}</Typography>
+                    <Typography variant="h6">{revenue.toFixed(2)}€</Typography>
+                    <Typography variant="body2">{percentage}% {t('app.statistics.ofTotal')}</Typography>
+                  </Paper>
+                );
+              });
+            })()}
           </Box>
         </Paper>
       </Box>
+
+      <Dialog 
+        open={showAllProducts} 
+        onClose={() => setShowAllProducts(false)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">{t('app.statistics.allSoldItems')}</Typography>
+            <ToggleButtonGroup
+              value={sortBy}
+              exclusive
+              onChange={(_, newValue) => newValue && setSortBy(newValue)}
+              size="small"
+              sx={{ 
+                '& .MuiToggleButton-root': {
+                  textTransform: 'none',
+                  px: 2,
+                  py: 1,
+                  '&.Mui-selected': {
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText',
+                    '&:hover': {
+                      bgcolor: 'primary.dark',
+                    }
+                  }
+                }
+              }}
+            >
+              <ToggleButton value="revenue">
+                {t('app.statistics.byRevenue')}
+              </ToggleButton>
+              <ToggleButton value="units">
+                {t('app.statistics.byUnits')}
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+            gap: 2,
+            p: 2
+          }}>
+            {allProductStats.map((productStat) => (
+              <Paper 
+                key={productStat.product.id} 
+                sx={{ 
+                  p: 2, 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: 1,
+                  transition: 'transform 0.2s',
+                  '&:hover': {
+                    transform: 'scale(1.02)',
+                    boxShadow: 3
+                  }
+                }}
+              >
+                <Typography variant="subtitle1">{productStat.product.name}</Typography>
+                <Typography variant="body2" color="text.secondary">{t('app.statistics.sold')}: {productStat.count} {t('app.statistics.units')}</Typography>
+                <Typography variant="body2" color="primary">{t('app.statistics.revenue')}: {productStat.revenue.toFixed(2)}€</Typography>
+              </Paper>
+            ))}
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };
