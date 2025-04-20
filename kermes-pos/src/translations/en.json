@@ -129,5 +129,44 @@
     "saveSettings": "Save Settings",
     "success": "Printer settings saved successfully!",
     "error": "Failed to save printer settings"
+  },
+  "app": {
+    "title": "Kermes POS",
+    "statistics": {
+      "title": "Statistics",
+      "description": "View your sales and performance metrics",
+      "todaysSales": "Today's Sales",
+      "itemsSold": "Items Sold",
+      "averageOrderValue": "Average Order Value",
+      "topSellingItems": "Top Selling Items",
+      "salesByCategory": "Sales by Category",
+      "units": "units",
+      "revenue": "Revenue",
+      "ofTotal": "of total"
+    },
+    "cart": {
+      "previewReceipt": "Preview Receipt",
+      "printerSettings": "Printer Settings",
+      "clearCart": "Clear Cart",
+      "emptyCart": "Your cart is empty",
+      "addItems": "Add items to get started"
+    },
+    "product": {
+      "categories": {
+        "food": "Food",
+        "drink": "Drink",
+        "dessert": "Dessert"
+      }
+    },
+    "devMode": {
+      "enableToUse": "Enable Dev Mode to use this feature",
+      "enableInSettings": "Enable Dev Mode in Settings to use this feature"
+    },
+    "example": {
+      "food": "Example Food",
+      "drink": "Example Drink",
+      "dessert": "Example Dessert",
+      "description": "Description here"
+    }
   }
 } 

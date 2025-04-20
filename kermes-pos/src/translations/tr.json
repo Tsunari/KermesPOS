@@ -129,5 +129,44 @@
     "saveSettings": "Ayarları Kaydet",
     "success": "Yazıcı ayarları başarıyla kaydedildi!",
     "error": "Yazıcı ayarları kaydedilirken hata oluştu"
+  },
+  "app": {
+    "title": "Kermes POS",
+    "statistics": {
+      "title": "İstatistikler",
+      "description": "Satış ve performans metriklerinizi görüntüleyin",
+      "todaysSales": "Bugünkü Satışlar",
+      "itemsSold": "Satılan Ürünler",
+      "averageOrderValue": "Ortalama Sipariş Değeri",
+      "topSellingItems": "En Çok Satan Ürünler",
+      "salesByCategory": "Kategoriye Göre Satışlar",
+      "units": "adet",
+      "revenue": "Gelir",
+      "ofTotal": "toplamın"
+    },
+    "cart": {
+      "previewReceipt": "Fiş Önizleme",
+      "printerSettings": "Yazıcı Ayarları",
+      "clearCart": "Sepeti Temizle",
+      "emptyCart": "Sepetiniz boş",
+      "addItems": "Başlamak için ürün ekleyin"
+    },
+    "product": {
+      "categories": {
+        "food": "Yiyecek",
+        "drink": "İçecek",
+        "dessert": "Tatlı"
+      }
+    },
+    "devMode": {
+      "enableToUse": "Bu özelliği kullanmak için Geliştirici Modunu etkinleştirin",
+      "enableInSettings": "Bu özelliği kullanmak için Ayarlar'dan Geliştirici Modunu etkinleştirin"
+    },
+    "example": {
+      "food": "Örnek Yiyecek",
+      "drink": "Örnek İçecek",
+      "dessert": "Örnek Tatlı",
+      "description": "Açıklama buraya"
+    }
   }
 } 
