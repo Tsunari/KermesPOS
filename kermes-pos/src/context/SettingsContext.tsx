@@ -5,7 +5,6 @@ type Settings = {
   notifications: boolean;
   security: boolean;
   appearance: boolean;
-  language: boolean;
   autoBackup: boolean;
   showDescription: boolean;
   showScrollbars: boolean;
@@ -22,8 +21,6 @@ type SettingsContextType = {
   setSecurity: (value: boolean) => void;
   appearance: boolean;
   setAppearance: (value: boolean) => void;
-  language: boolean;
-  setLanguage: (value: boolean) => void;
   autoBackup: boolean;
   setAutoBackup: (value: boolean) => void;
   showDescription: boolean;
@@ -57,7 +54,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       notifications: true,
       security: false,
       appearance: false,
-      language: false,
       autoBackup: false,
       showDescription: true,
       showScrollbars: true,
@@ -85,8 +81,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setSecurity: (value) => updateSetting('security', value),
         appearance: settings.appearance,
         setAppearance: (value) => updateSetting('appearance', value),
-        language: settings.language,
-        setLanguage: (value) => updateSetting('language', value),
         autoBackup: settings.autoBackup,
         setAutoBackup: (value) => updateSetting('autoBackup', value),
         showDescription: settings.showDescription,

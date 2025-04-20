@@ -10,6 +10,10 @@ import {
   ListItemText,
   Chip,
   Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -22,6 +26,7 @@ import TouchAppIcon from '@mui/icons-material/TouchApp';
 import ModernSwitch from './ui/ModernSwitch';
 import { productService } from '../services/productService';
 import { useSettings } from '../context/SettingsContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
 interface SettingsPageProps {
@@ -39,8 +44,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
     setSecurity,
     appearance,
     setAppearance,
-    language,
-    setLanguage,
     autoBackup,
     setAutoBackup,
     showDescription,
@@ -49,11 +52,12 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
     setShowScrollbars,
   } = useSettings();
 
+  const { language, setLanguage, t } = useLanguage();
+
   const handleDefineDefault = () => {
-    if (window.confirm('Are you sure you want to define the current product list as the default? This will update the source code and cannot be undone.')) {
+    if (window.confirm(t('settings.developer.defineDefaultDescription'))) {
       const jsonString = productService.exportProducts();
-      // In a real application, this would make an API call to update the source code
-      alert('Default products updated successfully! (Note: In a real application, this would update the source code)');
+      alert(t('settings.developer.defineDefaultSuccess'));
     }
   };
 
@@ -76,7 +80,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
             {primary}
             {isActive && (
               <Chip
-                label="Active"
+                label={t('common.active')}
                 size="small"
                 color="success"
                 sx={{ ml: 1 }}
@@ -88,7 +92,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
       />
       {linkTo ? (
         <Button component={Link} to={linkTo} variant="outlined" size="small">
-          Configure
+          {t('common.configure')}
         </Button>
       ) : (
         <ModernSwitch
@@ -103,19 +107,19 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
   return (
     <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom>
-        Settings
+        {t('settings.title')}
       </Typography>
       
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
-          Application Settings
+          {t('settings.appearance.title')}
         </Typography>
         
         <List>
           {renderSettingItem(
             <CodeIcon />,
-            "Dev Mode",
-            "Enable developer features for advanced product management",
+            t('settings.developer.devMode'),
+            t('settings.developer.devModeDescription'),
             devMode,
             setDevMode,
             true
@@ -125,8 +129,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
           
           {renderSettingItem(
             <TouchAppIcon />,
-            "Double-Click to Add",
-            "Toggle between double-click and single-click to add items to cart",
+            t('settings.doubleClick'),
+            t('settings.doubleClickDescription'),
             useDoubleClick,
             setUseDoubleClick,
             true
@@ -136,8 +140,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
           
           {renderSettingItem(
             <VisibilityIcon />,
-            "Show Descriptions",
-            "Display product descriptions in the product grid",
+            t('settings.showDescription'),
+            t('settings.showDescriptionDescription'),
             showDescription,
             setShowDescription,
             true
@@ -147,8 +151,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
           
           {renderSettingItem(
             <NotificationsIcon />,
-            "Notifications",
-            "Configure notification settings",
+            t('settings.notifications.enable'),
+            t('settings.notifications.description'),
             notifications,
             setNotifications
           )}
@@ -157,8 +161,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
           
           {renderSettingItem(
             <SecurityIcon />,
-            "Security",
-            "Manage security settings",
+            t('settings.security.enable'),
+            t('settings.security.description'),
             security,
             setSecurity
           )}
@@ -167,8 +171,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
           
           {renderSettingItem(
             <PaletteIcon />,
-            "Appearance",
-            "Customize the look and feel",
+            t('settings.appearance.title'),
+            t('settings.appearance.darkModeDescription'),
             appearance,
             setAppearance,
             true,
@@ -177,20 +181,33 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
           
           <Divider />
           
-          {renderSettingItem(
-            <LanguageIcon />,
-            "Language",
-            "Change application language",
-            language,
-            setLanguage
-          )}
+          <ListItem>
+            <ListItemIcon>
+              <LanguageIcon />
+            </ListItemIcon>
+            <ListItemText 
+              primary={t('settings.language.title')}
+              secondary={t('settings.language.selectLanguage')}
+            />
+            <FormControl sx={{ minWidth: 120 }}>
+              <Select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as any)}
+                size="small"
+              >
+                <MenuItem value="en">{t('settings.language.languages.en')}</MenuItem>
+                <MenuItem value="de">{t('settings.language.languages.de')}</MenuItem>
+                <MenuItem value="tr">{t('settings.language.languages.tr')}</MenuItem>
+              </Select>
+            </FormControl>
+          </ListItem>
           
           <Divider />
           
           {renderSettingItem(
             <BackupIcon />,
-            "Auto Backup",
-            "Enable automatic data backup",
+            t('settings.backup.autoBackup'),
+            t('settings.backup.description'),
             autoBackup,
             setAutoBackup
           )}
@@ -199,14 +216,13 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
       
       <Paper sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
-          About
+          {t('settings.about.title')}
         </Typography>
         <Typography variant="body1" paragraph>
-          Kermes POS is a point-of-sale system designed for managing products, 
-          processing sales, and generating reports.
+          {t('settings.about.description')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Version 1.0.0
+          {t('settings.about.version')} 1.0.0
         </Typography>
       </Paper>
     </Box>

@@ -40,6 +40,7 @@ import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { ThemeToggle } from './components/ThemeToggle';
 import { ThemeProvider } from './contexts/ThemeContext';
 import AppearanceSettings from './components/AppearanceSettings';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -421,11 +422,13 @@ function AppContent() {
 
 const AppWrapper: React.FC = () => {
   return (
-    <ThemeProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </ThemeProvider>
+    </LanguageProvider>
   );
 };
 

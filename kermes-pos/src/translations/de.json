@@ -1,0 +1,133 @@
+{
+  "common": {
+    "settings": "Einstellungen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "add": "Hinzufügen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "search": "Suchen",
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "warning": "Warnung",
+    "info": "Info",
+    "active": "Aktiv",
+    "configure": "Konfigurieren"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "appearance": {
+      "title": "Darstellungseinstellungen",
+      "darkMode": "Dunkelmodus",
+      "darkModeDescription": "Zwischen hellem und dunklem Design wechseln",
+      "pageScrollbars": "Seiten-Scrollbalken",
+      "pageScrollbarsDescription": "Scrollbalken für den Hauptinhalt anzeigen oder ausblenden",
+      "componentScrollbars": "Komponenten-Scrollbalken",
+      "componentScrollbarsDescription": "Scrollbalken für einzelne Komponenten anzeigen oder ausblenden"
+    },
+    "language": {
+      "title": "Spracheinstellungen",
+      "selectLanguage": "Sprache auswählen",
+      "languages": {
+        "en": "Englisch",
+        "de": "Deutsch",
+        "tr": "Türkisch"
+      }
+    },
+    "notifications": {
+      "title": "Benachrichtigungen",
+      "enable": "Benachrichtigungen aktivieren",
+      "description": "Benachrichtigungseinstellungen konfigurieren"
+    },
+    "security": {
+      "title": "Sicherheit",
+      "enable": "Sicherheit aktivieren",
+      "description": "Sicherheitseinstellungen verwalten"
+    },
+    "backup": {
+      "title": "Sicherung",
+      "autoBackup": "Automatische Sicherung",
+      "description": "Automatische Datensicherung aktivieren"
+    },
+    "developer": {
+      "title": "Entwicklereinstellungen",
+      "devMode": "Entwicklermodus",
+      "devModeDescription": "Entwicklerfunktionen für erweiterte Produktverwaltung aktivieren",
+      "defineDefault": "Standardprodukte definieren",
+      "defineDefaultDescription": "Aktuelle Produktliste als Standard festlegen",
+      "defineDefaultSuccess": "Standardprodukte erfolgreich aktualisiert!"
+    },
+    "doubleClick": "Doppelklick zum Hinzufügen",
+    "doubleClickDescription": "Zwischen Doppelklick und Einzelklick zum Hinzufügen von Artikeln wechseln",
+    "showDescription": "Beschreibungen anzeigen",
+    "showDescriptionDescription": "Produktbeschreibungen im Produktgitter anzeigen",
+    "about": {
+      "title": "Über",
+      "description": "Kermes POS ist ein Kassensystem zur Verwaltung von Produkten, Verarbeitung von Verkäufen und Erstellung von Berichten.",
+      "version": "Version"
+    }
+  },
+  "products": {
+    "title": "Produkte",
+    "add": "Produkt hinzufügen",
+    "edit": "Produkt bearbeiten",
+    "delete": "Produkt löschen",
+    "name": "Produktname",
+    "price": "Preis",
+    "description": "Beschreibung",
+    "category": "Kategorie",
+    "stock": "Bestand",
+    "barcode": "Barcode",
+    "image": "Bild",
+    "actions": "Aktionen",
+    "noProducts": "Keine Produkte gefunden",
+    "searchPlaceholder": "Produkte suchen..."
+  },
+  "sales": {
+    "title": "Verkäufe",
+    "newSale": "Neuer Verkauf",
+    "addToCart": "Zum Warenkorb hinzufügen",
+    "removeFromCart": "Aus Warenkorb entfernen",
+    "cart": "Warenkorb",
+    "total": "Gesamt",
+    "subtotal": "Zwischensumme",
+    "tax": "Steuer",
+    "discount": "Rabatt",
+    "payment": "Zahlung",
+    "cash": "Bar",
+    "card": "Karte",
+    "complete": "Verkauf abschließen",
+    "receipt": "Beleg",
+    "print": "Beleg drucken",
+    "noItems": "Keine Artikel im Warenkorb"
+  },
+  "reports": {
+    "title": "Berichte",
+    "daily": "Tagesbericht",
+    "weekly": "Wochenbericht",
+    "monthly": "Monatsbericht",
+    "custom": "Benutzerdefinierter Bericht",
+    "dateRange": "Zeitraum",
+    "startDate": "Startdatum",
+    "endDate": "Enddatum",
+    "totalSales": "Gesamtumsatz",
+    "totalProducts": "Gesamtprodukte",
+    "averageSale": "Durchschnittlicher Verkauf",
+    "topProducts": "Top-Produkte",
+    "export": "Bericht exportieren"
+  },
+  "printer": {
+    "title": "Druckereinstellungen",
+    "selectPrinter": "Drucker auswählen",
+    "paperWidth": "Papierbreite",
+    "fontSize": "Schriftgröße",
+    "bold": "Fetter Text",
+    "saveSettings": "Einstellungen speichern",
+    "success": "Druckereinstellungen erfolgreich gespeichert!",
+    "error": "Fehler beim Speichern der Druckereinstellungen"
+  }
+} 

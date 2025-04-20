@@ -162,7 +162,7 @@ const ImportExport: React.FC<ImportExportProps> = ({ refreshProducts, devMode })
           placeholder={`{
   "products": [
     {
-      "id": "101",  // Food items start with 1 (101-199)
+      "id": "101",  // Food items start with 1 (1001-1999)
       "name": "Example Food",
       "price": 10.99,
       "category": "food",
@@ -170,7 +170,7 @@ const ImportExport: React.FC<ImportExportProps> = ({ refreshProducts, devMode })
       "inStock": true
     },
     {
-      "id": "201",  // Drink items start with 2 (201-299)
+      "id": "201",  // Drink items start with 2 (2001-2999)
       "name": "Example Drink",
       "price": 5.99,
       "category": "drink",
@@ -178,7 +178,7 @@ const ImportExport: React.FC<ImportExportProps> = ({ refreshProducts, devMode })
       "inStock": true
     },
     {
-      "id": "301",  // Dessert items start with 3 (301-399)
+      "id": "301",  // Dessert items start with 3 (3001-3999)
       "name": "Example Dessert",
       "price": 8.99,
       "category": "dessert",

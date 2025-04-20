@@ -1,0 +1,133 @@
+{
+  "common": {
+    "settings": "Settings",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info",
+    "active": "Active",
+    "configure": "Configure"
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": {
+      "title": "Appearance Settings",
+      "darkMode": "Dark Mode",
+      "darkModeDescription": "Toggle between light and dark theme",
+      "pageScrollbars": "Page Scrollbars",
+      "pageScrollbarsDescription": "Show or hide scrollbars for the main page content",
+      "componentScrollbars": "Component Scrollbars",
+      "componentScrollbarsDescription": "Show or hide scrollbars for individual components"
+    },
+    "language": {
+      "title": "Language Settings",
+      "selectLanguage": "Select Language",
+      "languages": {
+        "en": "English",
+        "de": "German",
+        "tr": "Turkish"
+      }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "enable": "Enable Notifications",
+      "description": "Configure notification settings"
+    },
+    "security": {
+      "title": "Security",
+      "enable": "Enable Security",
+      "description": "Manage security settings"
+    },
+    "backup": {
+      "title": "Backup",
+      "autoBackup": "Auto Backup",
+      "description": "Enable automatic data backup"
+    },
+    "developer": {
+      "title": "Developer Settings",
+      "devMode": "Dev Mode",
+      "devModeDescription": "Enable developer features for advanced product management",
+      "defineDefault": "Define Default Products",
+      "defineDefaultDescription": "Set current product list as default",
+      "defineDefaultSuccess": "Default products updated successfully!"
+    },
+    "doubleClick": "Double-Click to Add",
+    "doubleClickDescription": "Toggle between double-click and single-click to add items to cart",
+    "showDescription": "Show Descriptions",
+    "showDescriptionDescription": "Display product descriptions in the product grid",
+    "about": {
+      "title": "About",
+      "description": "Kermes POS is a point-of-sale system designed for managing products, processing sales, and generating reports.",
+      "version": "Version"
+    }
+  },
+  "products": {
+    "title": "Products",
+    "add": "Add Product",
+    "edit": "Edit Product",
+    "delete": "Delete Product",
+    "name": "Product Name",
+    "price": "Price",
+    "description": "Description",
+    "category": "Category",
+    "stock": "Stock",
+    "barcode": "Barcode",
+    "image": "Image",
+    "actions": "Actions",
+    "noProducts": "No products found",
+    "searchPlaceholder": "Search products..."
+  },
+  "sales": {
+    "title": "Sales",
+    "newSale": "New Sale",
+    "addToCart": "Add to Cart",
+    "removeFromCart": "Remove from Cart",
+    "cart": "Cart",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "tax": "Tax",
+    "discount": "Discount",
+    "payment": "Payment",
+    "cash": "Cash",
+    "card": "Card",
+    "complete": "Complete Sale",
+    "receipt": "Receipt",
+    "print": "Print Receipt",
+    "noItems": "No items in cart"
+  },
+  "reports": {
+    "title": "Reports",
+    "daily": "Daily Report",
+    "weekly": "Weekly Report",
+    "monthly": "Monthly Report",
+    "custom": "Custom Report",
+    "dateRange": "Date Range",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "totalSales": "Total Sales",
+    "totalProducts": "Total Products",
+    "averageSale": "Average Sale",
+    "topProducts": "Top Products",
+    "export": "Export Report"
+  },
+  "printer": {
+    "title": "Printer Settings",
+    "selectPrinter": "Select Printer",
+    "paperWidth": "Paper Width",
+    "fontSize": "Font Size",
+    "bold": "Bold Text",
+    "saveSettings": "Save Settings",
+    "success": "Printer settings saved successfully!",
+    "error": "Failed to save printer settings"
+  }
+} 

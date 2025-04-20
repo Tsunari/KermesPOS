@@ -1,0 +1,133 @@
+{
+  "common": {
+    "settings": "Ayarlar",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "add": "Ekle",
+    "back": "Geri",
+    "next": "İleri",
+    "previous": "Önceki",
+    "search": "Ara",
+    "loading": "Yükleniyor...",
+    "error": "Hata",
+    "success": "Başarılı",
+    "warning": "Uyarı",
+    "info": "Bilgi",
+    "active": "Aktif",
+    "configure": "Yapılandır"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "appearance": {
+      "title": "Görünüm Ayarları",
+      "darkMode": "Karanlık Mod",
+      "darkModeDescription": "Açık ve koyu tasarım arasında geçiş yap",
+      "pageScrollbars": "Sayfa Kaydırma Çubukları",
+      "pageScrollbarsDescription": "Ana içerik için kaydırma çubuklarını göster veya gizle",
+      "componentScrollbars": "Bileşen Kaydırma Çubukları",
+      "componentScrollbarsDescription": "Bireysel bileşenler için kaydırma çubuklarını göster veya gizle"
+    },
+    "language": {
+      "title": "Dil Ayarları",
+      "selectLanguage": "Dil Seç",
+      "languages": {
+        "en": "İngilizce",
+        "de": "Almanca",
+        "tr": "Türkçe"
+      }
+    },
+    "notifications": {
+      "title": "Bildirimler",
+      "enable": "Bildirimleri Etkinleştir",
+      "description": "Bildirim ayarlarını yapılandır"
+    },
+    "security": {
+      "title": "Güvenlik",
+      "enable": "Güvenliği Etkinleştir",
+      "description": "Güvenlik ayarlarını yönet"
+    },
+    "backup": {
+      "title": "Yedekleme",
+      "autoBackup": "Otomatik Yedekleme",
+      "description": "Otomatik veri yedeklemeyi etkinleştir"
+    },
+    "developer": {
+      "title": "Geliştirici Ayarları",
+      "devMode": "Geliştirici Modu",
+      "devModeDescription": "Gelişmiş ürün yönetimi için geliştirici özelliklerini etkinleştir",
+      "defineDefault": "Varsayılan Ürünleri Tanımla",
+      "defineDefaultDescription": "Mevcut ürün listesini varsayılan olarak ayarla",
+      "defineDefaultSuccess": "Varsayılan ürünler başarıyla güncellendi!"
+    },
+    "doubleClick": "Ekleme için Çift Tıklama",
+    "doubleClickDescription": "Öğe eklemek için çift tıklama ve tek tıklama arasında geçiş yap",
+    "showDescription": "Açıklamaları Göster",
+    "showDescriptionDescription": "Ürün ızgarasında ürün açıklamalarını göster",
+    "about": {
+      "title": "Hakkında",
+      "description": "Kermes POS, ürünleri yönetmek, satışları işlemek ve raporlar oluşturmak için bir kasa sistemi.",
+      "version": "Sürüm"
+    }
+  },
+  "products": {
+    "title": "Ürünler",
+    "add": "Ürün Ekle",
+    "edit": "Ürün Düzenle",
+    "delete": "Ürün Sil",
+    "name": "Ürün Adı",
+    "price": "Fiyat",
+    "description": "Açıklama",
+    "category": "Kategori",
+    "stock": "Stok",
+    "barcode": "Barkod",
+    "image": "Resim",
+    "actions": "İşlemler",
+    "noProducts": "Ürün bulunamadı",
+    "searchPlaceholder": "Ürün ara..."
+  },
+  "sales": {
+    "title": "Satışlar",
+    "newSale": "Yeni Satış",
+    "addToCart": "Sepete Ekle",
+    "removeFromCart": "Sepetten Çıkar",
+    "cart": "Sepet",
+    "total": "Toplam",
+    "subtotal": "Ara Toplam",
+    "tax": "Vergi",
+    "discount": "İndirim",
+    "payment": "Ödeme",
+    "cash": "Nakit",
+    "card": "Kart",
+    "complete": "Satışı Tamamla",
+    "receipt": "Fiş",
+    "print": "Fiş Yazdır",
+    "noItems": "Sepette ürün yok"
+  },
+  "reports": {
+    "title": "Raporlar",
+    "daily": "Günlük Rapor",
+    "weekly": "Haftalık Rapor",
+    "monthly": "Aylık Rapor",
+    "custom": "Özel Rapor",
+    "dateRange": "Tarih Aralığı",
+    "startDate": "Başlangıç Tarihi",
+    "endDate": "Bitiş Tarihi",
+    "totalSales": "Toplam Satış",
+    "totalProducts": "Toplam Ürün",
+    "averageSale": "Ortalama Satış",
+    "topProducts": "En Çok Satılan Ürünler",
+    "export": "Raporu Dışa Aktar"
+  },
+  "printer": {
+    "title": "Yazıcı Ayarları",
+    "selectPrinter": "Yazıcı Seç",
+    "paperWidth": "Kağıt Genişliği",
+    "fontSize": "Yazı Boyutu",
+    "bold": "Kalın Yazı",
+    "saveSettings": "Ayarları Kaydet",
+    "success": "Yazıcı ayarları başarıyla kaydedildi!",
+    "error": "Yazıcı ayarları kaydedilirken hata oluştu"
+  }
+} 
