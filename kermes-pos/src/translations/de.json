@@ -177,7 +177,11 @@
       "revenue": "Umsatz",
       "items": "Artikel",
       "ofTotal": "vom Gesamtumsatz",
-      "noData": "Keine Daten verfügbar"
+      "noData": "Keine Daten verfügbar",
+      "allSoldItems": "Alle verkauften Artikel",
+      "byRevenue": "Nach Umsatz",
+      "byUnits": "Nach Einheiten",
+      "viewAll": "Alle Artikel anzeigen"
     },
     "cart": {
       "total": "Gesamt",

@@ -176,7 +176,11 @@
       "revenue": "Revenue",
       "items": "items",
       "ofTotal": "of total",
-      "noData": "No data available"
+      "noData": "No data available",
+      "allSoldItems": "All Sold Items",
+      "byRevenue": "By Revenue",
+      "byUnits": "By Units",
+      "viewAll": "View All Items"
     },
     "cart": {
       "total": "Total",
