@@ -161,15 +161,23 @@
     "title": "Kermes POS",
     "statistics": {
       "title": "İstatistikler",
-      "description": "Satış ve performans metriklerinizi görüntüleyin",
-      "todaysSales": "Bugünkü Satışlar",
+      "description": "Satış performansınızı ve iş metriklerinizi gerçek zamanlı takip edin",
+      "todaySales": "Bugünkü Satışlar",
       "itemsSold": "Satılan Ürünler",
-      "averageOrderValue": "Ortalama Sipariş Değeri",
-      "topSellingItems": "En Çok Satan Ürünler",
+      "averageOrder": "Ortalama Sipariş Değeri",
+      "topSelling": "En Çok Satılan Ürünler",
       "salesByCategory": "Kategoriye Göre Satışlar",
+      "fromYesterday": "dünden",
+      "noPreviousData": "Önceki veri yok",
+      "average": "Ortalama",
+      "itemsPerDay": "ürün/gün",
+      "transactionsToday": "işlem bugün",
+      "sold": "Satıldı",
       "units": "adet",
       "revenue": "Gelir",
-      "ofTotal": "toplamın"
+      "items": "ürün",
+      "ofTotal": "toplamın",
+      "noData": "Veri bulunamadı"
     },
     "cart": {
       "total": "Toplam",

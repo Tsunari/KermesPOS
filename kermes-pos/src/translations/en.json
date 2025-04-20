@@ -160,15 +160,23 @@
     "title": "Kermes POS",
     "statistics": {
       "title": "Statistics",
-      "description": "View your sales and performance metrics",
-      "todaysSales": "Today's Sales",
+      "description": "Track your sales performance and business metrics in real-time",
+      "todaySales": "Today's Sales",
       "itemsSold": "Items Sold",
-      "averageOrderValue": "Average Order Value",
-      "topSellingItems": "Top Selling Items",
+      "averageOrder": "Average Order Value",
+      "topSelling": "Top Selling Items",
       "salesByCategory": "Sales by Category",
+      "fromYesterday": "from yesterday",
+      "noPreviousData": "No previous data",
+      "average": "Average",
+      "itemsPerDay": "items/day",
+      "transactionsToday": "transactions today",
+      "sold": "Sold",
       "units": "units",
       "revenue": "Revenue",
-      "ofTotal": "of total"
+      "items": "items",
+      "ofTotal": "of total",
+      "noData": "No data available"
     },
     "cart": {
       "total": "Total",
