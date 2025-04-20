@@ -16,7 +16,7 @@ function createWindow() {
   });
 
   // Load your React app
-  mainWindow.loadURL('http://localhost:3000');
+  mainWindow.loadURL('https://kermesprogram.web.app/');
 
   // Open DevTools in development
   if (process.env.NODE_ENV === 'development') {

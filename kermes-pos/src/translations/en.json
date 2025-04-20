@@ -127,7 +127,9 @@
     "complete": "Complete Sale",
     "receipt": "Receipt",
     "print": "Print Receipt",
-    "noItems": "No items in cart"
+    "noItems": "No items in cart",
+    "receiptPrinted": "Receipt printed and transaction saved",
+    "errorSavingTransaction": "Error saving transaction"
   },
   "reports": {
     "title": "Reports",

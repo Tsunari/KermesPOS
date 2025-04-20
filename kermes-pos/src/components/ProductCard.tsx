@@ -7,17 +7,15 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Switch,
-  styled,
   ListItemIcon,
   ListItemText,
-  Theme,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Product } from '../types/index';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../store/slices/cartSlice';
 import { useSettings } from '../context/SettingsContext';
+import ModernSwitch from './ui/ModernSwitch';
 
 interface ProductCardProps {
   product: Product;
@@ -32,39 +30,6 @@ interface ProductCardProps {
     icon: string;
   };
 }
-
-const CompactSwitch = styled(Switch)(({ theme }: { theme: Theme }) => ({
-  width: 32,
-  height: 16,
-  padding: 0,
-  '& .MuiSwitch-switchBase': {
-    padding: 0,
-    margin: 0,
-    transitionDuration: '300ms',
-    '&.Mui-checked': {
-      transform: 'translateX(16px)',
-      color: '#fff',
-      '& + .MuiSwitch-track': {
-        backgroundColor: theme.palette.primary.main,
-        opacity: 1,
-        border: 0,
-      },
-    },
-  },
-  '& .MuiSwitch-thumb': {
-    boxSizing: 'border-box',
-    width: 16,
-    height: 16,
-  },
-  '& .MuiSwitch-track': {
-    borderRadius: 16 / 2,
-    backgroundColor: theme.palette.mode === 'dark' ? '#E9E9EA' : '#E9E9EA',
-    opacity: 1,
-    transition: theme.transitions.create(['background-color'], {
-      duration: 500,
-    }),
-  },
-}));
 
 const ProductCard: React.FC<ProductCardProps> = ({ 
   product,
@@ -289,7 +254,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         >
           <ListItemText>Stock Status</ListItemText>
           <ListItemIcon sx={{ minWidth: 0, ml: 2 }}>
-            <CompactSwitch
+            <ModernSwitch
               checked={localStockStatus}
               onChange={handleStockChange}
               sx={{

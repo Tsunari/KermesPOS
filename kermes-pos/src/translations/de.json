@@ -127,7 +127,10 @@
     "complete": "Verkauf abschließen",
     "receipt": "Beleg",
     "print": "Beleg drucken",
-    "noItems": "Keine Artikel im Warenkorb"
+    "noItems": "Keine Artikel im Warenkorb",
+    "receiptPrinted": "Beleg wurde erfolgreich gedruckt",
+    "printFailed": "Beleg konnte nicht gedruckt werden",
+    "errorSavingTransaction": "Fehler beim Speichern der Transaktion"
   },
   "reports": {
     "title": "Berichte",

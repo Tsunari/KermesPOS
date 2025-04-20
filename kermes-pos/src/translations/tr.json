@@ -127,7 +127,10 @@
     "complete": "Satışı Tamamla",
     "receipt": "Fiş",
     "print": "Fiş Yazdır",
-    "noItems": "Sepette ürün yok"
+    "noItems": "Sepette ürün yok",
+    "receiptPrinted": "Fiş başarıyla yazdırıldı",
+    "printFailed": "Fiş yazdırılamadı",
+    "errorSavingTransaction": "İşlem kaydedilirken hata oluştu"
   },
   "reports": {
     "title": "Raporlar",

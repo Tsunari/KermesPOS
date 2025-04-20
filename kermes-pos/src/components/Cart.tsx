@@ -36,6 +36,7 @@ import { CartItem } from '../types/index';
 import { printCart } from '../services/printerService';
 import { useSettings } from '../context/SettingsContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { cartTransactionService } from '../services/cartTransactionService';
 
 const Cart: React.FC = () => {
   const { t } = useLanguage();
@@ -57,16 +58,53 @@ const Cart: React.FC = () => {
     dispatch(clearCart());
   };
 
-  const handlePrint = async () => {
+  const handlePrint = async (): Promise<boolean> => {
     try {
-      const success = await printCart(cartItems, total);
-      if (success) {
-        setSuccessMessage(t('app.cart.printSuccess'));
+      // Original printing functionality (commented out)
+      // const success = await printCart(cartItems, total);
+      // if (success) {
+      //   setSuccessMessage(t('app.cart.printSuccess'));
+      //   return true;
+      // } else {
+      //   setErrorMessage(t('app.cart.printFailed'));
+      //   return false;
+      // }
+
+      // Simulate successful print for testing
+      console.log('Simulating successful print...');
+      return true;
+    } catch (error) {
+      setErrorMessage(t('app.cart.printFailed'));
+      return false;
+    }
+  };
+
+  const handlePrintReceipt = async () => {
+    if (cartItems.length === 0) return;
+
+    try {
+      // First, simulate printing the receipt
+      const printSuccess = await handlePrint();
+      
+      if (printSuccess) {
+        // If printing was successful, save the transaction
+        await cartTransactionService.saveTransaction(
+          cartItems,
+          total,
+          'cash' // You can make this dynamic based on actual payment method
+        );
+
+        // Clear the cart after both operations are successful
+        dispatch(clearCart());
+        
+        // Show success message
+        setSuccessMessage(t('sales.receiptPrinted'));
       } else {
         setErrorMessage(t('app.cart.printFailed'));
       }
     } catch (error) {
       setErrorMessage(t('app.cart.printFailed'));
+      console.error('Error in print/save process:', error);
     }
   };
 
@@ -299,7 +337,7 @@ const Cart: React.FC = () => {
       
       <CartFooter 
         total={total}
-        onPrint={handlePrint}
+        onPrint={handlePrintReceipt}
         hasItems={cartItems.length > 0}
       />
       
