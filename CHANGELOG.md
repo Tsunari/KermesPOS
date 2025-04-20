@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Numpad 1-12 integration
 - Drag and drop functionality for products
 - Compact mode (removed category dividers)
+- Language/Localization support init
+- Dark Mode support and default
 
 #### Fixed
 - Dropdown menu single-click issue where products were incorrectly added to cart

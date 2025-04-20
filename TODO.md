@@ -13,6 +13,8 @@
 - [x] Numpad 1-12 integration
 - [x] Drag and drop functionality for products
 - [x] Compact mode (removed category dividers)
+- [x] Language/Localization support init
+- [x] Dark Mode support and default
 
 ### Kermes Electron
 - [x] Basic Electron app setup
