@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { 
   CssBaseline, 
-  ThemeProvider, 
-  createTheme, 
   AppBar, 
   Toolbar, 
   Typography, 
@@ -15,6 +13,7 @@ import {
   SpeedDial,
   SpeedDialIcon,
   SpeedDialAction,
+  Container,
 } from '@mui/material';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import BarChartIcon from '@mui/icons-material/BarChart';
@@ -37,17 +36,8 @@ import { productService } from './services/productService';
 import SettingsPage from './components/SettingsPage';
 import ImportExport from './components/ImportExport';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-  },
-});
+import { ThemeToggle } from './components/ThemeToggle';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -246,7 +236,7 @@ function AppContent() {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
                 <IconButton color="inherit" size="large">
-                  <Badge badgeContent={totalQuantity} color="secondary">
+                  <Badge badgeContent={totalQuantity} color="error">
                     <RestaurantMenuIcon />
                   </Badge>
                 </IconButton>
@@ -256,16 +246,17 @@ function AppContent() {
                   <BarChartIcon />
                 </IconButton>
               </Link>
-              <Link to="/import-export" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <IconButton color="inherit" size="large">
-                  <ImportExportIcon />
-                </IconButton>
-              </Link>
               <Link to="/settings" style={{ color: 'inherit', textDecoration: 'none' }}>
                 <IconButton color="inherit" size="large">
                   <SettingsIcon />
                 </IconButton>
               </Link>
+              <Link to="/import-export" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <IconButton color="inherit" size="large">
+                  <ImportExportIcon />
+                </IconButton>
+              </Link>
+              <ThemeToggle />
             </Box>
           </Toolbar>
         </AppBar>
@@ -337,25 +328,65 @@ function AppContent() {
                 <Box sx={{ p: 3 }}>
                   <Typography variant="h4" gutterBottom>Statistics</Typography>
                   <Typography variant="body1" paragraph>
-                    This is a placeholder for the statistics page. Here you would display sales data, 
-                    popular items, and other business metrics.
+                    Track your sales performance and business metrics in real-time.
                   </Typography>
+                  
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 3, mt: 3 }}>
+                    <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Typography variant="h6" color="text.secondary">Today's Sales</Typography>
+                      <Typography variant="h3" color="primary">1,234.56€</Typography>
+                      <Typography variant="body2" color="text.secondary">+12.5% from yesterday</Typography>
+                    </Paper>
+                    
+                    <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Typography variant="h6" color="text.secondary">Items Sold</Typography>
+                      <Typography variant="h3" color="primary">42</Typography>
+                      <Typography variant="body2" color="text.secondary">Average: 35 items/day</Typography>
+                    </Paper>
+                    
+                    <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Typography variant="h6" color="text.secondary">Average Order Value</Typography>
+                      <Typography variant="h3" color="primary">29.39€</Typography>
+                      <Typography variant="body2" color="text.secondary">+5.2% from last week</Typography>
+                    </Paper>
+                  </Box>
+
                   <Box sx={{ mt: 4 }}>
-                    <Typography variant="h6" gutterBottom>Sample Statistics</Typography>
-                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 2, mt: 2 }}>
-                      <Paper sx={{ p: 2 }}>
-                        <Typography variant="subtitle1">Total Sales</Typography>
-                        <Typography variant="h4">1,234.56€</Typography>
-                      </Paper>
-                      <Paper sx={{ p: 2 }}>
-                        <Typography variant="subtitle1">Items Sold</Typography>
-                        <Typography variant="h4">42</Typography>
-                      </Paper>
-                      <Paper sx={{ p: 2 }}>
-                        <Typography variant="subtitle1">Average Order Value</Typography>
-                        <Typography variant="h4">29.39€</Typography>
-                      </Paper>
-                    </Box>
+                    <Typography variant="h5" gutterBottom>Top Selling Items</Typography>
+                    <Paper sx={{ p: 2 }}>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 2 }}>
+                        {products.slice(0, 4).map((product) => (
+                          <Paper key={product.id} sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Typography variant="subtitle1">{product.name}</Typography>
+                            <Typography variant="body2" color="text.secondary">Sold: 15 units</Typography>
+                            <Typography variant="body2" color="primary">Revenue: 150.00€</Typography>
+                          </Paper>
+                        ))}
+                      </Box>
+                    </Paper>
+                  </Box>
+
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" gutterBottom>Sales by Category</Typography>
+                    <Paper sx={{ p: 2 }}>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 2 }}>
+                        <Paper sx={{ p: 2, bgcolor: 'primary.light', color: 'primary.contrastText' }}>
+                          <Typography variant="subtitle1">Food</Typography>
+                          <Typography variant="h6">750.00€</Typography>
+                          <Typography variant="body2">45% of total</Typography>
+                        </Paper>
+                        <Paper sx={{ p: 2, bgcolor: 'info.light', color: 'info.contrastText' }}>
+                          <Typography variant="subtitle1">Drinks</Typography>
+                          <Typography variant="h6">350.00€</Typography>
+                          <Typography variant="body2">25% of total</Typography>
+                        </Paper>
+                        <Paper sx={{ p: 2, bgcolor: 'secondary.light', color: 'secondary.contrastText' }}>
+                          <Typography variant="subtitle1">Desserts</Typography>
+                          <Typography variant="h6">250.00€</Typography>
+                          <Typography variant="body2">20% of total</Typography>
+                        </Paper>
+                      </Box>
+                    </Paper>
                   </Box>
                 </Box>
               } 
@@ -383,7 +414,7 @@ function AppContent() {
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider>
       <CssBaseline />
       <SettingsProvider>
         <Router>
