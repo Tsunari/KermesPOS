@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, Typography, useTheme } from '@mui/material';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface NumericKeypadProps {
   onNumberClick: (number: number) => void;

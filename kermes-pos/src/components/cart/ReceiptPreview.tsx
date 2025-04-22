@@ -18,7 +18,7 @@ const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ items, total }) => {
       elevation={0}
       sx={{ 
         p: 2,
-        width: '72mm', // Standard thermal paper width
+        width: '80mm', // Standard thermal paper width
         minHeight: '200mm',
         backgroundColor: 'white',
         fontFamily: 'monospace',

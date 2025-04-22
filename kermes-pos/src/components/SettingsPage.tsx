@@ -26,7 +26,7 @@ import TouchAppIcon from '@mui/icons-material/TouchApp';
 import ModernSwitch from './ui/ModernSwitch';
 import { productService } from '../services/productService';
 import { useSettings } from '../context/SettingsContext';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
 interface SettingsPageProps {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Paper, ToggleButton, ToggleButtonGroup, IconButton, Dialog, DialogTitle, DialogContent, Tooltip } from '@mui/material';
 import GridViewIcon from '@mui/icons-material/GridView';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Product } from '../types/index';
 import { cartTransactionService } from '../services/cartTransactionService';
 

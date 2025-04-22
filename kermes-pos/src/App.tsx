@@ -34,10 +34,11 @@ import SettingsPage from './components/SettingsPage';
 import ImportExport from './components/ImportExport';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { ThemeToggle } from './components/ThemeToggle';
-import { ThemeProvider } from './contexts/ThemeContext';
+import { ThemeProvider } from './context/ThemeContext';
 import AppearanceSettings from './components/AppearanceSettings';
-import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import StatisticsPage from './components/StatisticsPage';
+import { generateReceiptContent } from './services/printerService';
 
 function AppContent() {
   const { t } = useLanguage();
@@ -115,6 +116,18 @@ function AppContent() {
     }
   };
 
+  const handleElectronPrint = async () => {
+    try {
+      const receiptContent = generateReceiptContent(cartItems, cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0));
+      const result = await window.electron.nativePrint(receiptContent);
+      console.log(t("common.nativePrintResult"), result);
+      alert(result);
+    } catch (error: any) {
+      console.error(t("common.nativePrintError"), error);
+      alert(`${t("common.failedToPrint")}: ${error.message}`);
+    }
+  };
+
   const actions = [
     { icon: <AddIcon />, name: t("products.add"), onClick: handleAddProduct },
     { 
@@ -157,69 +170,7 @@ function AppContent() {
     {
       icon: <PrintIcon />,
       name: t("common.electronPrint"),
-      onClick: async () => {
-        try {
-          console.log(t("common.electronPrintClicked"));
-          
-          if (!window.electron) {
-            console.error(t("common.electronNotDefined"));
-            alert(t("common.electronNotAvailable"));
-            return;
-          }
-
-          console.log(t("common.electronExists"), window.electron);
-          
-          const receiptContent = `
-            <html>
-              <head>
-                <style>
-                  body {
-                    font-family: Arial, sans-serif;
-                    width: 80mm;
-                    margin: 0;
-                    padding: 10px;
-                  }
-                  .header {
-                    text-align: center;
-                    margin-bottom: 10px;
-                  }
-                  .divider {
-                    border-top: 1px dashed #000;
-                    margin: 10px 0;
-                  }
-                  .footer {
-                    text-align: center;
-                    margin-top: 10px;
-                  }
-                </style>
-              </head>
-              <body>
-                <div class="header">
-                  <h2>${t("common.kermesPos")}</h2>
-                  <p>${t("common.testReceipt")}</p>
-                </div>
-                <div class="divider"></div>
-                <p>${t("common.date")}: ${new Date().toLocaleString()}</p>
-                <p>${t("common.items")}: ${cartItems.length}</p>
-                <p>${t("common.total")}: $${cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0).toFixed(2)}</p>
-                <div class="divider"></div>
-                <div class="footer">
-                  <p>${t("common.thankYou")}</p>
-                </div>
-              </body>
-            </html>
-          `;
-
-          console.log(t("common.callingNativePrint"), receiptContent);
-          
-          const result = await window.electron.nativePrint(receiptContent);
-          console.log(t("common.nativePrintResult"), result);
-          alert(result);
-        } catch (error: any) {
-          console.error(t("common.nativePrintError"), error);
-          alert(`${t("common.failedToPrint")}: ${error.message}`);
-        }
-      }
+      onClick: handleElectronPrint,
     },
   ];
 

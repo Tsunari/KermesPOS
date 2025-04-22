@@ -15,12 +15,12 @@ app.use(bodyParser.json());
 const ESC = '\x1B';
 const GS = '\x1D';
 const INIT = ESC + '@';
-const BOLD_ON = ESC + 'E' + '\x01';
-const BOLD_OFF = ESC + 'E' + '\x00';
-const ALIGN_LEFT = ESC + 'a' + '\x00';
-const ALIGN_CENTER = ESC + 'a' + '\x01';
-const ALIGN_RIGHT = ESC + 'a' + '\x02';
-const CUT_PAPER = GS + 'V' + '\x41' + '\x00';
+const BOLD_ON = ESC + 'E\x01';
+const BOLD_OFF = ESC + 'E\x00';
+const ALIGN_LEFT = ESC + 'a\x00';
+const ALIGN_CENTER = ESC + 'a\x01';
+//const ALIGN_RIGHT = ESC + 'a\x02';
+const CUT_PAPER = GS + 'V\x41\x00';
 
 // Format price with currency symbol
 const formatPrice = (price) => {

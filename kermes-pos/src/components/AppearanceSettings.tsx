@@ -11,7 +11,7 @@ import {
   Button,
   Stack,
 } from '@mui/material';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../context/ThemeContext';
 import { useSettings } from '../context/SettingsContext';
 import ModernSwitch from './ui/ModernSwitch';
 import PaletteIcon from '@mui/icons-material/Palette';

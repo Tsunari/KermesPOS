@@ -5,7 +5,7 @@ import {
   Button,
   Tooltip
 } from '@mui/material';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface CartFooterProps {
   total: number;

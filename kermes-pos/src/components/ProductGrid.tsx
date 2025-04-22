@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, useTheme, alpha } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Product } from '../types/index';
 import ProductCard from './ProductCard';
 import { useSettings } from '../context/SettingsContext';
+import { getCategoryStyle } from '../utils/categoryUtils';
 
 interface ProductGridProps {
   products: Product[];
@@ -137,36 +138,6 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   // Define the order of categories
   const categoryOrder = ['food', 'drink', 'dessert', 'Other'];
 
-  // Get category-specific styling
-  const getCategoryStyle = (category: string) => {
-    switch (category.toLowerCase()) {
-      case 'food':
-        return {
-          bgColor: alpha(theme.palette.primary.main, 0.05),
-          borderColor: theme.palette.primary.main,
-          icon: '🍽️',
-        };
-      case 'drink':
-        return {
-          bgColor: alpha(theme.palette.info.main, 0.05),
-          borderColor: theme.palette.info.main,
-          icon: '🥤',
-        };
-      case 'dessert':
-        return {
-          bgColor: alpha(theme.palette.secondary.main, 0.05),
-          borderColor: theme.palette.secondary.main,
-          icon: '🍰',
-        };
-      default:
-        return {
-          bgColor: alpha(theme.palette.grey[500], 0.05),
-          borderColor: theme.palette.grey[500],
-          icon: '📦',
-        };
-    }
-  };
-
   return (
     <DndContext
       sensors={sensors}
@@ -198,7 +169,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
         {categoryOrder
           .filter(category => groupedProducts[category] && groupedProducts[category].length > 0)
           .map(category => {
-            const categoryStyle = getCategoryStyle(category);
+            const categoryStyle = getCategoryStyle(category, theme);
             return (
               <Box key={category} sx={{ mb: 2, width: '100%' }}>
                 <SortableContext
@@ -248,4 +219,4 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   );
 };
 
-export default ProductGrid; 
+export default ProductGrid;

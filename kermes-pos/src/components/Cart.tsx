@@ -33,10 +33,11 @@ import CartFooter from './cart/CartFooter';
 import PrinterSettings from './PrinterSettings';
 import ReceiptPreview from './cart/ReceiptPreview';
 import { CartItem } from '../types/index';
-import { printCart } from '../services/printerService';
+import { generateReceiptContent, printCart } from '../services/printerService';
 import { useSettings } from '../context/SettingsContext';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 import { cartTransactionService } from '../services/cartTransactionService';
+import { getCategoryStyle } from '../utils/categoryUtils';
 
 const Cart: React.FC = () => {
   const { t } = useLanguage();
@@ -58,21 +59,21 @@ const Cart: React.FC = () => {
     dispatch(clearCart());
   };
 
-  const handlePrint = async (): Promise<boolean> => {
+  const handlePrint = async (receiptContent: string): Promise<boolean> => {
     try {
       // Original printing functionality (commented out)
-      // const success = await printCart(cartItems, total);
-      // if (success) {
-      //   setSuccessMessage(t('app.cart.printSuccess'));
-      //   return true;
-      // } else {
-      //   setErrorMessage(t('app.cart.printFailed'));
-      //   return false;
-      // }
+      const success = await printCart(cartItems, total);
+      if (success) {
+        setSuccessMessage(t('app.cart.printSuccess'));
+        return true;
+      } else {
+        setErrorMessage(t('app.cart.printFailed'));
+        return false;
+      }
 
-      // Simulate successful print for testing
-      console.log('Simulating successful print...');
-      return true;
+      // // Simulate successful print for testing
+      // console.log('Simulating successful print...', receiptContent);
+      // return true;
     } catch (error) {
       setErrorMessage(t('app.cart.printFailed'));
       return false;
@@ -83,21 +84,12 @@ const Cart: React.FC = () => {
     if (cartItems.length === 0) return;
 
     try {
-      // First, simulate printing the receipt
-      const printSuccess = await handlePrint();
-      
-      if (printSuccess) {
-        // If printing was successful, save the transaction
-        await cartTransactionService.saveTransaction(
-          cartItems,
-          total,
-          'cash' // You can make this dynamic based on actual payment method
-        );
+      const receiptContent = generateReceiptContent(cartItems, total);
+      const printSuccess = await handlePrint(receiptContent);
 
-        // Clear the cart after both operations are successful
+      if (printSuccess) {
+        await cartTransactionService.saveTransaction(cartItems, total, 'cash');
         dispatch(clearCart());
-        
-        // Show success message
         setSuccessMessage(t('sales.receiptPrinted'));
       } else {
         setErrorMessage(t('app.cart.printFailed'));
@@ -146,36 +138,6 @@ const Cart: React.FC = () => {
     groups[category].push(item);
     return groups;
   }, {} as Record<string, typeof cartItems>);
-
-  // Get category-specific styling - matching exactly with CategorySection
-  const getCategoryStyle = (category: string) => {
-    switch (category.toLowerCase()) {
-      case 'food':
-        return {
-          bgColor: alpha(theme.palette.primary.main, 0.05),
-          borderColor: theme.palette.primary.main,
-          name: 'Food',
-        };
-      case 'drink':
-        return {
-          bgColor: alpha(theme.palette.info.main, 0.05),
-          borderColor: theme.palette.info.main,
-          name: 'Drinks',
-        };
-      case 'dessert':
-        return {
-          bgColor: alpha(theme.palette.secondary.main, 0.05),
-          borderColor: theme.palette.secondary.main,
-          name: 'Desserts',
-        };
-      default:
-        return {
-          bgColor: alpha(theme.palette.grey[500], 0.05),
-          borderColor: theme.palette.grey[500],
-          name: 'Other',
-        };
-    }
-  };
 
   // Define the order of categories to ensure food is always at the top
   const categoryOrder = ['food', 'drink', 'dessert', 'Other'];
@@ -290,7 +252,7 @@ const Cart: React.FC = () => {
             {categoryOrder
               .filter(category => groupedItems[category] && groupedItems[category].length > 0)
               .map(category => {
-                const categoryStyle = getCategoryStyle(category);
+                const categoryStyle = getCategoryStyle(category, theme);
                 return (
                   <React.Fragment key={category}>
                     <Box
@@ -379,4 +341,4 @@ const Cart: React.FC = () => {
   );
 };
 
-export default Cart; 
+export default Cart;

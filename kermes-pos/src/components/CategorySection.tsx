@@ -3,12 +3,11 @@ import {
   Box,
   Typography,
   Paper,
-  Grid,
   useTheme,
-  alpha,
 } from '@mui/material';
 import { Product } from '../types/index';
 import ProductCard from './ProductCard';
+import { getCategoryStyle } from '../utils/categoryUtils';
 
 interface CategorySectionProps {
   category: string;
@@ -26,38 +25,8 @@ const CategorySection: React.FC<CategorySectionProps> = ({
   onDelete,
 }) => {
   const theme = useTheme();
-  
-  // Get category-specific styling
-  const getCategoryStyle = () => {
-    switch (category.toLowerCase()) {
-      case 'food':
-        return {
-          bgColor: alpha(theme.palette.primary.main, 0.05),
-          borderColor: theme.palette.primary.main,
-          icon: '🍽️',
-        };
-      case 'drink':
-        return {
-          bgColor: alpha(theme.palette.info.main, 0.05),
-          borderColor: theme.palette.info.main,
-          icon: '🥤',
-        };
-      case 'dessert':
-        return {
-          bgColor: alpha(theme.palette.secondary.main, 0.05),
-          borderColor: theme.palette.secondary.main,
-          icon: '🍰',
-        };
-      default:
-        return {
-          bgColor: alpha(theme.palette.grey[500], 0.05),
-          borderColor: theme.palette.grey[500],
-          icon: '📦',
-        };
-    }
-  };
 
-  const categoryStyle = getCategoryStyle();
+  const categoryStyle = getCategoryStyle(category, theme);
 
   return (
     <Paper
@@ -127,4 +96,4 @@ const CategorySection: React.FC<CategorySectionProps> = ({
   );
 };
 
-export default CategorySection; 
+export default CategorySection;
