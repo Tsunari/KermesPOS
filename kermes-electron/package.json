@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Electron app for Kermes POS with USB printer support",
   "main": "main.js",
+  "type": "module",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder"
@@ -15,11 +16,13 @@
     "electron-builder": "24.9.1"
   },
   "dependencies": {
+    "chalk": "^5.4.1",
     "electron-pos-printer": "^1.3.7",
     "escpos": "^3.0.0-alpha.6",
     "escpos-network": "^3.0.0-alpha.5",
     "escpos-serialport": "^3.0.0-alpha.4",
     "escpos-usb": "^3.0.0-alpha.4",
+    "node-wmi": "^0.0.5",
     "usb": "^2.15.0"
   },
   "build": {

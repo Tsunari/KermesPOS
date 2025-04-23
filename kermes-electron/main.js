@@ -1,11 +1,17 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
-const path = require('path');
-const { execSync } = require('child_process');
-const USBPrinter = require('./usbPrinter');
+import { app, BrowserWindow, ipcMain } from 'electron';
+import path from 'path';
+import { execSync } from 'child_process';
+import USBPrinter from './usbPrinter.js';
+import colorLogger from './util/colorLogger.js';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let mainWindow;
 
 app.on('ready', () => {
+  console.log(USBPrinter.mapPrinterToUSBDevice("Star TSP100 Cutter (TSP143)"));
   mainWindow = new BrowserWindow({
     width: 1000,
     height: 700,
@@ -17,6 +23,8 @@ app.on('ready', () => {
   });
 
   mainWindow.loadURL('http://localhost:3000'); // Load your website
+
+  //colorLogger.info('Application is ready.');
 
   // List all available printers using a fallback method
   ipcMain.handle('list-printers', () => {
@@ -34,18 +42,19 @@ app.on('ready', () => {
     }
   });
 
-  ipcMain.on('print-cart', (event, { cartData, selectedPrinter }) => {
+  ipcMain.on('print-cart', async (event, { cartData, selectedPrinter }) => {
     console.log('Received print request:', cartData, selectedPrinter);
-    const device = USBPrinter.listDevices().find(
-      (device) => device.product === selectedPrinter.name
-    );
-
+    // const devices = await USBPrinter.listDevices(); // Await the asynchronous method
+    // const device = devices.find(
+    //   (device) => device.product === selectedPrinter.name
+    // );
+    const device = await USBPrinter.mapPrinterToUSBDevice(selectedPrinter.name);
+    console.log("USBPrinter Info: " + new USBPrinter(device.vendorId, device.productId));
     if (!device) {
       console.error('Selected printer not found among USB devices');
       return;
     }
-
-    const printer = new USBPrinter(device);
+    const printer = new USBPrinter(device.vendorId, device.productId); // Pass vendorId and productId
 
     try {
       printer.open();

@@ -15,6 +15,7 @@
 - [x] Compact mode (removed category dividers)
 - [x] Language/Localization support init
 - [x] Dark Mode support and default
+- [ ] Talebe Yemek Auth
 
 ### Kermes Electron
 - [x] Basic Electron app setup
