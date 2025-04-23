@@ -6,58 +6,62 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Slider,
-  Switch,
-  FormControlLabel,
   Button,
   Paper,
-  Divider,
   Alert,
+  DialogActions,
 } from '@mui/material';
-import { getAvailablePrinters, updatePrinterConfig } from '../services/printerService';
 
 interface PrinterSettingsProps {
-  onSave: (config: any) => void;
+  onSave: (printerName: string) => void;
+  handlePrinterSettingsClose: () => void;
 }
 
-const PrinterSettings: React.FC<PrinterSettingsProps> = ({ onSave }) => {
+const PrinterSettings: React.FC<PrinterSettingsProps> = ({ onSave, handlePrinterSettingsClose }) => {
   const [printers, setPrinters] = useState<string[]>([]);
-  const [selectedPrinter, setSelectedPrinter] = useState<string>('TSP100III');
-  const [paperWidth, setPaperWidth] = useState<number>(72);
-  const [fontSize, setFontSize] = useState<number>(12);
-  const [bold, setBold] = useState<boolean>(true);
+  const [selectedPrinter, setSelectedPrinter] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
-  useEffect(() => {
-    const loadPrinters = async () => {
-      try {
-        setLoading(true);
-        const availablePrinters = await getAvailablePrinters();
-        setPrinters(availablePrinters);
-      } catch (err) {
-        setError('Failed to load available printers');
-        console.error(err);
-      } finally {
-        setLoading(false);
+  const loadPrinters = async () => {
+    try {
+      setLoading(true);
+      if (window.electronAPI && window.electronAPI.listPrinters) {
+        const availablePrinters = await window.electronAPI.listPrinters();
+        setPrinters(availablePrinters.map((printer) => printer.name));
+      } else {
+        throw new Error('Electron API not available or listPrinters is undefined');
       }
-    };
+    } catch (err) {
+      setError('Failed to load available printers');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadPrinters();
   }, []);
 
+  useEffect(() => {
+    const savedPrinter = localStorage.getItem('selectedPrinter');
+    if (savedPrinter && printers.includes(savedPrinter)) {
+      setSelectedPrinter(savedPrinter);
+    } else {
+      setSelectedPrinter(''); // Reset to empty if the saved printer is not in the available options
+    }
+  }, [printers]);
+
+  const handlePrinterSelect = (printerName: string) => {
+    setSelectedPrinter(printerName);
+    localStorage.setItem('selectedPrinter', printerName); // Save to localStorage
+  };
+
   const handleSave = () => {
     try {
-      const config = {
-        printerName: selectedPrinter,
-        paperWidth,
-        fontSize,
-        bold,
-      };
-      
-      updatePrinterConfig(config);
-      onSave(config);
+      onSave(selectedPrinter);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
@@ -67,102 +71,53 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ onSave }) => {
   };
 
   return (
-    <Paper sx={{ p: 3, mb: 3 }}>
+    <Paper sx={{ p: 3 }}>
       <Typography variant="h6" gutterBottom>
-        TSP100III Series Printer Settings
+        Select Printer
       </Typography>
-      <Divider sx={{ mb: 3 }} />
-      
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-      
+
       {success && (
         <Alert severity="success" sx={{ mb: 2 }}>
           Printer settings saved successfully!
         </Alert>
       )}
-      
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-        <Box sx={{ flex: '1 1 50%', minWidth: '300px' }}>
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel id="printer-select-label">Printer</InputLabel>
-            <Select
-              labelId="printer-select-label"
-              value={selectedPrinter}
-              label="Printer"
-              onChange={(e) => setSelectedPrinter(e.target.value)}
-              disabled={loading}
-            >
-              {printers.map((printer) => (
-                <MenuItem key={printer} value={printer}>
-                  {printer}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          
-          <Typography gutterBottom>Paper Width (mm)</Typography>
-          <Slider
-            value={paperWidth}
-            onChange={(_, value) => setPaperWidth(value as number)}
-            min={58}
-            max={112}
-            step={1}
-            marks={[
-              { value: 58, label: '58mm' },
-              { value: 72, label: '72mm' },
-              { value: 80, label: '80mm' },
-              { value: 112, label: '112mm' },
-            ]}
-            sx={{ mb: 3 }}
-          />
-        </Box>
-        
-        <Box sx={{ flex: '1 1 50%', minWidth: '300px' }}>
-          <Typography gutterBottom>Font Size</Typography>
-          <Slider
-            value={fontSize}
-            onChange={(_, value) => setFontSize(value as number)}
-            min={8}
-            max={16}
-            step={1}
-            marks={[
-              { value: 8, label: '8' },
-              { value: 12, label: '12' },
-              { value: 16, label: '16' },
-            ]}
-            sx={{ mb: 3 }}
-          />
-          
-          <FormControlLabel
-            control={
-              <Switch
-                checked={bold}
-                onChange={(e) => setBold(e.target.checked)}
-                color="primary"
-              />
-            }
-            label="Bold Text"
-            sx={{ mb: 2 }}
-          />
-        </Box>
-      </Box>
-      
-      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+
+      <FormControl fullWidth sx={{ mb: 3 }}>
+        <InputLabel id="printer-select-label">Printer</InputLabel>
+        <Select
+          labelId="printer-select-label"
+          value={selectedPrinter} // Show the actual selected printer
+          label="Printer"
+          onChange={(e) => handlePrinterSelect(e.target.value)}
+          disabled={loading}
+        >
+          {printers.map((printer) => (
+            <MenuItem key={printer} value={printer}>
+              {printer}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <DialogActions>
+        <Button onClick={handlePrinterSettingsClose}>Cancel</Button>
         <Button
           variant="contained"
           color="primary"
           onClick={handleSave}
-          disabled={loading}
+          disabled={loading || !selectedPrinter}
         >
-          Save Settings
+          Save
         </Button>
-      </Box>
+      </DialogActions>
     </Paper>
   );
 };
 
-export default PrinterSettings; 
+export default PrinterSettings;

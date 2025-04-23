@@ -1,38 +1,31 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
 let mainWindow;
 
-function createWindow() {
+app.on('ready', () => {
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 800,
+    height: 600,
     webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
-    }
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
   });
 
-  // Load your React app
-  mainWindow.loadURL('http://localhost:3000'); // Change this to your React app's URL
+  mainWindow.loadFile(path.join(__dirname, 'print.html'));
+  //mainWindow.loadURL('http://localhost:3000/'); // Replace with your React app URL
 
-  // Open DevTools in development
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.webContents.openDevTools();
-  }
-}
-
-app.whenReady().then(createWindow);
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.print({ silent: true, printBackground: true }, (success, errorType) => {
+      if (!success) console.error(`Print failed: ${errorType}`);
+      else console.log('Print job sent successfully.');
+    });
+  });
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
-  }
-});
-
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
   }
 });

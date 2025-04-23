@@ -128,3 +128,8 @@ app.post('/api/print', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
+app.get('/api/print', (req, res) => {
+  // This endpoint is just for testing purposes
+  res.json({ message: 'Printer service is running' });
+});

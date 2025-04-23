@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   List, 
@@ -7,14 +7,8 @@ import {
   Divider,
   IconButton,
   Tooltip,
-  ListItem,
-  ListItemText,
   Button,
-  Paper,
   useTheme,
-  alpha,
-  Menu,
-  MenuItem,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -31,7 +25,7 @@ import { removeFromCart, clearCart, updateQuantity } from '../store/slices/cartS
 import CartItemRow from './cart/CartItemRow';
 import CartFooter from './cart/CartFooter';
 import PrinterSettings from './PrinterSettings';
-import ReceiptPreview from './cart/ReceiptPreview';
+import ReceiptPreview from './cart/receipt/ReceiptPreview';
 import { CartItem } from '../types/index';
 import { generateReceiptContent, printCart } from '../services/printerService';
 import { useSettings } from '../context/SettingsContext';
@@ -50,6 +44,16 @@ const Cart: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [previewAnchorEl, setPreviewAnchorEl] = useState<HTMLElement | null>(null);
+  const [selectedPrinter, setSelectedPrinter] = useState<string>('');
+
+  useEffect(() => {
+    const savedPrinter = localStorage.getItem('selectedPrinter');
+    if (savedPrinter) {
+      setSelectedPrinter(savedPrinter);
+    } else {
+      console.error('No printer selected in localStorage');
+    }
+  }, []);
 
   const handleRemoveItem = (id: string) => {
     dispatch(removeFromCart(id));
@@ -97,6 +101,29 @@ const Cart: React.FC = () => {
     } catch (error) {
       setErrorMessage(t('app.cart.printFailed'));
       console.error('Error in print/save process:', error);
+    }
+  };
+
+  const handlePrintCart = () => {
+    if (!selectedPrinter) {
+      console.error('No printer selected');
+      return;
+    }
+
+    const cartData = {
+      items: cartItems.map((item) => ({
+        name: item.product.name,
+        quantity: item.quantity,
+        price: item.product.price,
+      })),
+      total,
+    };
+
+    if (window.electronAPI) {
+      console.log('Printing cart with selected printer:', selectedPrinter);
+      window.electronAPI.printCart(cartData, { name: selectedPrinter });
+    } else {
+      console.error('Electron API not available');
     }
   };
 
@@ -299,7 +326,7 @@ const Cart: React.FC = () => {
       
       <CartFooter 
         total={total}
-        onPrint={handlePrintReceipt}
+        onPrint={handlePrintCart}
         hasItems={cartItems.length > 0}
       />
       
@@ -311,7 +338,10 @@ const Cart: React.FC = () => {
       >
         <DialogTitle>{t('printer.title')}</DialogTitle>
         <DialogContent>
-          <PrinterSettings onSave={handlePrinterSettingsSave} />
+          <PrinterSettings 
+            onSave={handlePrinterSettingsSave} 
+            handlePrinterSettingsClose={handlePrinterSettingsClose} // Added missing prop
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handlePrinterSettingsClose}>{t('common.cancel')}</Button>

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import en from '../translations/en.json';
-import de from '../translations/de.json';
-import tr from '../translations/tr.json';
+import en from '../localization/en.json';
+import de from '../localization/de.json';
+import tr from '../localization/tr.json';
 
 export type Language = 'en' | 'de' | 'tr';
 

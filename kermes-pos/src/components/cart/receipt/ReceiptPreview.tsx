@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Paper, Divider } from '@mui/material';
-import { CartItem } from '../../types/index';
+import { CartItem } from '../../../types/index';
 
 interface ReceiptPreviewProps {
   items: CartItem[];

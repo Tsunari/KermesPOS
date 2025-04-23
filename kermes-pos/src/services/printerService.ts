@@ -172,9 +172,27 @@ const sendToPrinter = async (
 
 // Get available printers
 export const getAvailablePrinters = async (): Promise<string[]> => {
+  // try {
+  //   const response = await fetch("http://localhost:3001/api/print", {
+  //     method: "GET",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //   });
+
+  //   if (!response.ok) {
+  //     throw new Error(`HTTP error! status: ${response.status}`);
+  //   }
+
+  //   const printers = await response.json();
+  //   return printers as string[];
+  // } catch (error) {
+  //   console.error("Error fetching available printers:", error);
+  //   return [];
+  // }
+
   // This is a placeholder for getting available printers
   // In a real implementation, you would use a library or API to detect printers
-
   return ["TSP100III", "Default Printer"];
 };
 

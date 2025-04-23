@@ -105,6 +105,7 @@ function AppContent() {
     setSelectedQuantity(0);
   };
 
+  // TODO Make this more efficient
   const handleProductClick = (product: Product) => {
     if (selectedQuantity > 0) {
       for (let i = 0; i < selectedQuantity; i++) {
@@ -300,22 +301,21 @@ function AppContent() {
   );
 }
 
-const AppWrapper: React.FC = () => {
-  return (
-    <LanguageProvider>
-      <ThemeProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </ThemeProvider>
-    </LanguageProvider>
-  );
-};
-
+/**
+ * Main application component that wraps the app with needed providers
+ * 
+ * @returns {JSX.Element} The main application component
+ */
 const App: React.FC = () => {
   return (
     <SettingsProvider>
-      <AppWrapper />
+      <ThemeProvider>
+        <LanguageProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </LanguageProvider>
+      </ThemeProvider>
     </SettingsProvider>
   );
 };
