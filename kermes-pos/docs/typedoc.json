@@ -1,0 +1,14 @@
+{
+    "entryPoints": ["../src/index.tsx", "../src/App.tsx", "../src"],
+    "out": "typedoc",
+    "entryPointStrategy": "expand",
+    "tsconfig": "../tsconfig.json",
+    "exclude": ["../node_modules", "node_modules"],
+    "plugin": ["typedoc-plugin-missing-exports"],
+    "projectDocuments": [
+        "./INTRO.md",
+        "./TSP100III_Manual.md"
+    ],
+    "internalModule": "Internal"
+    
+}

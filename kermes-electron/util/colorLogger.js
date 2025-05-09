@@ -3,8 +3,7 @@ const colorLogger = {
       if (typeof message === 'object') {
         // Format objects or JSON as a pretty-printed string
         return JSON.stringify(message, null, 2);
-      }
-      return message; // Return as-is for strings
+      } else return message; // Return as-is for strings
     },
   
     info: (message) => {

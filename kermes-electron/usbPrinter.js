@@ -3,6 +3,28 @@ import EventEmitter from 'events';
 import wmi from 'node-wmi';
 import colorLogger from './util/colorLogger.js';
 
+/**
+ * USBPrinter class provides functionality to interact with USB printers.
+ * It allows opening, closing, writing data, and sending commands to the printer.
+ * Additionally, it provides static methods to list available printers and USB devices.
+ * 
+ * @class USBPrinter
+ * @extends EventEmitter
+ * 
+ * @example
+ * const printer = new USBPrinter(vendorId, productId);
+ * printer.open();
+ * printer.printText("Hello, World!");
+ * printer.cut();
+ * printer.close();
+ * 
+ * @param {number} vendorId - The USB vendor ID of the printer.
+ * @param {number} productId - The USB product ID of the printer.
+ * 
+ * @throws {Error} If the printer is not found for the given vendorId and productId.
+ * 
+ * 
+ */
 class USBPrinter extends EventEmitter {
   constructor(vendorId, productId) {
     super();
@@ -13,26 +35,49 @@ class USBPrinter extends EventEmitter {
   }
 
   open() {
-    this.device.open();
-    this.interface = this.device.interfaces[0];
-    this.interface.claim();
-    this.endpoint = this.interface.endpoints[0];
-    this.emit('open');
+    try {
+      this.device.open();
+      this.interface = this.device.interfaces[0];
+      if (!this.interface) {
+        throw new Error('No interface found on the device');
+      }
+      this.interface.claim();
+      this.endpoint = this.interface.endpoints[0];
+      this.emit('open');
+    } catch (error) {
+      console.error('Error opening USB device:', error);
+      throw error; // Re-throw the error to handle it in the calling code
+    }
   }
 
   close() {
-    this.interface.release(true, () => {
-      this.device.close();
-      this.emit('close');
-    });
+    try {
+      if (this.interface) {
+        this.interface.release(true, () => {
+          this.device.close();
+          this.emit('close');
+        });
+      } else {
+        console.warn('No interface to release');
+        this.device.close();
+        this.emit('close');
+      }
+    } catch (error) {
+      console.error('Error closing USB device:', error);
+    }
   }
 
   write(data) {
-    this.endpoint.transfer(data, (err) => {
-      if (err) {
-        this.emit('error', err);
-      }
-    });
+    try {
+      this.endpoint.transfer(data, (err) => {
+        if (err) {
+          this.emit('error', err);
+        }
+      });
+    } catch (error) {
+      console.error('Error writing to USB device:', error);
+      this.emit('error', error);
+    }
   }
 
   cut() {

@@ -1,0 +1,18 @@
+{
+    "jsDocCompatibility": {
+        "exampleTag": true,
+        "defaultTag": true,
+        "inheritDocTag": true,
+        "ignoreUnescapedBraces": true
+    },
+    "entryPoints": ["../main.js", "../usbPrinter.js", "../util/colorLogger.js"],
+    "out": "typedoc",
+    "entryPointStrategy": "expand",
+    "tsconfig": "./tsconfig.json",
+    "exclude": ["node_modules", "docs"],
+    "visibilityFilters": {
+        "protected": true,
+        "private": true,
+        "external": true
+    }
+}

@@ -16,6 +16,7 @@
 - [x] Language/Localization support init
 - [x] Dark Mode support and default
 - [ ] Talebe Yemek Auth
+- [ ] Migrate to Next.js React framwork from Create React App (CRA)
 
 ### Kermes Electron
 - [x] Basic Electron app setup

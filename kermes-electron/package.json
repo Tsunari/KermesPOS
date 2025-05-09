@@ -1,19 +1,23 @@
 {
-  "name": "kermes-electron",
+  "name": "Kermes POS Electron",
   "version": "1.0.0",
   "description": "Electron app for Kermes POS with USB printer support",
   "main": "main.js",
   "type": "module",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder"
+    "build": "electron-builder",
+    "docs": "jsdoc -c docs/jsdoc.json",
+    "docs:type": "typedoc --options docs/typedoc.json"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "electron": "28.1.0",
-    "electron-builder": "24.9.1"
+    "electron-builder": "24.9.1",
+    "jsdoc": "^4.0.4",
+    "typedoc": "^0.28.4"
   },
   "dependencies": {
     "chalk": "^5.4.1",
@@ -22,7 +26,10 @@
     "escpos-network": "^3.0.0-alpha.5",
     "escpos-serialport": "^3.0.0-alpha.4",
     "escpos-usb": "^3.0.0-alpha.4",
+    "is-elevated": "^4.0.0",
+    "node-thermal-printer": "^4.4.5",
     "node-wmi": "^0.0.5",
+    "sudo-prompt": "^9.2.1",
     "usb": "^2.15.0"
   },
   "build": {

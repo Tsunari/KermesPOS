@@ -27,6 +27,10 @@ out/
 .env.local
 .env.*.local
 
+# Documentation
+docs/jsdoc
+docs/typedoc
+
 # IDE - VSCode
 .vscode/*
 !.vscode/settings.json

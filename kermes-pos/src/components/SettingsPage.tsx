@@ -34,6 +34,34 @@ interface SettingsPageProps {
   setDevMode: (value: boolean) => void;
 }
 
+/**
+ * The `SettingsPage` component renders a settings interface for the application.
+ * It provides various configurable options such as appearance, notifications, 
+ * security, language, and more. Each setting is displayed as a list item with 
+ * an associated control (e.g., switch, dropdown, or button).
+ *
+ * @param {SettingsPageProps} props - The props for the `SettingsPage` component.
+ * @param {boolean} props.devMode - Indicates whether the developer mode is enabled.
+ * @param {(checked: boolean) => void} props.setDevMode - Callback to toggle developer mode.
+ *
+ * @returns {JSX.Element} The rendered `SettingsPage` component.
+ *
+ * @remarks
+ * - This component uses the `useSettings` and `useLanguage` hooks to manage 
+ *   application settings and localization.
+ * - The `renderSettingItem` function is used to render individual settings 
+ *   with a consistent layout and behavior.
+ * - Includes a section for "About" information, displaying the app version 
+ *   and a brief description.
+ *
+ * @example
+ * ```tsx
+ * <SettingsPage 
+ *   devMode={true} 
+ *   setDevMode={(checked) => console.log('Dev mode:', checked)} 
+ * />
+ * ```
+ */
 const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
   const {
     useDoubleClick,

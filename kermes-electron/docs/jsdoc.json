@@ -1,0 +1,21 @@
+{
+    "source": {
+      "include": ["main.js", "usbPrinter.js", "util/colorLogger.js"],
+      "exclude": ["node_modules", "docs"],
+      "includePattern": ".+\\.js$",
+      "excludePattern": "(^|\\/|\\\\)_"
+    },
+    "opts": {
+      "destination": "./docs/jsdoc",
+      "recurse": true,
+      "template": "node_modules/docdash"
+    },
+    "templates": {
+    "default": {
+      "outputSourceFiles": false
+    },
+    "docdash": {
+      "theme": "dark"
+    }
+  }
+  }

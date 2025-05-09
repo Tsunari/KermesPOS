@@ -32,6 +32,9 @@ yarn-error.log*
 debug.log
 *.log
 
+# Documentation
+docs/typedoc
+
 # IDE and editor files
 .idea/
 .vscode/

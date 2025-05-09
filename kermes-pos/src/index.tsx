@@ -5,14 +5,28 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { Provider } from 'react-redux';
 import { store } from './store';
+import { BrowserRouter, HashRouter } from 'react-router-dom';
+
+// Check if the app is running in Electron
+// const isElectron = window && window.process && window.process.versions && !!window.process.versions.electron;
+const isElectron = true;
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
+
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <App />
+      {isElectron ? (
+        <HashRouter>
+          <App />
+        </HashRouter>
+      ) : (
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      )}
     </Provider>
   </React.StrictMode>
 );

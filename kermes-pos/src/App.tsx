@@ -40,6 +40,50 @@ import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import StatisticsPage from './components/StatisticsPage';
 import { generateReceiptContent } from './services/printerService';
 
+/**
+ * The `AppContent` component serves as the main application layout and logic handler for the Kermes POS system.
+ * It manages the state, routing, and interactions for various features such as product management, cart operations,
+ * and printing functionalities. The component is structured with a responsive layout, including an optional AppBar,
+ * a product grid, and a cart section.
+ *
+ * Features:
+ * - Product management: Add, edit, delete, and update stock status of products.
+ * - Cart operations: Add products to the cart with quantity selection.
+ * - Printing: Supports both Electron-based native printing and server-based printing.
+ * - Navigation: Provides links to different pages such as statistics, import/export, and settings.
+ * - Theme toggle and developer mode support.
+ *
+ * State Management:
+ * - Uses `useState` for local state management (e.g., products, selected quantity, AppBar visibility).
+ * - Uses `useSelector` and `useDispatch` from Redux for global state management (e.g., cart items).
+ *
+ * Routing:
+ * - Utilizes `react-router-dom` for navigation between pages.
+ * - Routes include `/` (products page), `/statistics`, `/import-export`, and `/settings`.
+ *
+ * UI Components:
+ * - AppBar: A vertical navigation bar with links and a theme toggle.
+ * - ProductGrid: Displays a grid of products with actions for stock changes, editing, and deletion.
+ * - Cart: Displays the current cart items and allows quantity selection via a numeric keypad.
+ * - SpeedDial: Provides quick access to actions like adding a product, toggling the AppBar, and printing.
+ * - ProductDialog: A modal dialog for adding or editing products.
+ *
+ * Hooks:
+ * - `useEffect`: Loads products on component mount.
+ * - `useLocation`: Determines the current route for conditional rendering.
+ *
+ * Props:
+ * - None
+ *
+ * Dependencies:
+ * - Redux for state management.
+ * - React Router for routing.
+ * - Material-UI for UI components and styling.
+ * - Custom services and utilities for product management and printing.
+ *
+ * @function AppContent
+ * @returns The main application layout and logic handler for the Kermes POS system.
+ */
 function AppContent() {
   const { t } = useLanguage();
   const dispatch = useDispatch();
@@ -306,14 +350,15 @@ function AppContent() {
  * 
  * @returns {JSX.Element} The main application component
  */
+
 const App: React.FC = () => {
   return (
     <SettingsProvider>
       <ThemeProvider>
         <LanguageProvider>
-          <Router>
+          
             <AppContent />
-          </Router>
+          
         </LanguageProvider>
       </ThemeProvider>
     </SettingsProvider>
