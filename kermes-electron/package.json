@@ -20,7 +20,8 @@
     "typedoc": "^0.28.4"
   },
   "dependencies": {
-    "node-wmi": "0.0.5" 
+    "escpos": "^3.0.0-alpha.6",
+    "node-wmi": "0.0.5"
   },
   "build": {
     "appId": "com.kermes.pos",

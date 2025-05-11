@@ -1,8 +1,9 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
-import path from 'path';
-import { execSync } from 'child_process';
-import colorLogger from './util/colorLogger.js';
-import { fileURLToPath } from 'url';
+import { app, BrowserWindow, ipcMain } from "electron";
+import path from "path";
+import { execSync } from "child_process";
+import colorLogger from "./util/colorLogger.js";
+import { fileURLToPath } from "url";
+import escpos from "escpos";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,42 +16,73 @@ function createWindow() {
     height: 800,
     //fullscreen: true,
     autoHideMenuBar: true,
-    title: 'Kermes POS',
+    title: "Kermes POS",
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       enableRemoteModule: false,
     },
   });
-  //mainWindow.maximize();  
-
+  //mainWindow.maximize();
 }
-function printTestPage(selectedPrinter) {
+
+function printTestPage(selectedPrinter, cartData) {
   const printWindow = new BrowserWindow({ show: false });
-  printWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(`
+
+  // Format cart items as HTML rows
+  const itemsHtml = cartData.items.map(item => `
+    <tr>
+      <td style="text-align:left;">${item.name}</td>
+      <td style="text-align:center;">${item.quantity}</td>
+      <td style="text-align:right;">${item.price.toFixed(2)} €</td>
+    </tr>
+  `).join('');
+
+  const html = `
     <html>
       <head>
         <style>
-          body { width: 300px; font-size: 18px; }
-          h1 { font-size: 24px; }
-          p { margin: 8px 0; }can
+          body { width: 300px; font-size: 18px; font-family: monospace; }
+          h1 { font-size: 24px; text-align: center; }
+          table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+          th, td { padding: 2px 0; }
+          th { border-bottom: 1px solid #000; }
+          tfoot td { border-top: 1px solid #000; font-weight: bold; }
+          .center { text-align: center; }
         </style>
       </head>
       <body>
-        <h1>Test Print</h1>
-        <p>This is a test page for your thermal printer.</p>
-        <p>--------------------------</p>
-        <p>Thank you for using Kermes POS!</p>
-        <p>--------------------------</p>
-        <p>0123456789</p>
-        <p>ABCDEFGHIJ</p>
+        <h1>Kermes POS</h1>
+        <div class="center">--------------------------</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:left;">Ürün</th>
+              <th style="text-align:center;">Adet</th>
+              <th style="text-align:right;">Fiyat</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2" style="text-align:left;">Toplam</td>
+              <td style="text-align:right;">${cartData.total.toFixed(2)} €</td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="center">--------------------------</div>
+        <div class="center">Teşekkürler!</div>
       </body>
     </html>
-  `));
+  `;
+
+  printWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
   printWindow.webContents.on('did-finish-load', () => {
     setTimeout(() => {
-      printWindow.webContents.printToPDF({
-        silent: true,
+      printWindow.webContents.print({
+        silent: false,
         printBackground: true,
         deviceName: selectedPrinter.name,
       }, (success, errorType) => {
@@ -58,49 +90,61 @@ function printTestPage(selectedPrinter) {
         else console.log('Print job sent to printer:', selectedPrinter.name);
         printWindow.close();
       });
-    }, 500); // Wait 500ms to ensure rendering
+    }, 500);
   });
 }
 
-app.on('ready', async () => {
+function printESCPOS() {
+  const device = new escpos.USB();
+  const printerRaw = new escpos.Printer(device);
+
+  device.open(() => {
+    printerRaw
+      .align("CT")
+      .text("My Shop")
+      .text("———————")
+      .table(["Item", "Qty", "€"])
+      .cut() // ESC/POS cut
+      .cashdraw() // if supported by escpos lib
+      .close();
+  });
+}
+
+app.on("ready", async () => {
   createWindow();
 
-  mainWindow.loadURL('http://localhost:3000'); // Load your website
-  // const kermesPosPath = path.join(__dirname, '../kermes-pos/build/index.html');
-  // mainWindow.loadFile(kermesPosPath);
+  //mainWindow.loadURL('http://localhost:3000'); // Load your website
+  const kermesPosPath = path.join(__dirname, "../kermes-pos/build/index.html");
+  mainWindow.loadFile(kermesPosPath);
   //mainWindow.webContents.openDevTools();
-
   //colorLogger.info('Application is ready.');
 
-
-  ipcMain.handle('list-printers', () => {
+  ipcMain.handle("list-printers", () => {
     try {
-      const output = execSync('wmic printer get name').toString();
+      const output = execSync("wmic printer get name").toString();
       const printers = output
-        .split('\n')
+        .split("\n")
         .slice(1)
-        .filter((line) => line.trim() !== '')
+        .filter((line) => line.trim() !== "")
         .map((name) => ({ name: name.trim() }));
       return printers;
     } catch (error) {
-      console.error('Failed to list printers:', error);
+      console.error("Failed to list printers:", error);
       return [];
     }
   });
 
-
-  
-  ipcMain.on('print-cart', async (event, { cartData, selectedPrinter }) => {
-    console.log('Received cart data:', cartData);
-    console.log('Selected printer:', selectedPrinter.name);
+  ipcMain.on("print-cart", async (event, { cartData, selectedPrinter }) => {
+    console.log("Received cart data:", cartData);
+    console.log("Selected printer:", selectedPrinter.name);
 
     // Here you would format the cartData for printing
-    printTestPage(selectedPrinter);
+    printTestPage(selectedPrinter, cartData);
   });
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });
