@@ -213,7 +213,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               userSelect: 'none',
             }}
           >
-            {product.price.toFixed(2)}€
+            {product.price.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€
           </Typography>
         </Box>
       </CardContent>

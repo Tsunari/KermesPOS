@@ -77,7 +77,7 @@ def main():
             hdc.SelectObject(font_normal)
         except Exception:
             pass
-        fiyat_text = f"Fiyat: {item['price']:.2f} €"
+        fiyat_text = f"Fiyat: {item['price']:,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
         hdc.TextOut(x_left, y, fiyat_text)
         # Now print Adet with bold font, positioned after Fiyat
         try:
@@ -106,7 +106,7 @@ def main():
             pass
 
     # Total
-    hdc.TextOut(x_left, y, f"Toplam: {cart['total']:.2f} €")
+    hdc.TextOut(x_left, y, f"Toplam: {cart['total']:.2f} €".replace(",", "X").replace(".", ",").replace("X", "."))
     y += line_height
     hdc.TextOut(x_left, y, "Teşekkürler!")
     y += line_height
