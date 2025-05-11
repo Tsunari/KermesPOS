@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain } from "electron";
+import { spawn } from "child_process";
 import path from "path";
 import { execSync } from "child_process";
 import colorLogger from "./util/colorLogger.js";
@@ -110,6 +111,23 @@ function printESCPOS() {
   });
 }
 
+function printWithPythonWin(cartData) {
+  const scriptPath = path.join(__dirname, "print_receipt_win.py");
+  // Print each item as a separate receipt (simulate cut)
+  cartData.items.forEach(item => {
+    const singleCart = {
+      items: [item],
+      total: item.price * item.quantity
+    };
+    const python = spawn("python", [scriptPath], {
+      stdio: ["pipe", "ignore", "ignore"],
+      windowsHide: true
+    });
+    python.stdin.write(JSON.stringify(singleCart));
+    python.stdin.end();
+  });
+}
+
 app.on("ready", async () => {
   createWindow();
 
@@ -139,7 +157,7 @@ app.on("ready", async () => {
     console.log("Selected printer:", selectedPrinter.name);
 
     // Here you would format the cartData for printing
-    printTestPage(selectedPrinter, cartData);
+    printWithPythonWin(cartData);
   });
 });
 
