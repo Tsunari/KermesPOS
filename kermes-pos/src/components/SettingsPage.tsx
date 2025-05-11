@@ -22,7 +22,7 @@ import PaletteIcon from '@mui/icons-material/Palette';
 import LanguageIcon from '@mui/icons-material/Language';
 import BackupIcon from '@mui/icons-material/Backup';
 import CodeIcon from '@mui/icons-material/Code';
-import TouchAppIcon from '@mui/icons-material/TouchApp';
+import TouchAppIcon from './ui/ModernSwitch';
 import ModernSwitch from './ui/ModernSwitch';
 import { productService } from '../services/productService';
 import { useSettings } from '../context/SettingsContext';
@@ -132,6 +132,37 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
     </ListItem>
   );
 
+  const renderFormItem = (
+    icon: React.ReactNode,
+    primary: string,
+    secondary: string,
+    formControl: React.ReactNode,
+    isActive: boolean = false
+  ) => (
+    <ListItem>
+      <ListItemIcon>
+        {icon}
+      </ListItemIcon>
+      <ListItemText 
+        primary={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {primary}
+            {isActive && (
+              <Chip
+                label={t('common.active')}
+                size="small"
+                color="success"
+                sx={{ ml: 1 }}
+              />
+            )}
+          </Box>
+        }
+        secondary={secondary}
+      />
+      {formControl}
+    </ListItem>
+  );
+
   return (
     <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom>
@@ -209,14 +240,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
           
           <Divider />
           
-          <ListItem>
-            <ListItemIcon>
-              <LanguageIcon />
-            </ListItemIcon>
-            <ListItemText 
-              primary={t('settings.language.title')}
-              secondary={t('settings.language.selectLanguage')}
-            />
+          {renderFormItem(
+            <LanguageIcon />,
+            t('settings.language.title'),
+            t('settings.language.selectLanguage'),
             <FormControl sx={{ minWidth: 120 }}>
               <Select
                 value={language}
@@ -227,8 +254,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
                 <MenuItem value="de">{t('settings.language.languages.de')}</MenuItem>
                 <MenuItem value="tr">{t('settings.language.languages.tr')}</MenuItem>
               </Select>
-            </FormControl>
-          </ListItem>
+            </FormControl>,
+            true
+          )}
           
           <Divider />
           
@@ -257,4 +285,4 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
   );
 };
 
-export default SettingsPage; 
+export default SettingsPage;

@@ -11,26 +11,16 @@
     "docs:type": "typedoc --options docs/typedoc.json"
   },
   "keywords": [],
-  "author": "",
+  "author": "Tunahan",
   "license": "ISC",
   "devDependencies": {
-    "electron": "28.1.0",
-    "electron-builder": "24.9.1",
+    "electron": "36.2.0",
+    "electron-builder": "26.0.12",
     "jsdoc": "^4.0.4",
     "typedoc": "^0.28.4"
   },
   "dependencies": {
-    "chalk": "^5.4.1",
-    "electron-pos-printer": "^1.3.7",
-    "escpos": "^3.0.0-alpha.6",
-    "escpos-network": "^3.0.0-alpha.5",
-    "escpos-serialport": "^3.0.0-alpha.4",
-    "escpos-usb": "^3.0.0-alpha.4",
-    "is-elevated": "^4.0.0",
-    "node-thermal-printer": "^4.4.5",
-    "node-wmi": "^0.0.5",
-    "sudo-prompt": "^9.2.1",
-    "usb": "^2.15.0"
+    "node-wmi": "0.0.5" 
   },
   "build": {
     "appId": "com.kermes.pos",
