@@ -153,10 +153,8 @@ app.on("ready", async () => {
   });
 
   ipcMain.on("print-cart", async (event, { cartData, selectedPrinter }) => {
-    console.log("Received cart data:", cartData);
-    console.log("Selected printer:", selectedPrinter.name);
-
-    // Here you would format the cartData for printing
+    // console.log("Received cart data:", cartData);
+    // console.log("Selected printer:", selectedPrinter.name);
     printWithPythonWin(cartData);
   });
 });

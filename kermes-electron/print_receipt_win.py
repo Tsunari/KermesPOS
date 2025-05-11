@@ -6,7 +6,7 @@ from datetime import datetime
 import usb.core
 
 # This can be set from Electron via an environment variable or config file
-KERMES_NAME = sys.argv[1] if len(sys.argv) > 1 else "Münih Fatih Kermes"
+KERMES_NAME = sys.argv[1] + " Kermes" if len(sys.argv) > 1 else "Münih Fatih Kermes"
 
 def main():
     cart = json.load(sys.stdin)
@@ -25,17 +25,36 @@ def main():
     # Header
     hdc.SetTextColor(0x000000)
     hdc.SetBkMode(1)  # Transparent
-    hdc.TextOut(x_left, y, KERMES_NAME.encode('latin-1', 'replace').decode('latin-1'))
+    try:
+        font_bold_header = win32ui.CreateFont({
+            'name': 'Arial',
+            'height': 40,  # Even larger for header
+            'weight': 900  # Extra bold
+        })
+        hdc.SelectObject(font_bold_header)
+    except Exception:
+        pass
+    hdc.TextOut(x_left, y, KERMES_NAME)
     y += line_height
+    # Reset font to normal for the rest of the header
+    try:
+        font_normal = win32ui.CreateFont({
+            'name': 'Arial',
+            'height': 24,
+            'weight': 400
+        })
+        hdc.SelectObject(font_normal)
+    except Exception:
+        pass
     now = datetime.now().strftime("%d.%m.%Y %H:%M")
     hdc.TextOut(x_left, y, f"Tarih: {now}")
     y += line_height
-    hdc.TextOut(x_left, y, "--------------------------")
+    hdc.TextOut(x_left, y, "------------------------------------------")
     y += line_height
 
     # Items
     for item in cart["items"]:
-        # Make product name bold and bigger by printing it twice (simulated bold) and with extra spacing
+        # Make product name bold and bigger
         try:
             font_bold = win32ui.CreateFont({
                 'name': 'Arial',
@@ -47,6 +66,34 @@ def main():
             pass
         hdc.TextOut(x_left, y, f"Ürün: {item['name']}")
         y += line_height
+        # Print Fiyat (normal) and Adet (bold) on the same line
+        # First print Fiyat with normal font
+        try:
+            font_normal = win32ui.CreateFont({
+                'name': 'Arial',
+                'height': 24,
+                'weight': 400
+            })
+            hdc.SelectObject(font_normal)
+        except Exception:
+            pass
+        fiyat_text = f"Fiyat: {item['price']:.2f} €"
+        hdc.TextOut(x_left, y, fiyat_text)
+        # Now print Adet with bold font, positioned after Fiyat
+        try:
+            font_bold_adet = win32ui.CreateFont({
+                'name': 'Arial',
+                'height': 32,
+                'weight': 700
+            })
+            hdc.SelectObject(font_bold_adet)
+        except Exception:
+            pass
+        # Calculate x position for Adet (after Fiyat)
+        adet_x = x_left + 320  # Adjust this value for spacing as needed
+        adet_text = f"Adet: {item['quantity']}"
+        hdc.TextOut(adet_x, y, adet_text)
+        y += line_height
         # Reset font to normal for the rest
         try:
             font_normal = win32ui.CreateFont({
@@ -57,11 +104,6 @@ def main():
             hdc.SelectObject(font_normal)
         except Exception:
             pass
-        hdc.TextOut(x_amount, y - line_height, f"Adet: {item['quantity']}")
-        hdc.TextOut(x_left, y, f"Fiyat: {item['price']:.2f} €")
-        y += line_height
-        hdc.TextOut(x_left, y, f"Tarih: {now}")
-        y += line_height
 
     # Total
     hdc.TextOut(x_left, y, f"Toplam: {cart['total']:.2f} €")

@@ -161,61 +161,12 @@ function AppContent() {
     }
   };
 
-  const handleElectronPrint = async () => {
-    try {
-      const receiptContent = generateReceiptContent(cartItems, cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0));
-      const result = await window.electron.nativePrint(receiptContent);
-      console.log(t("common.nativePrintResult"), result);
-      alert(result);
-    } catch (error: any) {
-      console.error(t("common.nativePrintError"), error);
-      alert(`${t("common.failedToPrint")}: ${error.message}`);
-    }
-  };
-
   const actions = [
     { icon: <AddIcon />, name: t("products.add"), onClick: handleAddProduct },
     { 
       icon: isAppBarVisible ? <VisibilityOffIcon /> : <VisibilityIcon />, 
       name: isAppBarVisible ? t("common.hide") : t("common.show"), 
       onClick: () => setIsAppBarVisible(!isAppBarVisible) 
-    },
-    {
-      icon: <PrintIcon />,
-      name: t("common.testPrint"),
-      onClick: async () => {
-        try {
-          const response = await fetch("http://localhost:3001/api/print", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              text: t("common.testPrint") + "\n" +
-                    "-------------------\n" +
-                    t("common.testPrintMessage") + "\n" +
-                    t("common.fromMainApp") + "\n" +
-                    "-------------------\n"
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error(t("common.httpError") + response.status);
-          }
-
-          const result = await response.text();
-          console.log(t("common.printServerResponse"), result);
-          alert(result);
-        } catch (error) {
-          console.error(t("common.printError"), error);
-          alert(t("common.printRequestFailed"));
-        }
-      }
-    },
-    {
-      icon: <PrintIcon />,
-      name: t("common.electronPrint"),
-      onClick: handleElectronPrint,
     },
   ];
 
