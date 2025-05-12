@@ -53,3 +53,6 @@ Desktop.ini
 
 # Electron specific
 .electron-builder.env
+
+# python
+python-3.13.3-embed-amd64/

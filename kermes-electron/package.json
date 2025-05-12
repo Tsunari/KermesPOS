@@ -1,5 +1,5 @@
 {
-  "name": "Kermes POS Electron",
+  "name": "kermes-pos-electron",
   "version": "1.0.0",
   "description": "Electron app for Kermes POS with USB printer support",
   "main": "main.js",
@@ -27,6 +27,31 @@
     "appId": "com.kermes.pos",
     "win": {
       "target": "nsis"
-    }
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "print_receipt_win.py",
+      {
+        "from": "python-3.13.3-embed-amd64",
+        "to": "python-3.13.3-embed-amd64",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "util",
+        "to": "util",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "kermes-pos/build",
+        "to": "kermes-pos/build",
+        "filter": ["**/*"]
+      }
+    ],
+    "asarUnpack": [
+      "python-3.13.3-embed-amd64/**",
+      "print_receipt_win.py",
+      "kermes-pos/build/**"
+    ]
   }
 }

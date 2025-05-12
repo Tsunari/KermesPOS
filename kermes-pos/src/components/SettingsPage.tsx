@@ -22,7 +22,7 @@ import PaletteIcon from '@mui/icons-material/Palette';
 import LanguageIcon from '@mui/icons-material/Language';
 import BackupIcon from '@mui/icons-material/Backup';
 import CodeIcon from '@mui/icons-material/Code';
-import TouchAppIcon from './ui/ModernSwitch';
+import TouchAppIcon from '@mui/icons-material/TouchApp';
 import ModernSwitch from './ui/ModernSwitch';
 import { productService } from '../services/productService';
 import { useSettings } from '../context/SettingsContext';

@@ -28,13 +28,16 @@ import CartFooter from './cart/CartFooter';
 import PrinterSettings from './PrinterSettings';
 import ReceiptPreview from './cart/receipt/ReceiptPreview';
 import { CartItem } from '../types/index';
-import { generateReceiptContent, printCart } from '../services/printerService';
+import { generateReceiptContent } from '../services/printerService';
 import { useSettings } from '../context/SettingsContext';
 import { useLanguage } from '../context/LanguageContext';
-import { cartTransactionService } from '../services/cartTransactionService';
 import { getCategoryStyle } from '../utils/categoryUtils';
 
-const Cart: React.FC = () => {
+interface CartProps {
+  devMode?: boolean;
+}
+
+const Cart: React.FC<CartProps> = ({ devMode }) => {
   const { t } = useLanguage();
   const dispatch = useDispatch();
   const theme = useTheme();
@@ -50,11 +53,7 @@ const Cart: React.FC = () => {
 
   useEffect(() => {
     const savedPrinter = localStorage.getItem('selectedPrinter');
-    if (savedPrinter) {
-      setSelectedPrinter(savedPrinter);
-    } else {
-      console.error('No printer selected in localStorage');
-    }
+    setSelectedPrinter(savedPrinter || "");
   }, []);
 
   const handleRemoveItem = (id: string) => {
@@ -198,17 +197,19 @@ const Cart: React.FC = () => {
                   <ReceiptPreview items={cartItems} total={total} />
                 </Box>
               </Popover>
-              <Tooltip title={t('app.cart.printerSettings')}>
-                <IconButton 
-                  color="primary" 
-                  size="small" 
-                  onClick={handlePrinterSettingsOpen}
-                  aria-label={t('app.cart.printerSettings')}
-                  sx={{ mr: 1 }}
-                >
-                  <SettingsIcon />
-                </IconButton>
-              </Tooltip>
+              {devMode && (
+                <Tooltip title={t('app.cart.printerSettings')}>
+                  <IconButton 
+                    color="primary" 
+                    size="small" 
+                    onClick={handlePrinterSettingsOpen}
+                    aria-label={t('app.cart.printerSettings')}
+                    sx={{ mr: 1 }}
+                  >
+                    <SettingsIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
               <Tooltip title={t('app.cart.clearCart')}>
                 <IconButton 
                   color="error" 
@@ -219,8 +220,8 @@ const Cart: React.FC = () => {
                   <DeleteSweepIcon />
                 </IconButton>
               </Tooltip>
-              {(
-                <Tooltip title={t('app.cart.cancelPrint') || 'Cancel Printing'}>
+              {devMode && (
+                <Tooltip title={`${t('app.cart.cancelPrint') || 'Cancel Printing'} (EXPERIMENTAL)`}>
                   <IconButton color="error" onClick={handleCancelPrint}>
                     <CancelIcon />
                   </IconButton>

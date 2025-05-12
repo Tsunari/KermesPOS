@@ -1,10 +1,11 @@
 import { app, BrowserWindow, ipcMain } from "electron";
-import { spawn } from "child_process";
+import { spawn, exec } from "child_process";
 import path from "path";
 import { execSync } from "child_process";
 import colorLogger from "./util/colorLogger.js";
 import { fileURLToPath } from "url";
 import escpos from "escpos";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -115,32 +116,65 @@ function printESCPOS() {
 }
 
 function printWithPythonWin(cartData) {
-  const scriptPath = path.join(__dirname, "print_receipt_win.py");
+	const basePath = getBasePath();
+  const scriptPath = path.join(basePath, "print_receipt_win.py");
+  const pythonExe = path.join(basePath, "python-3.13.3-embed-amd64", "python.exe");
   cartData.items.forEach(item => {
-    const singleCart = {
-      items: [item],
+		const singleCart = {
+			items: [item],
       total: item.price * item.quantity
     };
-    const proc = spawn("python", [scriptPath, kursName], {
-      stdio: ["pipe", "ignore", "ignore"],
+    const proc = spawn(pythonExe, [scriptPath, kursName], {
+			stdio: ["pipe", "ignore", "ignore"],
       windowsHide: true
     });
     proc.stdin.write(JSON.stringify(singleCart));
     proc.stdin.end();
     pythonPrintProcesses.push(proc);
     proc.on('exit', () => {
-      // Remove finished process from array
+			// Remove finished process from array
       pythonPrintProcesses = pythonPrintProcesses.filter(p => p !== proc);
     });
   });
 }
 
+function resetWindowsPrintSpooler() {
+	  try {
+    console.log("Stopping print spooler...");
+    execSync('net stop spooler', { stdio: 'inherit' });
+
+    console.log("Clearing print queue...");
+    execSync('del /Q /F "%systemroot%\\System32\\spool\\PRINTERS\\*"', { stdio: 'inherit' });
+
+    console.log("Starting print spooler...");
+    execSync('net start spooler', { stdio: 'inherit' });
+
+    console.log("Print spooler reset complete.");
+  } catch (err) {
+    console.error("Failed to reset printer queue:", err.message);
+  }
+  // exec('net stop spooler && net start spooler', { windowsHide: true }, (error, stdout, stderr) => {
+  //   if (error) {
+  //     console.error('Failed to reset print spooler:', error);
+  //   } else {
+  //     console.log('Print spooler reset successfully.');
+  //   }
+  // });
+}
+
+function getBasePath() {
+	return app.isPackaged
+		? path.join(process.resourcesPath, 'app.asar.unpacked')
+		: __dirname;
+}
+
+
 app.on("ready", async () => {
   createWindow();
 
-  mainWindow.loadURL('http://localhost:3000'); // Load your website
-  // const kermesPosPath = path.join(__dirname, "../kermes-pos/build/index.html");
-  // mainWindow.loadFile(kermesPosPath);
+  // mainWindow.loadURL('http://localhost:3000'); // Load your website
+  const kermesPosPath = path.join(getBasePath(), "../kermes-pos/build/index.html");
+  mainWindow.loadFile(kermesPosPath);
   //mainWindow.webContents.openDevTools();
   //colorLogger.info('Application is ready.');
 
@@ -161,34 +195,23 @@ app.on("ready", async () => {
 
   ipcMain.on("print-cart", async (event, { cartData, selectedPrinter }) => {
     // Kill any previous print jobs before starting new ones
-    pythonPrintProcesses.forEach(proc => proc.kill());
-    pythonPrintProcesses = [];
-    // Start new print jobs
-    const scriptPath = path.join(__dirname, "print_receipt_win.py");
-    cartData.items.forEach(item => {
-      const singleCart = {
-        items: [item],
-        total: item.price * item.quantity
-      };
-      const proc = spawn("python", [scriptPath], {
-        stdio: ["pipe", "ignore", "ignore"],
-        windowsHide: true
-      });
-      proc.stdin.write(JSON.stringify(singleCart));
-      proc.stdin.end();
-      pythonPrintProcesses.push(proc);
-      proc.on('exit', () => {
-        pythonPrintProcesses = pythonPrintProcesses.filter(p => p !== proc);
-      });
-    });
+    // pythonPrintProcesses.forEach(proc => proc.kill());
+    // pythonPrintProcesses = [];
+    printWithPythonWin(cartData);
+		console.log("Selected printer:", selectedPrinter);
+		console.log("cartData:", cartData);
+		fs.writeFileSync('test.json', JSON.stringify(cartData), 'utf8')
   });
 
   ipcMain.on("cancel-print", () => {
+    resetWindowsPrintSpooler();
     pythonPrintProcesses.forEach(proc => proc.kill());
     pythonPrintProcesses = [];
-    // Also clear the Windows print queue using the Python script
-    const scriptPath = path.join(__dirname, "print_receipt_win.py");
-    const clearProc = spawn("python", [scriptPath, "--clear-queue"], {
+		// Also clear the Windows print queue using the Python script
+    const basePath = getBasePath();
+    const scriptPath = path.join(basePath, "print_receipt_win.py");
+    const pythonExe = path.join(basePath, "python-3.13.3-embed-amd64", "python.exe");
+    const clearProc = spawn(pythonExe, [scriptPath, "--clear-queue"], {
       stdio: ["ignore", "ignore", "ignore"],
       windowsHide: true
     });
