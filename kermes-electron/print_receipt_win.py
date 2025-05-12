@@ -4,9 +4,29 @@ import win32print
 import win32ui
 from datetime import datetime
 import usb.core
+import signal
+import os
 
 # This can be set from Electron via an environment variable or config file
 KERMES_NAME = sys.argv[1] + " Kermes" if len(sys.argv) > 1 else "Münih Fatih Kermes"
+
+def handle_sigterm(signum, frame):
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, handle_sigterm)
+
+# Clear all jobs for the given printer
+def clear_print_queue(printer_name):
+    hprinter = win32print.OpenPrinter(printer_name)
+    try:
+        jobs = win32print.EnumJobs(hprinter, 0, -1, 1)
+        for job in jobs:
+            try:
+                win32print.SetJob(hprinter, job['JobId'], 0, None, 3)  # 3 = JOB_CONTROL_DELETE
+            except Exception as e:
+                print(f'Error deleting job {job["JobId"]}: {e}', file=sys.stderr)
+    finally:
+        win32print.ClosePrinter(hprinter)
 
 def main():
     cart = json.load(sys.stdin)
@@ -151,4 +171,16 @@ def list_usb_printers():
         print(f"VID: {hex(dev.idVendor)}, PID: {hex(dev.idProduct)}, Manufacturer: {manufacturer}, Product: {product}")
 
 if __name__ == '__main__':
+    # If called with --clear-queue, clear and exit
+    if '--clear-queue' in sys.argv:
+        printer_name = win32print.GetDefaultPrinter()
+        clear_print_queue(printer_name)
+        print('Print queue cleared.')
+        sys.exit(0)
+    # Or if CLEAR_QUEUE env var is set
+    if os.environ.get('CLEAR_QUEUE') == '1':
+        printer_name = win32print.GetDefaultPrinter()
+        clear_print_queue(printer_name)
+        print('Print queue cleared.')
+        sys.exit(0)
     main()

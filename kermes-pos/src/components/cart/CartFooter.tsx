@@ -40,7 +40,7 @@ const CartFooter: React.FC<CartFooterProps> = ({ total, onPrint, hasItems }) => 
             fullWidth
             disabled={!hasItems}
           >
-            {"LOL"}
+            {t('sales.print')}
           </Button>
         </span>
       </Tooltip>

@@ -10,7 +10,7 @@ interface ReceiptPreviewProps {
 const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ items, total }) => {
   // Format price with currency symbol
   const formatPrice = (price: number): string => {
-    return price.toFixed(2) + '€';
+    return price.toFixed(2).replace('.', ',') + '€';
   };
 
   return (
@@ -20,7 +20,7 @@ const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ items, total }) => {
         p: 2,
         width: '80mm', // Standard thermal paper width
         minHeight: '200mm',
-        backgroundColor: 'white',
+        backgroundColor: (theme) => theme.palette.background.paper,
         fontFamily: 'monospace',
         fontSize: '12px',
         lineHeight: 1.2,
@@ -49,9 +49,17 @@ const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ items, total }) => {
           <Typography variant="body2">Date: {new Date().toLocaleString()}</Typography>
           <Divider sx={{ my: 1 }} />
         </Box>
-      ))}
+            ))}
+            {/* Total at the bottom */}
+            <Box sx={{ mt: 2 }}>
+        <Divider sx={{ mb: 1 }} />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+          <Typography variant="body1">Total</Typography>
+          <Typography variant="body1">{formatPrice(total)}</Typography>
+        </Box>
+            </Box>
     </Paper>
   );
 };
 
-export default ReceiptPreview; 
+export default ReceiptPreview;

@@ -10,6 +10,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let mainWindow;
+let currentPythonProcess = null;
+let pythonPrintProcesses = [];
+let kursName = "Münih Fatih";
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -113,27 +116,31 @@ function printESCPOS() {
 
 function printWithPythonWin(cartData) {
   const scriptPath = path.join(__dirname, "print_receipt_win.py");
-  // Print each item as a separate receipt (simulate cut)
   cartData.items.forEach(item => {
     const singleCart = {
       items: [item],
       total: item.price * item.quantity
     };
-    const python = spawn("python", [scriptPath], {
+    const proc = spawn("python", [scriptPath, kursName], {
       stdio: ["pipe", "ignore", "ignore"],
       windowsHide: true
     });
-    python.stdin.write(JSON.stringify(singleCart));
-    python.stdin.end();
+    proc.stdin.write(JSON.stringify(singleCart));
+    proc.stdin.end();
+    pythonPrintProcesses.push(proc);
+    proc.on('exit', () => {
+      // Remove finished process from array
+      pythonPrintProcesses = pythonPrintProcesses.filter(p => p !== proc);
+    });
   });
 }
 
 app.on("ready", async () => {
   createWindow();
 
-  //mainWindow.loadURL('http://localhost:3000'); // Load your website
-  const kermesPosPath = path.join(__dirname, "../kermes-pos/build/index.html");
-  mainWindow.loadFile(kermesPosPath);
+  mainWindow.loadURL('http://localhost:3000'); // Load your website
+  // const kermesPosPath = path.join(__dirname, "../kermes-pos/build/index.html");
+  // mainWindow.loadFile(kermesPosPath);
   //mainWindow.webContents.openDevTools();
   //colorLogger.info('Application is ready.');
 
@@ -153,9 +160,38 @@ app.on("ready", async () => {
   });
 
   ipcMain.on("print-cart", async (event, { cartData, selectedPrinter }) => {
-    // console.log("Received cart data:", cartData);
-    // console.log("Selected printer:", selectedPrinter.name);
-    printWithPythonWin(cartData);
+    // Kill any previous print jobs before starting new ones
+    pythonPrintProcesses.forEach(proc => proc.kill());
+    pythonPrintProcesses = [];
+    // Start new print jobs
+    const scriptPath = path.join(__dirname, "print_receipt_win.py");
+    cartData.items.forEach(item => {
+      const singleCart = {
+        items: [item],
+        total: item.price * item.quantity
+      };
+      const proc = spawn("python", [scriptPath], {
+        stdio: ["pipe", "ignore", "ignore"],
+        windowsHide: true
+      });
+      proc.stdin.write(JSON.stringify(singleCart));
+      proc.stdin.end();
+      pythonPrintProcesses.push(proc);
+      proc.on('exit', () => {
+        pythonPrintProcesses = pythonPrintProcesses.filter(p => p !== proc);
+      });
+    });
+  });
+
+  ipcMain.on("cancel-print", () => {
+    pythonPrintProcesses.forEach(proc => proc.kill());
+    pythonPrintProcesses = [];
+    // Also clear the Windows print queue using the Python script
+    const scriptPath = path.join(__dirname, "print_receipt_win.py");
+    const clearProc = spawn("python", [scriptPath, "--clear-queue"], {
+      stdio: ["ignore", "ignore", "ignore"],
+      windowsHide: true
+    });
   });
 });
 

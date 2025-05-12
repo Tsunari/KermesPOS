@@ -20,6 +20,7 @@ import {
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import PrintIcon from '@mui/icons-material/Print';
 import SettingsIcon from '@mui/icons-material/Settings';
+import CancelIcon from '@mui/icons-material/Cancel';
 import { RootState } from '../store';
 import { removeFromCart, clearCart, updateQuantity } from '../store/slices/cartSlice';
 import CartItemRow from './cart/CartItemRow';
@@ -45,6 +46,7 @@ const Cart: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [previewAnchorEl, setPreviewAnchorEl] = useState<HTMLElement | null>(null);
   const [selectedPrinter, setSelectedPrinter] = useState<string>('');
+  const [isPrinting, setIsPrinting] = useState(false);
 
   useEffect(() => {
     const savedPrinter = localStorage.getItem('selectedPrinter');
@@ -63,56 +65,15 @@ const Cart: React.FC = () => {
     dispatch(clearCart());
   };
 
-  const handlePrint = async (receiptContent: string): Promise<boolean> => {
-    try {
-      // Original printing functionality (commented out)
-      const success = await printCart(cartItems, total);
-      if (success) {
-        setSuccessMessage(t('app.cart.printSuccess'));
-        return true;
-      } else {
-        setErrorMessage(t('app.cart.printFailed'));
-        return false;
-      }
-
-      // // Simulate successful print for testing
-      // console.log('Simulating successful print...', receiptContent);
-      // return true;
-    } catch (error) {
-      setErrorMessage(t('app.cart.printFailed'));
-      return false;
-    }
-  };
-
-  const handlePrintReceipt = async () => {
-    if (cartItems.length === 0) return;
-
-    try {
-      const receiptContent = generateReceiptContent(cartItems, total);
-      const printSuccess = await handlePrint(receiptContent);
-
-      if (printSuccess) {
-        await cartTransactionService.saveTransaction(cartItems, total, 'cash');
-        dispatch(clearCart());
-        setSuccessMessage(t('sales.receiptPrinted'));
-      } else {
-        setErrorMessage(t('app.cart.printFailed'));
-      }
-    } catch (error) {
-      setErrorMessage(t('app.cart.printFailed'));
-      console.error('Error in print/save process:', error);
-    }
-  };
-
   const handlePrintCart = () => {
     if (!selectedPrinter) {
       console.error('No printer selected');
       return;
     }
-
+    setIsPrinting(true);
     const cartData = {
       items: cartItems.map((item) => ({
-        name: item.product.name,
+        name: item.product.name.normalize('NFC'), // Ensure Unicode normalization for Turkish chars
         quantity: item.quantity,
         price: item.product.price,
       })),
@@ -120,11 +81,21 @@ const Cart: React.FC = () => {
     };
 
     if (window.electronAPI) {
-      console.log('Printing cart with selected printer:', selectedPrinter);
+      // Send as UTF-8 JSON, Turkish chars preserved
+      console.log('Sending cart data to Electron API:', cartData);
+      //console.log('Printing cart with selected printer:', selectedPrinter);
       window.electronAPI.printCart(cartData, { name: selectedPrinter });
     } else {
       console.error('Electron API not available');
     }
+  };
+
+  const handleCancelPrint = () => {
+    // Always call the cancelPrintRequest, TypeScript will complain but it's available at runtime
+    if (isPrinting) {
+      (window.electronAPI as any).cancelPrintRequest?.();
+    }
+    setIsPrinting(false);
   };
 
   const handlePrinterSettingsOpen = () => {
@@ -203,8 +174,7 @@ const Cart: React.FC = () => {
             <>
               <Tooltip title={t('app.cart.previewReceipt')}>
                 <IconButton
-                  onMouseEnter={handlePrintPreviewOpen}
-                  onMouseLeave={handlePrintPreviewClose}
+                  onClick={previewOpen ? handlePrintPreviewClose : handlePrintPreviewOpen}
                   disabled={cartItems.length === 0}
                   color="primary"
                 >
@@ -222,9 +192,6 @@ const Cart: React.FC = () => {
                 transformOrigin={{
                   vertical: 'top',
                   horizontal: 'right',
-                }}
-                sx={{
-                  pointerEvents: 'none',
                 }}
               >
                 <Box sx={{ p: 2 }}>
@@ -252,6 +219,13 @@ const Cart: React.FC = () => {
                   <DeleteSweepIcon />
                 </IconButton>
               </Tooltip>
+              {(
+                <Tooltip title={t('app.cart.cancelPrint') || 'Cancel Printing'}>
+                  <IconButton color="error" onClick={handleCancelPrint}>
+                    <CancelIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
             </>
           )}
         </Box>
