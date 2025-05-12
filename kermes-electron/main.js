@@ -172,8 +172,8 @@ function getBasePath() {
 app.on("ready", async () => {
   createWindow();
 
-  // mainWindow.loadURL('http://localhost:3000'); // Load your website
-  const kermesPosPath = path.join(getBasePath(), "../kermes-pos/build/index.html");
+  // Use getBasePath() to resolve the correct path for both dev and production
+  const kermesPosPath = path.join(getBasePath(), "kermes-pos", "build", "index.html");
   mainWindow.loadFile(kermesPosPath);
   //mainWindow.webContents.openDevTools();
   //colorLogger.info('Application is ready.');
