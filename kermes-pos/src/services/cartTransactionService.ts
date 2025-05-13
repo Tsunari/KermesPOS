@@ -156,6 +156,53 @@ class CartTransactionService {
             request.onerror = () => reject(request.error);
         });
     }
+
+    // Export all transactions as CSV
+    async exportTransactionsAsCSV(): Promise<void> {
+        const transactions = await this.getTransactions();
+        if (!transactions.length) {
+            alert('No transactions to export.');
+            return;
+        }
+        const header = [
+            'ID', 'Date', 'Total Amount', 'Items Count', 'Items Data', 'Payment Method'
+        ];
+        const rows = transactions.map(tx => [
+            tx.id,
+            tx.transaction_date,
+            tx.total_amount,
+            tx.items_count,
+            tx.items_data.replace(/"/g, '""'),
+            tx.payment_method
+        ]);
+        const csvContent = [header, ...rows]
+            .map(row => row.map(String).map(val => `"${val}"`).join(','))
+            .join('\r\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `transactions_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // Clear all transactions from IndexedDB
+    async clearAllTransactions(): Promise<void> {
+        if (!window.confirm('Are you sure you want to delete all transaction data? This cannot be undone.')) return;
+        if (!this.db) await this.initDB();
+        return new Promise((resolve, reject) => {
+            const tx = this.db!.transaction(this.storeName, 'readwrite');
+            tx.objectStore(this.storeName).clear();
+            tx.oncomplete = () => {
+                window.location.reload();
+                resolve();
+            };
+            tx.onerror = () => reject(tx.error);
+        });
+    }
 }
 
-export const cartTransactionService = new CartTransactionService(); 
+export const cartTransactionService = new CartTransactionService();

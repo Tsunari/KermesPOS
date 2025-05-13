@@ -79,9 +79,9 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
     try {
       // Save transaction to IndexedDB
       await cartTransactionService.saveTransaction(cartItems, total, 'cash'); // or use a real payment method
-      setSuccessMessage(t('app.cart.transactionSaved'));
+      setSuccessMessage(t('sales.receiptPrinted'));
     } catch (error) {
-      setErrorMessage(t('app.cart.transactionSaveFailed'));
+      setErrorMessage(t('sales.errorSavingTransaction'));
       console.error('Failed to save transaction:', error);
     }
 

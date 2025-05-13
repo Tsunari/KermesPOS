@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Paper, ToggleButton, ToggleButtonGroup, IconButton, Dialog, DialogTitle, DialogContent, Tooltip } from '@mui/material';
+import { Box, Typography, Paper, ToggleButton, ToggleButtonGroup, IconButton, Dialog, DialogTitle, DialogContent, Tooltip, Button, Stack } from '@mui/material';
 import GridViewIcon from '@mui/icons-material/GridView';
+import DownloadIcon from '@mui/icons-material/Download';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { useLanguage } from '../context/LanguageContext';
 import { Product } from '../types/index';
 import { cartTransactionService } from '../services/cartTransactionService';
@@ -340,8 +342,29 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products }) => {
           </Box>
         </DialogContent>
       </Dialog>
+
+      <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 2, justifyContent: 'center' }}>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<DownloadIcon />}
+          onClick={() => cartTransactionService.exportTransactionsAsCSV()}
+          sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
+        >
+          Export Transactions (CSV)
+        </Button>
+        <Button
+          variant="outlined"
+          color="error"
+          startIcon={<DeleteForeverIcon />}
+          onClick={() => cartTransactionService.clearAllTransactions()}
+          sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
+        >
+          Clear Database
+        </Button>
+      </Stack>
     </Box>
   );
 };
 
-export default StatisticsPage; 
+export default StatisticsPage;
