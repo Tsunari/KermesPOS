@@ -211,7 +211,7 @@ app.on("ready", async () => {
     // Kill any previous print jobs before starting new ones
     // pythonPrintProcesses.forEach(proc => proc.kill());
     // pythonPrintProcesses = [];
-    //printWithPythonWin(cartData);
+    printWithPythonWin(cartData);
 		console.log("Selected printer:", selectedPrinter);
 		console.log("cartData:", cartData);
 		//fs.writeFileSync('test.json', JSON.stringify(cartData), 'utf8')

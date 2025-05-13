@@ -28,7 +28,6 @@
     "productName": "Kermes POS",
     "win": {
       "target": "nsis",
-      "publisherName": "Tunahan K",
       "icon": "assets/Logo-light.ico"
     },
     "publish": [
