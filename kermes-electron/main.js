@@ -1,14 +1,15 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, nativeTheme } from "electron";
 import { spawn, exec } from "child_process";
 import path from "path";
 import { execSync } from "child_process";
 import colorLogger from "./util/colorLogger.js";
 import { fileURLToPath } from "url";
-import escpos from "escpos";
 import fs from "fs";
+import pkg from "electron-updater"
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const { autoUpdater } = pkg;
 
 let mainWindow;
 let currentPythonProcess = null;
@@ -16,19 +17,27 @@ let pythonPrintProcesses = [];
 let kursName = "Münih Fatih";
 
 function createWindow() {
+  const isDark = nativeTheme.shouldUseDarkColors;
+  const iconPath = isDark
+    ? path.join(__dirname, "assets", "Logo-dark.ico")
+    : path.join(__dirname, "assets", "Logo-light.ico");
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    //fullscreen: true,
+    // fullscreen: true,
     autoHideMenuBar: true,
     title: "Kermes POS",
+    icon: iconPath,
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       enableRemoteModule: false,
     },
   });
-  //mainWindow.maximize();
+  mainWindow.maximize();
+  mainWindow.show();
 }
 
 function printTestPage(selectedPrinter, cartData) {
@@ -171,10 +180,15 @@ function getBasePath() {
 
 app.on("ready", async () => {
   createWindow();
-
-  // Use getBasePath() to resolve the correct path for both dev and production
-  const kermesPosPath = path.join(getBasePath(), "kermes-pos", "build", "index.html");
-  mainWindow.loadFile(kermesPosPath);
+  
+  if (app.isPackaged) {
+    mainWindow.loadFile('build/index.html');
+    autoUpdater.checkForUpdatesAndNotify();
+  } else {
+    const kermesPosPath = path.join(__dirname, 'build/index.html');
+    //mainWindow.loadFile(kermesPosPath);
+    mainWindow.loadURL('http://localhost:3000');
+  }
   //mainWindow.webContents.openDevTools();
   //colorLogger.info('Application is ready.');
 
@@ -197,10 +211,10 @@ app.on("ready", async () => {
     // Kill any previous print jobs before starting new ones
     // pythonPrintProcesses.forEach(proc => proc.kill());
     // pythonPrintProcesses = [];
-    printWithPythonWin(cartData);
+    //printWithPythonWin(cartData);
 		console.log("Selected printer:", selectedPrinter);
 		console.log("cartData:", cartData);
-		fs.writeFileSync('test.json', JSON.stringify(cartData), 'utf8')
+		//fs.writeFileSync('test.json', JSON.stringify(cartData), 'utf8')
   });
 
   ipcMain.on("cancel-print", () => {

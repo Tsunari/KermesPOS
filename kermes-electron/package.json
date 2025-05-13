@@ -1,7 +1,7 @@
 {
-  "name": "kermes-pos-electron",
+  "name": "kermes-pos",
   "version": "1.0.0",
-  "description": "Electron app for Kermes POS with USB printer support",
+  "description": "POS system with USB printer support",
   "main": "main.js",
   "type": "module",
   "scripts": {
@@ -11,8 +11,8 @@
     "docs:type": "typedoc --options docs/typedoc.json"
   },
   "keywords": [],
-  "author": "Tunahan",
-  "license": "ISC",
+  "author": "Tunahan K",
+  "license": "AGPL-3.0",
   "devDependencies": {
     "electron": "36.2.0",
     "electron-builder": "26.0.12",
@@ -20,14 +20,24 @@
     "typedoc": "^0.28.4"
   },
   "dependencies": {
-    "escpos": "^3.0.0-alpha.6",
+    "electron-updater": "^6.6.2",
     "node-wmi": "0.0.5"
   },
   "build": {
     "appId": "com.kermes.pos",
+    "productName": "Kermes POS",
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "publisherName": "Tunahan K",
+      "icon": "assets/Logo-light.ico"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Tsunari",
+        "repo": "KermesPOS"
+      }
+    ],
     "files": [
       "main.js",
       "preload.js",
@@ -35,23 +45,28 @@
       {
         "from": "python-3.13.3-embed-amd64",
         "to": "python-3.13.3-embed-amd64",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
         "from": "util",
         "to": "util",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
-        "from": "kermes-pos/build",
-        "to": "kermes-pos/build",
-        "filter": ["**/*"]
+        "from": "build",
+        "to": "build",
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "asarUnpack": [
       "python-3.13.3-embed-amd64/**",
-      "print_receipt_win.py",
-      "kermes-pos/build/**"
+      "print_receipt_win.py"
     ]
   }
 }

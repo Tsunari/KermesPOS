@@ -32,6 +32,7 @@ import { generateReceiptContent } from '../services/printerService';
 import { useSettings } from '../context/SettingsContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getCategoryStyle } from '../utils/categoryUtils';
+import { cartTransactionService } from '../services/cartTransactionService';
 
 interface CartProps {
   devMode?: boolean;
@@ -64,29 +65,35 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
     dispatch(clearCart());
   };
 
-  const handlePrintCart = () => {
-    if (!selectedPrinter) {
-      console.error('No printer selected');
-      return;
-    }
+  const handlePrintCart = async () => {
     setIsPrinting(true);
     const cartData = {
       items: cartItems.map((item) => ({
-        name: item.product.name.normalize('NFC'), // Ensure Unicode normalization for Turkish chars
+        name: item.product.name.normalize('NFC'),
         quantity: item.quantity,
         price: item.product.price,
       })),
       total,
     };
 
+    try {
+      // Save transaction to IndexedDB
+      await cartTransactionService.saveTransaction(cartItems, total, 'cash'); // or use a real payment method
+      setSuccessMessage(t('app.cart.transactionSaved'));
+    } catch (error) {
+      setErrorMessage(t('app.cart.transactionSaveFailed'));
+      console.error('Failed to save transaction:', error);
+    }
+
     if (window.electronAPI) {
-      // Send as UTF-8 JSON, Turkish chars preserved
       console.log('Sending cart data to Electron API:', cartData);
-      //console.log('Printing cart with selected printer:', selectedPrinter);
-      window.electronAPI.printCart(cartData, { name: selectedPrinter });
+      window.electronAPI.printCart(cartData, { name: selectedPrinter || "" });
     } else {
       console.error('Electron API not available');
     }
+
+    // Clear the cart after printing and saving
+    dispatch(clearCart());
   };
 
   const handleCancelPrint = () => {
