@@ -1,8 +1,13 @@
-# 🏪 Kermes POS
+<h1 style="display: flex; align-items: center;">
+  <a href="https://kermespos.web.app/" style="margin-right: 10px;">
+    <img src="/kermes-web/out/pic.png" alt="Kermes POS" width="50" style="filter: invert(1);">
+  </a>
+  Kermes POS
+</h1>
 
 A modern, feature-rich Point of Sale system built with React, TypeScript, and Electron.
 
-![Kermes POS](https://via.placeholder.com/800x400?text=Kermes+POS+Screenshot)
+
 
 ## ✨ Features
 
@@ -73,13 +78,16 @@ npm start
 ### Project Structure
 ```
 kermes/
+├── kermes-electron/    # Electron wrapper
+│   ├── main.js         # Main process
+│   └── preload.js      # Preload script
 ├── kermes-pos/          # React POS application
 │   ├── src/            # Source files
 │   ├── public/         # Static files
-│   └── server/         # Backend server
-└── kermes-electron/    # Electron wrapper
-    ├── main.js         # Main process
-    └── preload.js      # Preload script
+│   └── server/         # Backend server (deprecated)
+└── kermes-web/         # Web application
+    ├── src/            # Source files
+    └── public/         # Static assets
 ```
 
 ### Available Scripts
@@ -107,11 +115,11 @@ npm run build
 
 ### Printer Setup
 1. Install the printer drivers
-2. Configure printer settings in the application
+2. Set printer as standard device
 3. Test print functionality
 
 ### Database
-The application uses Firebase for data storage. Configure your Firebase credentials in the `.env` file.
+The application uses IndexedDB for data storage.
 
 ## 🤝 Contributing
 
@@ -123,7 +131,7 @@ The application uses Firebase for data storage. Configure your Firebase credenti
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the AGPL-3.0 license - see the [LICENSE](LICENSE) file for details.
 
 ## 📞 Support
 
@@ -141,4 +149,4 @@ See our [TODO](TODO.md) and [CHANGELOG](CHANGELOG.md) for planned features and r
 
 ---
 
-Made with ❤️ by [Your Name]
+Made with ❤️ by _

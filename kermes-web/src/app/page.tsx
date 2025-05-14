@@ -1,6 +1,10 @@
 "use client";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
+import CloudOffOutlinedIcon from '@mui/icons-material/CloudOffOutlined';
+import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
+import ForkRightOutlinedIcon from '@mui/icons-material/ForkRightOutlined';
 
 export default function Home() {
   const [downloadUrl, setDownloadUrl] = useState<string>("");
@@ -44,12 +48,12 @@ export default function Home() {
         <Image
           src="/pic.png"
           alt="Kermes POS Logo"
-          width={96}
-          height={96}
-          className="mb-6 drop-shadow-lg animate-fade-in"
+          width={194}
+          height={194}
+          className="mb-6 drop-shadow-lg animate-fade-in dark:invert"
           priority
         />
-        <h1 className="text-4xl sm:text-5xl font-bold mb-4 text-center animate-slide-down">
+        <h1 className="text-4xl sm:text-5xl font-bold mb-4 mt-2 text-center animate-slide-down">
           Kermes POS
         </h1>
         <p className="text-lg sm:text-xl text-center max-w-2xl mb-8 animate-fade-in delay-100">
@@ -79,44 +83,33 @@ export default function Home() {
         <h2 className="text-2xl sm:text-3xl font-bold text-center mb-10 animate-fade-in">Features</h2>
         <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-8">
           <div className="p-6 rounded-xl bg-white/80 dark:bg-black/40 shadow-lg flex flex-col items-center text-center animate-fade-in delay-100">
-            {/* Fast: Lightning bolt icon (improved, closed shape) */}
-            <span className="mb-3 flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-black to-white dark:from-white dark:to-black shadow-md">
-              <svg className="w-7 h-7 text-black dark:text-white" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                <polyline points="13 2 6 14 12 14 11 22 18 10 12 10 13 2" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+            {/* Fast: Lightning bolt icon (Material Design) */}
+            <span className="mb-3 flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br">
+              <BoltOutlinedIcon className="w-7 h-7 text-black dark:text-white" style={{ fontSize: 45 }} />
             </span>
             <h3 className="font-semibold text-lg mb-2">Lightning Fast</h3>
             <p>Instant checkout, blazing performance, and smooth UI for busy events and shops.</p>
           </div>
           <div className="p-6 rounded-xl bg-white/80 dark:bg-black/40 shadow-lg flex flex-col items-center text-center animate-fade-in delay-200">
-            {/* Offline: Modern cloud-offline icon */}
-            <span className="mb-3 flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-black to-white dark:from-white dark:to-black shadow-md">
-              <svg className="w-7 h-7 text-black dark:text-white" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                <path d="M17.5 19a4.5 4.5 0 0 0 0-9c-.2 0-.4 0-.6.02A6 6 0 0 0 6 13.5c0 .17.01.34.03.5M3 3l18 18" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M7 19h10" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+            {/* Offline: CloudOff icon (Material Design) */}
+            <span className="mb-3 flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br">
+              <CloudOffOutlinedIcon className="w-7 h-7 text-black dark:text-white" style={{ fontSize: 45 }} />
             </span>
             <h3 className="font-semibold text-lg mb-2">Works Offline</h3>
             <p>All sales and statistics are saved locally. No internet required for daily use.</p>
           </div>
           <div className="p-6 rounded-xl bg-white/80 dark:bg-black/40 shadow-lg flex flex-col items-center text-center animate-fade-in delay-300">
-            {/* Export: Download/CSV icon */}
-            <span className="mb-3 flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-black to-white dark:from-white dark:to-black shadow-md">
-              <svg className="w-7 h-7 text-black dark:text-white" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" />
-              </svg>
+            {/* Export: Download icon (Material Design) */}
+            <span className="mb-3 flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br">
+              <DownloadOutlinedIcon className="w-7 h-7 text-black dark:text-white" style={{ fontSize: 45 }} />
             </span>
             <h3 className="font-semibold text-lg mb-2">Export & Analytics</h3>
             <p>Export sales to CSV, view beautiful statistics, and manage your data easily.</p>
           </div>
           <div className="p-6 rounded-xl bg-white/80 dark:bg-black/40 shadow-lg flex flex-col items-center text-center animate-fade-in delay-400">
-            {/* Open Source: Code/branch icon */}
-            <span className="mb-3 flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-black to-white dark:from-white dark:to-black shadow-md">
-              <svg className="w-7 h-7 text-black dark:text-white" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                <circle cx="6" cy="6" r="3" />
-                <circle cx="18" cy="18" r="3" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 9v6a3 3 0 003 3h6" />
-              </svg>
+            {/* Open Source: ForkRight icon (Material Design) */}
+            <span className="mb-3 flex items-center justify-center w-12 h-12 ">
+              <ForkRightOutlinedIcon className="w-7 h-7 text-black dark:text-white" style={{ fontSize: 45 }} />
             </span>
             <h3 className="font-semibold text-lg mb-2">Open Source</h3>
             <p>Free, transparent, and customizable. Contribute or adapt for your needs.</p>
@@ -144,7 +137,7 @@ export default function Home() {
           </p>
           <a
             href="mailto:hello@kermespos.com"
-            className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-gradient-to-r from-[#ffb347] to-[#ffcc33] text-background font-semibold shadow hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
+            className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-gradient-to-r from-[#ffffff] to-[#8d8d8d] text-background font-semibold shadow hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <rect x="3" y="5" width="18" height="14" rx="2" />
