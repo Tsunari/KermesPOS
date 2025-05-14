@@ -1,0 +1,35 @@
+name: Website Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: contains(github.event.head_commit.message, '--deploy')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        working-directory: ./kermes-web
+        run: npm install
+
+      - name: Build Next.js application
+        working-directory: ./kermes-web
+        run: npx next build
+
+      - name: Deploy to Firebase Hosting
+        working-directory: ./kermes-web
+        run: firebase deploy --only hosting

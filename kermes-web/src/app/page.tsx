@@ -5,6 +5,7 @@ import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
 import CloudOffOutlinedIcon from '@mui/icons-material/CloudOffOutlined';
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import ForkRightOutlinedIcon from '@mui/icons-material/ForkRightOutlined';
+import GitHubIcon from '@mui/icons-material/GitHub';
 
 export default function Home() {
   const [downloadUrl, setDownloadUrl] = useState<string>("");
@@ -166,7 +167,7 @@ export default function Home() {
           rel="noopener noreferrer"
           className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:underline hover:underline-offset-4"
         >
-          <Image src="/globe.svg" alt="GitHub" width={18} height={18} className="dark:invert" />
+          <GitHubIcon className="w-4 h-4" style={{ fontSize: 18 }} />
           View on GitHub
         </a>
         <span className="text-xs text-gray-400">&copy; {new Date().getFullYear()} Kermes POS. All rights reserved.</span>
