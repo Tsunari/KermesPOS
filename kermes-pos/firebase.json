@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "kermesprogram",
     "public": "build",
     "ignore": [
       "firebase.json",
