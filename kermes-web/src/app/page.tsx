@@ -44,7 +44,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans flex flex-col">
       {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center flex-1 py-20 px-4 sm:px-8 bg-gradient-to-b from-background to-[#f7f7f7] dark:to-[#181818] transition-colors duration-500">
+      <section className="flex flex-col items-center justify-center flex-1 py-16 px-4 sm:px-8 bg-gradient-to-b from-background to-[#f7f7f7] dark:to-[#181818] transition-colors duration-500">
         <Image
           src="/pic.png"
           alt="Kermes POS Logo"
@@ -66,14 +66,24 @@ export default function Home() {
         >
           <span className="absolute inset-0 rounded-full bg-gradient-to-r from-[#ffb347] to-[#ffcc33] blur opacity-70 group-hover:opacity-100 transition-all duration-300 animate-pulse"></span>
           <span className="relative z-10 flex items-center gap-2 px-8 py-3 rounded-full bg-foreground text-background font-semibold text-lg shadow-lg transition-transform duration-200 group-hover:scale-105 group-active:scale-95">
-            {/* Modern animated plus/download icon */}
-            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-black to-white dark:from-white dark:to-black shadow-md">
-              <svg className="w-5 h-5 animate-bounce-slow text-black dark:text-white" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v10m0 0l-4-4m4 4l4-4" />
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.2" opacity="0.18" />
-              </svg>
-            </span>
-            {isLoading ? "Downloading..." : "Download Latest Release"}
+        {/* Modern animated plus/download icon */}
+        <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-black to-white dark:from-white dark:to-black shadow-md">
+          <svg className="w-5 h-5 animate-bounce-slow text-black dark:text-white" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v10m0 0l-4-4m4 4l4-4" />
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.2" opacity="0.18" />
+          </svg>
+        </span>
+        {isLoading ? "Downloading..." : "Download Latest Release"}
+          </span>
+        </button>
+        <div className="h-4" /> {/* Add vertical space between buttons */}
+        <button
+          onClick={() => window.open("https://kermesprogram.web.app/", "_blank", "noopener,noreferrer")}
+          className="relative group inline-block focus:outline-none focus:ring-2 focus:ring-primary rounded-full cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          <span className="absolute inset-0 rounded-full bg-gradient-to-r from-[#ffb347] to-[#ffcc33] blur opacity-70 group-hover:opacity-100 transition-all duration-300 animate-pulse"></span>
+          <span className="relative z-10 flex items-center gap-2 px-8 py-3 rounded-full bg-foreground text-background font-semibold text-lg shadow-lg transition-transform duration-200 group-hover:scale-105 group-active:scale-95">            
+        {"Try it out in the browser"}
           </span>
         </button>
       </section>

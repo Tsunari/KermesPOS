@@ -1,6 +1,6 @@
 <h1 style="display: flex; align-items: center;">
   <a href="https://kermespos.web.app/" style="margin-right: 10px;">
-    <img src="/kermes-web/out/pic.png" alt="Kermes POS" width="50" style="filter: invert(1);">
+    <img src="kermes-web/public/pic.png" alt="Kermes POS" width="50" style="filter: invert(1);">
   </a>
   Kermes POS
 </h1>
@@ -78,16 +78,16 @@ npm start
 ### Project Structure
 ```
 kermes/
-├── kermes-electron/    # Electron wrapper
-│   ├── main.js         # Main process
-│   └── preload.js      # Preload script
-├── kermes-pos/          # React POS application
-│   ├── src/            # Source files
-│   ├── public/         # Static files
-│   └── server/         # Backend server (deprecated)
-└── kermes-web/         # Web application
-    ├── src/            # Source files
-    └── public/         # Static assets
+├── kermes-electron/    # Electron Application
+│   ├── main.js          # Main process
+│   └── preload.js       # Preload script
+├── kermes-pos/         # React POS application
+│   ├── src/             # Source files
+│   ├── public/          # Static files
+│   └── server/          # Backend server (deprecated)
+└── kermes-web/         # Web Site
+    ├── src/             # Source files
+    └── public/          # Static assets
 ```
 
 ### Available Scripts
