@@ -1,9 +1,19 @@
 <h1 style="display: flex; align-items: center;">
   <a href="https://kermespos.web.app/" style="margin-right: 10px;">
-    <img src="kermes-web/public/pic.png" alt="Kermes POS" width="50" style="filter: invert(1);">
+    <img src="kermes-web/public/picInverse.png" alt="Kermes POS" width="50">
   </a>
   Kermes POS
 </h1>
+
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/Tsunari/KermesPOS?style=flat-square) ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Web-blue?style=flat-square) ![Framework](https://img.shields.io/badge/framework-React%20%7C%20Next.js-blue?style=flat-square) ![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square) ![Database](https://img.shields.io/badge/database-IndexedDB-orange?style=flat-square) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Tsunari/KermesPOS?style=flat-square)
+![GitHub All Releases](https://img.shields.io/github/downloads/Tsunari/KermesPOS/total?style=flat-square) ![GitHub Repo stars](https://img.shields.io/github/stars/Tsunari/KermesPOS?style=flat-square)
+
+
+
+
+
+
+
 
 A modern, feature-rich Point of Sale system built with React, TypeScript, and Electron.
 
