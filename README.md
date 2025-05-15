@@ -24,19 +24,18 @@ A modern, feature-rich Point of Sale system built with React, TypeScript, and El
 ### Core Features
 - 🛍️ Product Management
   - Categories for food and drinks
-  - Euro currency support
   - Drag and drop organization
   - Quick add/edit interface
 - 🛒 Cart System
   - Real-time updates
-  - Multiple payment methods
+  - Multiple payment methods (coming soon)
 - 📊 Statistics
   - Sales tracking
   - Profit calculation
   - Product analytics
 - 🖨️ Printing
   - Native Windows printing
-  - Receipt formatting
+  - Receipt formatting (coming soon)
   - Print queue management
 
 ### Technical Features
