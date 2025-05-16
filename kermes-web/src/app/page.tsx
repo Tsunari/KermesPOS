@@ -6,6 +6,7 @@ import CloudOffOutlinedIcon from '@mui/icons-material/CloudOffOutlined';
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import ForkRightOutlinedIcon from '@mui/icons-material/ForkRightOutlined';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import ScreenshotPopup from "../components/ScreenshotPopup";
 
 export default function Home() {
   const [downloadUrl, setDownloadUrl] = useState<string>("");
@@ -128,34 +129,56 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Screenshots Section (placeholder) */}
+      {/* Screenshots Section */}
       <section className="py-16 px-4 sm:px-8 bg-gradient-to-b from-background to-[#f7f7f7] dark:to-[#181818] transition-colors duration-500">
         <h2 className="text-2xl sm:text-3xl font-bold text-center mb-10 animate-fade-in">Screenshots</h2>
         <div className="flex flex-wrap justify-center gap-8 max-w-5xl mx-auto animate-fade-in delay-200">
-          <div className="w-72 h-44 bg-gray-200 dark:bg-gray-800 rounded-xl shadow-inner flex items-center justify-center text-gray-400 text-lg font-semibold">
-            POS UI Screenshot
-          </div>
-          <div className="w-72 h-44 bg-gray-200 dark:bg-gray-800 rounded-xl shadow-inner flex items-center justify-center text-gray-400 text-lg font-semibold">
-            Statistics Page
-          </div>
-          <div className="w-72 h-44 bg-gray-200 dark:bg-gray-800 rounded-xl shadow-inner flex items-center justify-center text-gray-400 text-lg font-semibold">
-            Receipt Print Preview
-          </div>
+          <ScreenshotPopup
+            customThumbnail={
+              <div className="w-72 h-44 bg-gray-200 dark:bg-gray-800 rounded-xl shadow-inner flex items-center justify-center text-gray-400 text-lg font-semibold">
+                POS UI Screenshot
+              </div>
+            }
+            fullImageSrc="/cart.png"
+            altText="POS UI Screenshot"
+          />
+          <ScreenshotPopup
+            customThumbnail={
+              <div className="w-72 h-44 bg-gray-200 dark:bg-gray-800 rounded-xl shadow-inner flex items-center justify-center text-gray-400 text-lg font-semibold">
+                Statistics Page
+              </div>
+            }
+            fullImageSrc="/statistics.png"
+            altText="Statistics Page"
+            
+          />
+          <ScreenshotPopup
+            customThumbnail={
+              <div className="w-72 h-44 bg-gray-200 dark:bg-gray-800 rounded-xl shadow-inner flex items-center justify-center text-gray-400 text-lg font-semibold">
+                Receipt Print Preview
+              </div>
+            }
+            fullImageSrc="/receipt_preview.png"
+            altText="Receipt Print Preview"
+            //imageClassName="scale-50"
+            imageWidth={375}
+          />
         </div>
+
         <div className="mt-10 flex flex-col items-center animate-fade-in delay-300">
           <p className="text-center text-lg text-gray-700 dark:text-gray-300 mb-2">
             Have questions or want to get in touch?
           </p>
-          <a
-            href="mailto:hello@kermespos.com"
-            className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-gradient-to-r from-[#ffffff] to-[#8d8d8d] text-background font-semibold shadow hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
-          >
+            <a
+            href="mailto:talebelergfc@gmail.com"
+            className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-gradient-to-r from-[#ffffff] to-[#8d8d8d] dark:from-[#232323] dark:to-[#444444] text-black dark:text-white font-semibold shadow hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
+            >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <rect x="3" y="5" width="18" height="14" rx="2" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 7l9 6 9-6" />
             </svg>
-            Contact Us: hello@kermespos.com
-          </a>
+            Contact Us: talebelergfc@gmail.com
+            </a>
         </div>
       </section>
 
