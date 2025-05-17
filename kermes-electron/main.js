@@ -133,7 +133,7 @@ function printWithPythonWin(cartData) {
 			items: [item],
       total: item.price * item.quantity
     };
-    console.log("Current kurs name:", kursName);
+    // console.log("Current kurs name:", kursName);
     const proc = spawn(pythonExe, [scriptPath, kursName], {
 			stdio: ["pipe", "ignore", "ignore"],
       windowsHide: true
