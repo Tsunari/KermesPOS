@@ -133,6 +133,7 @@ function printWithPythonWin(cartData) {
 			items: [item],
       total: item.price * item.quantity
     };
+    console.log("Current kurs name:", kursName);
     const proc = spawn(pythonExe, [scriptPath, kursName], {
 			stdio: ["pipe", "ignore", "ignore"],
       windowsHide: true
@@ -187,7 +188,7 @@ app.on("ready", async () => {
   } else {
     const kermesPosPath = path.join(__dirname, 'build/index.html');
     //mainWindow.loadFile(kermesPosPath);
-    mainWindow.loadURL('http://localhost:3000');
+    mainWindow.loadURL('http://localhost:3001');
   }
   //mainWindow.webContents.openDevTools();
   //colorLogger.info('Application is ready.');
@@ -205,6 +206,11 @@ app.on("ready", async () => {
       console.error("Failed to list printers:", error);
       return [];
     }
+  });
+
+  ipcMain.on("change-kurs-name", (event, newKursName) => {
+    console.log("Kurs name changed to:", newKursName);
+    kursName = newKursName;
   });
 
   ipcMain.on("print-cart", async (event, { cartData, selectedPrinter }) => {

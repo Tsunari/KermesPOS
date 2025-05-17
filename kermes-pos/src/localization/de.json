@@ -196,7 +196,9 @@
       "printerSettingsSaveFailed": "Druckereinstellungen konnten nicht gespeichert werden.",
       "printReceipt": "Beleg drucken",
       "addItemsToPrint": "Fügen Sie Artikel zum Warenkorb hinzu, um einen Beleg zu drucken",
-      "printerSettings": "Druckereinstellungen"
+      "printerSettings": "Druckereinstellungen",
+      "setKursName": "Kurs Name setzen",
+      "kursName": "Kurs Name"
     },
     "product": {
       "categories": {

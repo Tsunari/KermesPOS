@@ -16,10 +16,10 @@ import {
   Snackbar,
   Alert,
   Popover,
+  TextField
 } from '@mui/material';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import PrintIcon from '@mui/icons-material/Print';
-import SettingsIcon from '@mui/icons-material/Settings';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { RootState } from '../store';
 import { removeFromCart, clearCart, updateQuantity } from '../store/slices/cartSlice';
@@ -28,11 +28,12 @@ import CartFooter from './cart/CartFooter';
 import PrinterSettings from './PrinterSettings';
 import ReceiptPreview from './cart/receipt/ReceiptPreview';
 import { CartItem } from '../types/index';
-import { generateReceiptContent } from '../services/printerService';
 import { useSettings } from '../context/SettingsContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getCategoryStyle } from '../utils/categoryUtils';
 import { cartTransactionService } from '../services/cartTransactionService';
+import { EditSquare, Badge } from '@mui/icons-material';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 interface CartProps {
   devMode?: boolean;
@@ -51,10 +52,19 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
   const [previewAnchorEl, setPreviewAnchorEl] = useState<HTMLElement | null>(null);
   const [selectedPrinter, setSelectedPrinter] = useState<string>('');
   const [isPrinting, setIsPrinting] = useState(false);
+  const [kursName, setKursName] = useState('Münih Fatih');
+  const [kursNameDialogOpen, setKursNameDialogOpen] = useState(false);
 
   useEffect(() => {
     const savedPrinter = localStorage.getItem('selectedPrinter');
     setSelectedPrinter(savedPrinter || "");
+  }, []);
+
+  useEffect(() => {
+    const savedKursName = localStorage.getItem('kursName');
+    if (savedKursName) {
+      setKursName(savedKursName);
+    }
   }, []);
 
   const handleRemoveItem = (id: string) => {
@@ -133,6 +143,29 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
 
   const previewOpen = Boolean(previewAnchorEl);
 
+  const handleKursNameDialogOpen = () => {
+    setKursNameDialogOpen(true);
+  };
+
+  const handleKursNameDialogClose = () => {
+    setKursNameDialogOpen(false);
+  };
+
+  const handleKursNameDialogSave = () => {
+    if (window.electronAPI) {
+      console.log('Sending kurs name to Electron API:', kursName);
+      window.electronAPI.changeKursName(kursName);
+    } else {
+      console.error('Electron API not available');
+    }
+    localStorage.setItem('kursName', kursName); // Save kurs name to localStorage
+    setKursNameDialogOpen(false);
+  }
+
+  const handleKursNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setKursName(event.target.value);
+  };
+
   // Group items by category
   const groupedItems = cartItems.reduce((groups, item) => {
     const category = item.product.category || 'Other';
@@ -183,6 +216,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
                   onClick={previewOpen ? handlePrintPreviewClose : handlePrintPreviewOpen}
                   disabled={cartItems.length === 0}
                   color="primary"
+                  sx={{ padding: '5px' }}
                 >
                   <PrintIcon />
                 </IconButton>
@@ -204,6 +238,36 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
                   <ReceiptPreview items={cartItems} total={total} />
                 </Box>
               </Popover>
+              <Tooltip title={t('app.cart.setKursName')}>
+                <IconButton
+                  onClick={handleKursNameDialogOpen}
+                  color="primary"
+                  sx={{ padding: '5px' }}
+                >
+                  <Badge />
+                </IconButton>
+              </Tooltip>
+              <Dialog
+                open={kursNameDialogOpen}
+                onClose={handleKursNameDialogClose}
+              >
+                <DialogTitle>{t('app.cart.setKursName')}</DialogTitle>
+                <DialogContent>
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    label={t('app.cart.kursName')}
+                    type="text"
+                    fullWidth
+                    value={kursName}
+                    onChange={handleKursNameChange}
+                  />
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={handleKursNameDialogClose}>{t('common.cancel')}</Button>
+                  <Button onClick={handleKursNameDialogSave}>{t('common.save')}</Button>
+                </DialogActions>
+              </Dialog>
               {devMode && (
                 <Tooltip title={t('app.cart.printerSettings')}>
                   <IconButton 
@@ -211,7 +275,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
                     size="small" 
                     onClick={handlePrinterSettingsOpen}
                     aria-label={t('app.cart.printerSettings')}
-                    sx={{ mr: 1 }}
+                    sx={{ padding: '5px' }}
                   >
                     <SettingsIcon />
                   </IconButton>
@@ -223,13 +287,14 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
                   size="small" 
                   onClick={handleClearCart}
                   aria-label={t('app.cart.clearCart')}
+                  sx={{ padding: '5px' }}
                 >
                   <DeleteSweepIcon />
                 </IconButton>
               </Tooltip>
               {devMode && (
                 <Tooltip title={`${t('app.cart.cancelPrint') || 'Cancel Printing'} (EXPERIMENTAL)`}>
-                  <IconButton color="error" onClick={handleCancelPrint}>
+                  <IconButton color="error" onClick={handleCancelPrint} sx={{ padding: '5px' }}>
                     <CancelIcon />
                   </IconButton>
                 </Tooltip>

@@ -195,7 +195,9 @@
       "printerSettingsSaveFailed": "Failed to save printer settings.",
       "printReceipt": "Print Receipt",
       "addItemsToPrint": "Add items to cart to print receipt",
-      "printerSettings": "Printer Settings"
+      "printerSettings": "Printer Settings",
+      "setKursName": "Set Kurs Name",
+      "kursName": "Kurs Name"
     },
     "product": {
       "categories": {

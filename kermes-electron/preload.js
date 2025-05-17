@@ -17,4 +17,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   listPrinters: () => ipcRenderer.invoke('list-printers'),
   printCart: (cartData, selectedPrinter) => ipcRenderer.send('print-cart', { cartData, selectedPrinter }),
   cancelPrintRequest: () => ipcRenderer.send('cancel-print'),
+  changeKursName: (kursName) => ipcRenderer.send('change-kurs-name', kursName),
 });

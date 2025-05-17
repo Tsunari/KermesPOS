@@ -196,7 +196,9 @@
       "printerSettingsSaveFailed": "Yazıcı ayarları kaydedilemedi.",
       "printReceipt": "Fiş Yazdır",
       "addItemsToPrint": "Fiş yazdırmak için sepete ürün ekleyin",
-      "printerSettings": "Yazıcı Ayarları"
+      "printerSettings": "Yazıcı Ayarları",
+      "setKursName": "Kurs ismini ayarla",
+      "kursName": "Kurs ismi"
     },
     "product": {
       "categories": {
