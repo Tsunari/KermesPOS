@@ -40,7 +40,8 @@
     "callingNativePrint": "Calling nativePrint with content:",
     "nativePrintResult": "Native print result:",
     "nativePrintError": "Error with native print:",
-    "failedToPrint": "Failed to print using native printer"
+    "failedToPrint": "Failed to print using native printer",
+    "reset": "Reset"
   },
   "settings": {
     "title": "Settings",

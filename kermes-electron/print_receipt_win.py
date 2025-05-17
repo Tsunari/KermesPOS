@@ -10,7 +10,8 @@ import io
 sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
 
 # This can be set from Electron via an environment variable or config file
-KERMES_NAME = sys.argv[1] + " Kermes" if len(sys.argv) > 1 else "Münih Fatih Kermes"
+# KERMES_NAME = sys.argv[1] + " Kermes" if len(sys.argv) > 1 else "Münih Fatih Kermes"
+KERMES_NAME = sys.argv[1] if len(sys.argv) > 1 else "Münih Fatih Kermes"
 
 def handle_sigterm(signum, frame):
     sys.exit(0)

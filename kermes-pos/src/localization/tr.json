@@ -40,7 +40,8 @@
     "callingNativePrint": "NativePrint çağrılıyor, içerik:",
     "nativePrintResult": "Native yazdırma sonucu:",
     "nativePrintError": "Native yazdırma hatası:",
-    "failedToPrint": "Native yazıcı ile yazdırma başarısız oldu"
+    "failedToPrint": "Native yazıcı ile yazdırma başarısız oldu",
+    "reset": "Sıfırla"
   },
   "settings": {
     "title": "Ayarlar",

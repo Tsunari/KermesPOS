@@ -15,7 +15,6 @@ import {
   DialogActions,
   Snackbar,
   Alert,
-  Popover,
   TextField
 } from '@mui/material';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
@@ -26,7 +25,6 @@ import { removeFromCart, clearCart, updateQuantity } from '../store/slices/cartS
 import CartItemRow from './cart/CartItemRow';
 import CartFooter from './cart/CartFooter';
 import PrinterSettings from './PrinterSettings';
-import ReceiptPreview from './cart/receipt/ReceiptPreview';
 import { CartItem } from '../types/index';
 import { useSettings } from '../context/SettingsContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -52,7 +50,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
   const [previewAnchorEl, setPreviewAnchorEl] = useState<HTMLElement | null>(null);
   const [selectedPrinter, setSelectedPrinter] = useState<string>('');
   const [isPrinting, setIsPrinting] = useState(false);
-  const [kursName, setKursName] = useState('Münih Fatih');
+  const [kursName, setKursName] = useState('Münih Fatih Kermes');
   const [kursNameDialogOpen, setKursNameDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -209,97 +207,55 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
           {t('sales.cart')}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {cartItems.length > 0 && (
-            <>
-              <Tooltip title={t('app.cart.previewReceipt')}>
-                <IconButton
-                  onClick={previewOpen ? handlePrintPreviewClose : handlePrintPreviewOpen}
-                  disabled={cartItems.length === 0}
-                  color="primary"
-                  sx={{ padding: '5px' }}
-                >
-                  <PrintIcon />
-                </IconButton>
-              </Tooltip>
-              <Popover
-                open={previewOpen}
-                anchorEl={previewAnchorEl}
-                onClose={handlePrintPreviewClose}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
+          <Tooltip title={t('app.cart.previewReceipt')}>
+            <IconButton
+              onClick={previewOpen ? handlePrintPreviewClose : handlePrintPreviewOpen}
+              disabled={cartItems.length === 0}
+              color="primary"
+              sx={{ padding: '5px' }}
+            >
+              <PrintIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t('app.cart.setKursName')}>
+            <IconButton
+              onClick={handleKursNameDialogOpen}
+              color="primary"
+              sx={{ padding: '5px' }}
+            >
+              <Badge />
+            </IconButton>
+          </Tooltip>
+          {devMode && (
+            <Tooltip title={t('app.cart.printerSettings')}>
+              <IconButton 
+                color="primary" 
+                size="small" 
+                onClick={handlePrinterSettingsOpen}
+                aria-label={t('app.cart.printerSettings')}
+                sx={{ padding: '5px' }}
               >
-                <Box sx={{ p: 2 }}>
-                  <ReceiptPreview items={cartItems} total={total} />
-                </Box>
-              </Popover>
-              <Tooltip title={t('app.cart.setKursName')}>
-                <IconButton
-                  onClick={handleKursNameDialogOpen}
-                  color="primary"
-                  sx={{ padding: '5px' }}
-                >
-                  <Badge />
-                </IconButton>
-              </Tooltip>
-              <Dialog
-                open={kursNameDialogOpen}
-                onClose={handleKursNameDialogClose}
-              >
-                <DialogTitle>{t('app.cart.setKursName')}</DialogTitle>
-                <DialogContent>
-                  <TextField
-                    autoFocus
-                    margin="dense"
-                    label={t('app.cart.kursName')}
-                    type="text"
-                    fullWidth
-                    value={kursName}
-                    onChange={handleKursNameChange}
-                  />
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={handleKursNameDialogClose}>{t('common.cancel')}</Button>
-                  <Button onClick={handleKursNameDialogSave}>{t('common.save')}</Button>
-                </DialogActions>
-              </Dialog>
-              {devMode && (
-                <Tooltip title={t('app.cart.printerSettings')}>
-                  <IconButton 
-                    color="primary" 
-                    size="small" 
-                    onClick={handlePrinterSettingsOpen}
-                    aria-label={t('app.cart.printerSettings')}
-                    sx={{ padding: '5px' }}
-                  >
-                    <SettingsIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-              <Tooltip title={t('app.cart.clearCart')}>
-                <IconButton 
-                  color="error" 
-                  size="small" 
-                  onClick={handleClearCart}
-                  aria-label={t('app.cart.clearCart')}
-                  sx={{ padding: '5px' }}
-                >
-                  <DeleteSweepIcon />
-                </IconButton>
-              </Tooltip>
-              {devMode && (
-                <Tooltip title={`${t('app.cart.cancelPrint') || 'Cancel Printing'} (EXPERIMENTAL)`}>
-                  <IconButton color="error" onClick={handleCancelPrint} sx={{ padding: '5px' }}>
-                    <CancelIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-            </>
+                <SettingsIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+          <Tooltip title={t('app.cart.clearCart')}>
+            <IconButton 
+              color="error" 
+              size="small" 
+              onClick={handleClearCart}
+              aria-label={t('app.cart.clearCart')}
+              sx={{ padding: '5px' }}
+            >
+              <DeleteSweepIcon />
+            </IconButton>
+          </Tooltip>
+          {devMode && (
+            <Tooltip title={`${t('app.cart.cancelPrint') || 'Cancel Printing'} (EXPERIMENTAL)`}>
+              <IconButton color="error" onClick={handleCancelPrint} sx={{ padding: '5px' }}>
+                <CancelIcon />
+              </IconButton>
+            </Tooltip>
           )}
         </Box>
       </Box>
@@ -414,6 +370,46 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
           {successMessage}
         </Alert>
       </Snackbar>
+      
+      <Dialog
+        open={kursNameDialogOpen}
+        onClose={handleKursNameDialogClose}
+      >
+        <form
+          onSubmit={e => {
+            e.preventDefault();
+            handleKursNameDialogSave();
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 1 }}>
+            <DialogTitle sx={{ flex: 1 }}>{t('app.cart.setKursName')}</DialogTitle>
+            <Button
+              onClick={() => setKursName('Münih Fatih Kermes')}
+              color="secondary"
+              size="small"
+              sx={{ minWidth: 'unset', ml: 1, mr: 1 }}
+            >
+              {t('common.reset') || 'Reset'}
+            </Button>
+          </Box>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label={t('app.cart.kursName')}
+              type="text"
+              fullWidth
+              value={kursName}
+              onChange={handleKursNameChange}
+              placeholder="Münih Fatih Kermes"
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleKursNameDialogClose}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('common.save')}</Button>
+          </DialogActions>
+        </form>
+      </Dialog>
     </Box>
   );
 };

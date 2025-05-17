@@ -40,7 +40,8 @@
     "callingNativePrint": "NativePrint wird aufgerufen mit Inhalt:",
     "nativePrintResult": "Native-Druck-Ergebnis:",
     "nativePrintError": "Fehler beim nativen Druck:",
-    "failedToPrint": "Fehler beim Drucken mit dem nativen Drucker"
+    "failedToPrint": "Fehler beim Drucken mit dem nativen Drucker",
+    "reset": "Zurücksetzen"
   },
   "settings": {
     "title": "Einstellungen",
