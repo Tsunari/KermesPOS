@@ -19,12 +19,15 @@ function Write-ErrorAndExit {
     if ($BeforeExit) { & $BeforeExit }
     exit 1
 }
-#endregion
+#endregion Helper Functions
 
+#region Globals
 $ErrorActionPreference = 'Stop'
 $startTime = Get-Date
 $totalSteps = 10
+#endregion Globals
 
+#region Pre-checks
 # Check for uncommitted changes before starting (unless --force is set)
 if (-not $force) {
     $gitStatus = git status --porcelain
@@ -32,9 +35,10 @@ if (-not $force) {
         Write-ErrorAndExit "There are uncommitted changes in the repository. Please commit or stash them before running the release script." { Write-Host $gitStatus }
     }
 }
+#endregion Pre-checks
 
 try {
-    # Step 1: Version Increment
+    #region Step 1: Version Increment
     Write-Section "Version Increment" 1 $totalSteps
     $packageJsonPath = "./kermes-electron/package.json"
     $packageJson = Get-Content $packageJsonPath | ConvertFrom-Json
@@ -60,15 +64,17 @@ try {
     $packageJson.version = $newVersion
     $packageJson | ConvertTo-Json -Depth 100 | Set-Content $packageJsonPath -Encoding UTF8
     Write-Host "Updated version to $newVersion in $packageJsonPath" -ForegroundColor Green
+    #endregion Step 1
 
-    # Step 2: Build kermes-pos
+    #region Step 2: Build kermes-pos
     Write-Section "Build kermes-pos" 2 $totalSteps
     cd ./kermes-pos
     npm run build
     if ($LASTEXITCODE -ne 0) { Write-ErrorAndExit "kermes-pos build failed." }
     cd ..
+    #endregion Step 2
 
-    # Step 3: Update title in build index.html
+    #region Step 3: Update title in build index.html
     Write-Section "Update title in build index.html" 3 $totalSteps
     $indexPath = "./kermes-pos/build/index.html"
     if (Test-Path $indexPath) {
@@ -77,14 +83,16 @@ try {
     } else {
         Write-ErrorAndExit "build/index.html not found!"
     }
+    #endregion Step 3
 
-    # Step 4: Copy build folder to electron
+    #region Step 4: Copy build folder to electron
     Write-Section "Copy build folder to kermes-electron" 4 $totalSteps
     Remove-Item -Recurse -Force ./kermes-electron/build -ErrorAction SilentlyContinue
     Copy-Item -Recurse -Force ./kermes-pos/build ./kermes-electron/build
     Write-Host "Copied build folder successfully." -ForegroundColor Green
+    #endregion Step 4
 
-    # Step 5: Clean dist folder before electron build
+    #region Step 5: Clean dist folder before electron build
     Write-Section "Clean dist folder" 5 $totalSteps
     $distPath = "./kermes-electron/dist"
     if (Test-Path $distPath) {
@@ -93,15 +101,17 @@ try {
     } else {
         Write-Host "No dist folder to delete." -ForegroundColor Gray
     }
+    #endregion Step 5
 
-    # Step 6: Build kermes-electron
+    #region Step 6: Build kermes-electron
     Write-Section "Build kermes-electron" 6 $totalSteps
     cd ./kermes-electron
     npm run build
     if ($LASTEXITCODE -ne 0) { Write-ErrorAndExit "kermes-electron build failed." }
     cd ..
+    #endregion Step 6
 
-    # Step 7: Prepare release files
+    #region Step 7: Prepare release files
     Write-Section "Prepare release files" 7 $totalSteps # Ömer war hier, ömer ist ein bisschen freaky
     $distPath = "./kermes-electron/dist"
     $exeFile = Get-ChildItem $distPath -Filter *.exe | Select-Object -First 1
@@ -121,8 +131,9 @@ try {
         $exeFile = Get-ChildItem $distPath -Filter $exeNameInYml | Select-Object -First 1
     }
     Write-Host "Release files ready: $($exeFile.Name), $($ymlFile.Name)" -ForegroundColor Green
+    #endregion Step 7
 
-    # Step 8: Generate changelog section from commit messages
+    #region Step 8: Generate changelog section from commit messages
     Write-Section "Generate changelog from commits" 8 $totalSteps
     $lastTag = git describe --tags --abbrev=0 HEAD^
     $changelogPath = "./CHANGELOG.md"
@@ -216,16 +227,17 @@ try {
     # Custom header for release notes
     $releaseNotesHeader = "### 🚀 Kermes POS $newVersion Release Notes ($newDate)`n"
     $releaseNotes = $releaseNotesHeader + $changelogSection
+    #endregion Step 8
 
-    # Step 9: Push commits before changelog and release
+    #region Step 9: Push commits before changelog and release
     Write-Section "Push commits" 9 $totalSteps
     git add .
     git commit -m "chore: prepare release $newVersion"
     git push
     if ($LASTEXITCODE -ne 0) { Write-ErrorAndExit "Git push failed." }
+    #endregion Step 9
 
-
-    # Step 10: Create GitHub release and upload assets
+    #region Step 10: Create GitHub release and upload assets
     Write-Section "Create GitHub Release" 10 $totalSteps
     $tag = "v$newVersion"
     $releaseTitle = "Kermes POS $newVersion"
@@ -237,12 +249,15 @@ try {
         --notes "$releaseNotes"
     if ($LASTEXITCODE -ne 0) { Write-ErrorAndExit "GitHub release failed." }
     Write-Host "Release created and assets uploaded." -ForegroundColor Green
+    #endregion Step 10
 
+    #region Final Output
     $endTime = Get-Date
     $duration = $endTime - $startTime
     Write-Host "================================" -ForegroundColor Cyan
     Write-Host ("All done! Total time: {0:mm\:ss} (mm:ss)" -f $duration) -ForegroundColor Green
     Write-Host "================================" -ForegroundColor Cyan
+    #endregion Final Output
 }
 catch {
     Write-Host "[FATAL ERROR] $_" -ForegroundColor Red

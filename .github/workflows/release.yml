@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install npm dependencies (kermes-pos)
+        run: npm ci
+        working-directory: ./kermes-pos
+
+      - name: Install npm dependencies (kermes-electron)
+        run: npm ci
+        working-directory: ./kermes-electron
+
+      - name: Run release script
+        shell: pwsh
+        run: ./release.ps1 --force
