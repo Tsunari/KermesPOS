@@ -56,3 +56,6 @@ Desktop.ini
 
 # python
 python-3.13.3-embed-amd64/
+
+# PDF
+*.pdf

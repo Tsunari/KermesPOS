@@ -15,7 +15,7 @@ function Write-ErrorAndExit {
 
 $ErrorActionPreference = 'Stop'
 $startTime = Get-Date
-$totalSteps = 6
+$totalSteps = 9
 
 try {
     # Step 1: Version Increment
@@ -51,8 +51,8 @@ try {
     if ($LASTEXITCODE -ne 0) { Write-ErrorAndExit "kermes-pos build failed." }
     cd ..
 
-    # Step 2.5: Update title in build index.html
-    Write-Section "Update title in build index.html" 2.5 $totalSteps
+    # Step 3: Update title in build index.html
+    Write-Section "Update title in build index.html" 3 $totalSteps
     $indexPath = "./kermes-pos/build/index.html"
     if (Test-Path $indexPath) {
         (Get-Content $indexPath) -replace '<title>.*?</title>', '<title>Kermes POS</title>' | Set-Content $indexPath -Encoding UTF8
@@ -61,14 +61,14 @@ try {
         Write-ErrorAndExit "build/index.html not found!"
     }
 
-    # Step 3: Copy build folder to electron
-    Write-Section "Copy build folder to kermes-electron" 3 $totalSteps
+    # Step 4: Copy build folder to electron
+    Write-Section "Copy build folder to kermes-electron" 4 $totalSteps
     Remove-Item -Recurse -Force ./kermes-electron/build -ErrorAction SilentlyContinue
     Copy-Item -Recurse -Force ./kermes-pos/build ./kermes-electron/build
     Write-Host "Copied build folder successfully." -ForegroundColor Green
 
-    # Step 3.5: Clean dist folder before electron build
-    Write-Section "Clean dist folder" 3.5 $totalSteps
+    # Step 5: Clean dist folder before electron build
+    Write-Section "Clean dist folder" 5 $totalSteps
     $distPath = "./kermes-electron/dist"
     if (Test-Path $distPath) {
         Remove-Item -Recurse -Force $distPath
@@ -77,15 +77,15 @@ try {
         Write-Host "No dist folder to delete." -ForegroundColor Gray
     }
 
-    # Step 4: Build kermes-electron
-    Write-Section "Build kermes-electron" 4 $totalSteps
+    # Step 6: Build kermes-electron
+    Write-Section "Build kermes-electron" 6 $totalSteps
     cd ./kermes-electron
     npm run build
     if ($LASTEXITCODE -ne 0) { Write-ErrorAndExit "kermes-electron build failed." }
     cd ..
 
-    # Step 5: Prepare release files
-    Write-Section "Prepare release files" 5 $totalSteps # Ömer war hier, ömer ist ein bisschen freaky
+    # Step 7: Prepare release files
+    Write-Section "Prepare release files" 7 $totalSteps # Ömer war hier, ömer ist ein bisschen freaky
     $distPath = "./kermes-electron/dist"
     $exeFile = Get-ChildItem $distPath -Filter *.exe | Select-Object -First 1
     $ymlFile = Get-ChildItem $distPath -Filter latest.yml | Select-Object -First 1
@@ -105,13 +105,12 @@ try {
     }
     Write-Host "Release files ready: $($exeFile.Name), $($ymlFile.Name)" -ForegroundColor Green
 
-    # Step 5.5: Generate changelog section from commit messages
-    Write-Section "Generate changelog from commits" 5.5 $totalSteps
-    $lastTag = git describe --tags --abbrev=0
-    # Get full commit bodies (multi-line)
-    $commitBodies = git log $lastTag..HEAD --pretty=format:"%B"
-    # Split all commit messages into lines, remove empty lines
-    $commitLines = $commitBodies -split "`n" | Where-Object { $_.Trim() -ne "" }
+    # Step 8: Generate changelog section from commit messages
+    Write-Section "Generate changelog from commits" 8 $totalSteps
+    $lastTag = git describe --tags --abbrev=0 HEAD^
+    $changelogPath = "./CHANGELOG.md"
+    $commitBodies = git log "$lastTag..HEAD" --pretty=format:"%B" | Out-String
+    $commitLines = $commitBodies -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
     $newDate = Get-Date -Format "dd-MM-yyyy"
     $changelogSection = "## [$newVersion] - $newDate`n"
     $dirMap = @{
@@ -128,29 +127,23 @@ try {
     $grouped = @{}
     $globalNotes = @()
     foreach ($line in $commitLines) {
-        $matches = $null
         if ($line -match "--global") {
-            $desc = $line -replace "--global", "" -replace "^\s*-*\s*", ""
-            $globalNotes += "- $desc"
+            $desc = $line -replace "--global", "" -replace "^\s*-*\s*", "" -replace "\s+$", ""
+            if ($desc) { $globalNotes += "- $desc" }
         } else {
-            # Find all type and dir tags
-            $typeTags = @()
-            $dirTags = @()
-            if ($line -match "--(feat|bug|change|chore)") {
-                $typeTags = [regex]::Matches($line, "--(feat|bug|change|chore)") | ForEach-Object { $_.Groups[1].Value }
-            }
-            if ($line -match "--(electron|pos|web)") {
-                $dirTags = [regex]::Matches($line, "--(electron|pos|web)") | ForEach-Object { $_.Groups[1].Value }
-            }
+            $typeTags = [regex]::Matches($line, "--(feat|bug|change|chore)") | ForEach-Object { $_.Groups[1].Value }
+            $dirTags = [regex]::Matches($line, "--(electron|pos|web)") | ForEach-Object { $_.Groups[1].Value }
             if ($typeTags.Count -gt 0 -and $dirTags.Count -gt 0) {
-                $desc = $line -replace "--.*", "" -replace "^\s*-*\s*", ""
-                foreach ($type in $typeTags) {
-                    foreach ($dir in $dirTags) {
-                        $dirKey = $dirMap[$dir]
-                        $typeKey = $typeMap[$type]
-                        if (-not $grouped.ContainsKey($dirKey)) { $grouped[$dirKey] = @{} }
-                        if (-not $grouped[$dirKey].ContainsKey($typeKey)) { $grouped[$dirKey][$typeKey] = @() }
-                        $grouped[$dirKey][$typeKey] += "- $desc"
+                $desc = $line -replace "--(feat|bug|change|chore)", "" -replace "--(electron|pos|web)", "" -replace "^\s*-*\s*", "" -replace "\s+$", ""
+                if ($desc) {
+                    foreach ($type in $typeTags) {
+                        foreach ($dir in $dirTags) {
+                            $dirKey = $dirMap[$dir]
+                            $typeKey = $typeMap[$type]
+                            if (-not $grouped.ContainsKey($dirKey)) { $grouped[$dirKey] = @{} }
+                            if (-not $grouped[$dirKey].ContainsKey($typeKey)) { $grouped[$dirKey][$typeKey] = @() }
+                            $grouped[$dirKey][$typeKey] += "- $desc"
+                        }
                     }
                 }
             }
@@ -164,21 +157,25 @@ try {
         if ($grouped.ContainsKey($dir)) {
             $changelogSection += "### $dir`n"
             foreach ($type in @("Added", "Changed", "Fixed")) {
-                if ($grouped[$dir].ContainsKey($type)) {
+                if ($grouped[$dir].ContainsKey($type) -and $grouped[$dir][$type].Count -gt 0) {
                     $changelogSection += "#### $type`n"
                     $changelogSection += ($grouped[$dir][$type] -join "`n") + "`n"
                 }
             }
-            $changelogSection += "`n"
+            # $changelogSection += "`n"
         }
     }
-    $changelogPath = "./CHANGELOG.md"
-    $oldChangelog = Get-Content $changelogPath -Raw
-    Set-Content $changelogPath -Value ("$changelogSection`n$oldChangelog") -Encoding UTF8
+    # Insert changelog section after the 7th line (index 6), with one blank line before and after
+    $changelogLines = Get-Content $changelogPath
+    $newSection = @($changelogSection)
+    $before = $changelogLines[0..6]
+    $after = $changelogLines[7..($changelogLines.Count-1)]
+    $finalChangelog = $before + $newSection + $after
+    Set-Content $changelogPath -Value $finalChangelog -Encoding UTF8
     $releaseNotes = $changelogSection
 
-    # Step 6: Create GitHub release and upload assets
-    Write-Section "Create GitHub Release" 6 $totalSteps
+    # Step 9: Create GitHub release and upload assets
+    Write-Section "Create GitHub Release" 9 $totalSteps
     $tag = "v$newVersion"
     $releaseTitle = "Kermes POS $newVersion"
     Write-Host "Creating GitHub release $tag..." -ForegroundColor Cyan
@@ -186,7 +183,7 @@ try {
         "$($exeFile.FullName)" `
         "$($ymlFile.FullName)" `
         --title "$releaseTitle" `
-        --notes "Automated release for version $newVersion"
+        --notes "$releaseNotes"
     if ($LASTEXITCODE -ne 0) { Write-ErrorAndExit "GitHub release failed." }
     Write-Host "Release created and assets uploaded." -ForegroundColor Green
 
