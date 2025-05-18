@@ -131,7 +131,7 @@ def main():
     # Total
     hdc.TextOut(x_left, y, f"Toplam: {cart['total']:.2f} €".replace(",", "X").replace(".", ",").replace("X", "."))
     y += line_height
-    hdc.TextOut(x_left, y, "Teşekkürler!")
+    hdc.TextOut(x_left, y, "Afiyet olsun! | Guten Appetit!")
     y += line_height
 
     hdc.EndPage()

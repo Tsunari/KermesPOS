@@ -48,11 +48,11 @@ export default function Home() {
       {/* Hero Section */}
       <section className="flex flex-col items-center justify-center flex-1 py-16 px-4 sm:px-8 bg-gradient-to-b from-background to-[#f7f7f7] dark:to-[#181818] transition-colors duration-500">
         <Image
-          src="/pic.png"
+          src="/Mintika.svg"
           alt="Kermes POS Logo"
-          width={194}
-          height={194}
-          className="mb-6 drop-shadow-lg animate-fade-in dark:invert"
+          width={200}
+          height={200}
+          className="mb-8 mt-6 drop-shadow-lg animate-fade-in dark:invert"
           priority
         />
         <h1 className="text-4xl sm:text-5xl font-bold mb-4 mt-2 text-center animate-slide-down">

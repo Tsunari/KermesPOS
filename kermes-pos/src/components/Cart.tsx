@@ -15,7 +15,8 @@ import {
   DialogActions,
   Snackbar,
   Alert,
-  TextField
+  TextField,
+  Popover
 } from '@mui/material';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import PrintIcon from '@mui/icons-material/Print';
@@ -32,6 +33,7 @@ import { getCategoryStyle } from '../utils/categoryUtils';
 import { cartTransactionService } from '../services/cartTransactionService';
 import { EditSquare, Badge } from '@mui/icons-material';
 import SettingsIcon from '@mui/icons-material/Settings';
+import ReceiptPreview from './cart/receipt/ReceiptPreview';
 
 interface CartProps {
   devMode?: boolean;
@@ -217,6 +219,23 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
               <PrintIcon />
             </IconButton>
           </Tooltip>
+          <Popover
+            open={previewOpen}
+            anchorEl={previewAnchorEl}
+            onClose={handlePrintPreviewClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+          >
+            <Box sx={{ p: 2 }} onClick={handlePrintPreviewClose} style={{  }}>
+              <ReceiptPreview items={cartItems} total={total} />
+            </Box>
+          </Popover>
           <Tooltip title={t('app.cart.setKursName')}>
             <IconButton
               onClick={handleKursNameDialogOpen}
@@ -374,6 +393,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
       <Dialog
         open={kursNameDialogOpen}
         onClose={handleKursNameDialogClose}
+        PaperProps={{ sx: { borderRadius: 2 } }}
       >
         <form
           onSubmit={e => {

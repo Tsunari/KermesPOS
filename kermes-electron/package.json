@@ -28,7 +28,7 @@
     "productName": "Kermes POS",
     "win": {
       "target": "nsis",
-      "icon": "assets/Logo-light.ico"
+      "icon": "assets/Logo-light-m.ico"
     },
     "publish": [
       {

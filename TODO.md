@@ -1,42 +1,54 @@
-# Kermes Development Roadmap
+# Kermes POS Development Roadmap
 
-## Version 1.0.0 (Current Release)
+
+## Version 2.0.0 (Future)
 ### Kermes POS
-- [x] Basic POS functionality
-- [x] Product management system
-- [x] Cart system implementation
-- [x] Basic UI with Material-UI components
-- [x] Category support for food and drinks
-- [x] Euro currency support
-- [x] Product add/edit interface
-- [x] Dropdown menu switches
-- [x] Numpad 1-12 integration
-- [x] Drag and drop functionality for products
-- [x] Compact mode (removed category dividers)
-- [x] Language/Localization support init
-- [x] Dark Mode support and default
-- [ ] Talebe Yemek Auth
-- [ ] Migrate to Next.js React framwork from Create React App (CRA)
+#### Major Features
+- [ ] Multi-store support
+- [ ] User management and permissions
+  - [ ] Firebase Authentication
+  - [ ] User accounts
+  - [ ] Role-based access control
+- [ ] Cloud synchronization
+- [ ] Mobile app integration
+
+#### Infrastructure
+- [ ] Database optimization
+- [ ] API versioning
+- [ ] Security enhancements
 
 ### Kermes Electron
-- [x] Basic Electron app setup
-- [x] React app integration
-- [x] Basic window management
-- [x] Development tools integration
+#### Major Features
+- [ ] Multi-window support
+- [ ] Advanced printer management
+- [ ] Editor UI for Receipt layout
+- [ ] System integration features
+- [ ] Plugin system
 
-## Version 1.0.1 (In Progress)
+
+## Version 1.2.0 (Future)
 ### Kermes POS
-#### Fixed
-- [ ] Native printing dialog not appearing
-- [ ] Printer connection issues
-- [ ] UI responsiveness problems
-- [ ] Default products save functionality
+#### Features
+- [ ] Inventory management system
+  - [ ] Stock tracking
+  - [ ] Low stock alerts
+  - [ ] Purchase orders
+- [ ] Reporting system
+  - [ ] Sales reports
+  - [ ] Inventory reports
+  - [ ] Export functionality
+
+#### Technical Debt
+- [ ] Code optimization
+- [ ] Performance improvements
+- [ ] Documentation updates
 
 ### Kermes Electron
-#### Fixed
-- [ ] Print window creation issues
-- [ ] Content loading problems
-- [ ] Print dialog integration
+#### Features
+- [ ] Offline mode support
+- [ ] Backup and restore functionality
+- [ ] System resource monitoring
+
 
 ## Version 1.1.0 (Planned)
 ### Kermes POS
@@ -67,51 +79,52 @@
 - [ ] System tray integration
 - [ ] Auto-update functionality
 
-## Version 1.2.0 (Future)
-### Kermes POS
-#### Features
-- [ ] Inventory management system
-  - [ ] Stock tracking
-  - [ ] Low stock alerts
-  - [ ] Purchase orders
-- [ ] Reporting system
-  - [ ] Sales reports
-  - [ ] Inventory reports
-  - [ ] Export functionality
 
-#### Technical Debt
-- [ ] Code optimization
-- [ ] Performance improvements
-- [ ] Documentation updates
+## Version 1.0.1 (In Progress)
+### Kermes POS
+#### Fixed
+- [ ] Native printing dialog not appearing
+- [ ] Printer connection issues
+- [ ] UI responsiveness problems
+- [ ] Default products save functionality
 
 ### Kermes Electron
-#### Features
-- [ ] Offline mode support
-- [ ] Backup and restore functionality
-- [ ] System resource monitoring
+#### Fixed
+- [ ] Print window creation issues
+- [ ] Content loading problems
+- [ ] Print dialog integration
 
-## Version 2.0.0 (Future)
+
+## Version 1.0.0 (Current Release)
 ### Kermes POS
-#### Major Features
-- [ ] Multi-store support
-- [ ] User management and permissions
-  - [ ] Firebase Authentication
-  - [ ] User accounts
-  - [ ] Role-based access control
-- [ ] Cloud synchronization
-- [ ] Mobile app integration
-
-#### Infrastructure
-- [ ] Database optimization
-- [ ] API versioning
-- [ ] Security enhancements
+- [x] Basic POS functionality
+- [x] Product management system
+- [x] Cart system implementation
+- [x] Basic UI with Material-UI components
+- [x] Category support for food and drinks
+- [x] Euro currency support
+- [x] Product add/edit interface
+- [x] Dropdown menu switches
+- [x] Numpad 1-12 integration
+- [x] Drag and drop functionality for products
+- [x] Compact mode (removed category dividers)
+- [x] Language/Localization support init
+- [x] Dark Mode support and default
+- [ ] Talebe Yemek Auth
+- [ ] Migrate to Next.js React framwork from Create React App (CRA)
+- [x] Switches in dropdown
+- [x] Numpad 1-12
+- [x] Drag and drop for products
+- [x] Language
+- [ ] Compact (delete category dividers)
 
 ### Kermes Electron
-#### Major Features
-- [ ] Multi-window support
-- [ ] Advanced printer management
-- [ ] System integration features
-- [ ] Plugin system
+- [x] Basic Electron app setup
+- [x] React app integration
+- [x] Basic window management
+- [x] Development tools integration
+
+
 
 ## Versioning Guidelines
 - **Major version (X.0.0)**: Incompatible API changes
@@ -129,17 +142,3 @@
 Bugs:
 
 - [x] When going out of dropdown menu in single click mode product gets added to cart
-
-
-OSMAN ABI TODO:
-
-- [ ] Sprache
-- [ ] Compact (delete category dividers)
-- [x] Switches in dropdown
-- [x] Numpad 1-12
-- [x] Drag and drop for products
-
-VEEEERY LATER Features:
-
-- [ ] Firebase Auth and accounts
-- [ ] Editor UI for Receipt layout

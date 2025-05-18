@@ -1,9 +1,9 @@
 #region Helper Functions
 function Write-Section {
     param([string]$Title, [int]$Step, [int]$Total)
-    Write-Host "=================================" -ForegroundColor Cyan
+    Write-Host "================================" -ForegroundColor Cyan
     Write-Host ("Step $($Step) of $($Total): $Title") -ForegroundColor Yellow
-    Write-Host "=================================" -ForegroundColor Cyan
+    Write-Host "================================" -ForegroundColor Cyan
 }
 
 function Write-ErrorAndExit {
@@ -51,6 +51,16 @@ try {
     if ($LASTEXITCODE -ne 0) { Write-ErrorAndExit "kermes-pos build failed." }
     cd ..
 
+    # Step 2.5: Update title in build index.html
+    Write-Section "Update title in build index.html" 2.5 $totalSteps
+    $indexPath = "./kermes-pos/build/index.html"
+    if (Test-Path $indexPath) {
+        (Get-Content $indexPath) -replace '<title>.*?</title>', '<title>Kermes POS</title>' | Set-Content $indexPath -Encoding UTF8
+        Write-Host "Updated <title> in build/index.html to 'Kermes POS'" -ForegroundColor Green
+    } else {
+        Write-ErrorAndExit "build/index.html not found!"
+    }
+
     # Step 3: Copy build folder to electron
     Write-Section "Copy build folder to kermes-electron" 3 $totalSteps
     Remove-Item -Recurse -Force ./kermes-electron/build -ErrorAction SilentlyContinue
@@ -75,7 +85,7 @@ try {
     cd ..
 
     # Step 5: Prepare release files
-    Write-Section "Prepare release files" 5 $totalSteps
+    Write-Section "Prepare release files" 5 $totalSteps # Ömer war hier, ömer ist ein bisschen freaky
     $distPath = "./kermes-electron/dist"
     $exeFile = Get-ChildItem $distPath -Filter *.exe | Select-Object -First 1
     $ymlFile = Get-ChildItem $distPath -Filter latest.yml | Select-Object -First 1
@@ -95,6 +105,78 @@ try {
     }
     Write-Host "Release files ready: $($exeFile.Name), $($ymlFile.Name)" -ForegroundColor Green
 
+    # Step 5.5: Generate changelog section from commit messages
+    Write-Section "Generate changelog from commits" 5.5 $totalSteps
+    $lastTag = git describe --tags --abbrev=0
+    # Get full commit bodies (multi-line)
+    $commitBodies = git log $lastTag..HEAD --pretty=format:"%B"
+    # Split all commit messages into lines, remove empty lines
+    $commitLines = $commitBodies -split "`n" | Where-Object { $_.Trim() -ne "" }
+    $newDate = Get-Date -Format "dd-MM-yyyy"
+    $changelogSection = "## [$newVersion] - $newDate`n"
+    $dirMap = @{
+        "electron" = "Kermes Electron"
+        "pos" = "Kermes POS"
+        "web" = "Kermes Web"
+    }
+    $typeMap = @{
+        "feat" = "Added"
+        "bug" = "Fixed"
+        "change" = "Changed"
+        "chore" = "Changed"
+    }
+    $grouped = @{}
+    $globalNotes = @()
+    foreach ($line in $commitLines) {
+        $matches = $null
+        if ($line -match "--global") {
+            $desc = $line -replace "--global", "" -replace "^\s*-*\s*", ""
+            $globalNotes += "- $desc"
+        } else {
+            # Find all type and dir tags
+            $typeTags = @()
+            $dirTags = @()
+            if ($line -match "--(feat|bug|change|chore)") {
+                $typeTags = [regex]::Matches($line, "--(feat|bug|change|chore)") | ForEach-Object { $_.Groups[1].Value }
+            }
+            if ($line -match "--(electron|pos|web)") {
+                $dirTags = [regex]::Matches($line, "--(electron|pos|web)") | ForEach-Object { $_.Groups[1].Value }
+            }
+            if ($typeTags.Count -gt 0 -and $dirTags.Count -gt 0) {
+                $desc = $line -replace "--.*", "" -replace "^\s*-*\s*", ""
+                foreach ($type in $typeTags) {
+                    foreach ($dir in $dirTags) {
+                        $dirKey = $dirMap[$dir]
+                        $typeKey = $typeMap[$type]
+                        if (-not $grouped.ContainsKey($dirKey)) { $grouped[$dirKey] = @{} }
+                        if (-not $grouped[$dirKey].ContainsKey($typeKey)) { $grouped[$dirKey][$typeKey] = @() }
+                        $grouped[$dirKey][$typeKey] += "- $desc"
+                    }
+                }
+            }
+        }
+    }
+    if ($globalNotes.Count -gt 0) {
+        $changelogSection += "### Global`n"
+        $changelogSection += ($globalNotes -join "`n") + "`n`n"
+    }
+    foreach ($dir in $dirMap.Values) {
+        if ($grouped.ContainsKey($dir)) {
+            $changelogSection += "### $dir`n"
+            foreach ($type in @("Added", "Changed", "Fixed")) {
+                if ($grouped[$dir].ContainsKey($type)) {
+                    $changelogSection += "#### $type`n"
+                    $changelogSection += ($grouped[$dir][$type] -join "`n") + "`n"
+                }
+            }
+            $changelogSection += "`n"
+        }
+    }
+    $changelogPath = "./CHANGELOG.md"
+    $oldChangelog = Get-Content $changelogPath -Raw
+    Set-Content $changelogPath -Value ("$changelogSection`n$oldChangelog") -Encoding UTF8
+    $releaseNotes = $changelogSection
+
     # Step 6: Create GitHub release and upload assets
     Write-Section "Create GitHub Release" 6 $totalSteps
     $tag = "v$newVersion"
@@ -110,9 +192,9 @@ try {
 
     $endTime = Get-Date
     $duration = $endTime - $startTime
-    Write-Host "\n===============================" -ForegroundColor Cyan
+    Write-Host "================================" -ForegroundColor Cyan
     Write-Host ("All done! Total time: {0:mm\:ss} (mm:ss)" -f $duration) -ForegroundColor Green
-    Write-Host "===============================\n" -ForegroundColor Cyan
+    Write-Host "================================" -ForegroundColor Cyan
 }
 catch {
     Write-Host "[FATAL ERROR] $_" -ForegroundColor Red

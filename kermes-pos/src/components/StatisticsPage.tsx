@@ -6,6 +6,7 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { useLanguage } from '../context/LanguageContext';
 import { Product } from '../types/index';
 import { cartTransactionService } from '../services/cartTransactionService';
+import { generateSummaryPDF } from '../services/summary';
 
 interface StatisticsPageProps {
   products: Product[];
@@ -345,7 +346,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products }) => {
 
       <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 2, justifyContent: 'center' }}>
         <Button
-          variant="contained"
+          variant="outlined"
           color="primary"
           startIcon={<DownloadIcon />}
           onClick={() => cartTransactionService.exportTransactionsAsCSV()}
@@ -361,6 +362,27 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products }) => {
           sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
         >
           Clear Database
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<DownloadIcon />}
+          sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
+          onClick={async () => {
+            const transactions = await cartTransactionService.getTransactions();
+            generateSummaryPDF({
+              transactions,
+              signers: [
+                { name: 'Test Isim 1', surname: 'Test Soyisim 1' },
+                { name: 'Test Isim 2', surname: 'Test Soyisim 2' },
+                { name: 'Test Isim 3', surname: 'Test Soyisim 3' },
+              ],
+              currency: '€',
+              kursName: 'Münih Fatih Kermes',
+              date: new Date().toLocaleDateString('de-DE'),
+            });
+          }}
+        >
+          Download Summary (PDF)
         </Button>
       </Stack>
     </Box>

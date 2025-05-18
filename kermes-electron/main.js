@@ -19,8 +19,8 @@ let kursName = "Münih Fatih Kermes";
 function createWindow() {
   const isDark = nativeTheme.shouldUseDarkColors;
   const iconPath = isDark
-    ? path.join(__dirname, "assets", "Logo-dark.ico")
-    : path.join(__dirname, "assets", "Logo-light.ico");
+    ? path.join(__dirname, "assets", "Logo-dark-m.ico")
+    : path.join(__dirname, "assets", "Logo-light-m.ico");
 
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -188,7 +188,7 @@ app.on("ready", async () => {
   } else {
     const kermesPosPath = path.join(__dirname, 'build/index.html');
     //mainWindow.loadFile(kermesPosPath);
-    mainWindow.loadURL('http://localhost:3000');
+    mainWindow.loadURL('http://localhost:3001');
   }
   //mainWindow.webContents.openDevTools();
   //colorLogger.info('Application is ready.');

@@ -1,6 +1,6 @@
 <h1 style="display: flex; align-items: center;">
   <a href="https://kermespos.web.app/" style="margin-right: 10px;">
-    <img src="kermes-web/public/picInverse.png" alt="Kermes POS" width="50">
+    <img src="kermes-web/public/Mintika_round-cropped.svg" alt="Kermes POS" width="50">
   </a>
   Kermes POS
 </h1>
@@ -144,7 +144,7 @@ This project is licensed under the AGPL-3.0 license - see the [LICENSE](LICENSE)
 
 ## 📞 Support
 
-For support, email support@kermes.com or join our Slack channel.
+For support, email talebelergfc@gmail.com or join our Slack channel.
 
 ## 🏗️ Roadmap
 
@@ -158,4 +158,4 @@ See our [TODO](TODO.md) and [CHANGELOG](CHANGELOG.md) for planned features and r
 
 ---
 
-Made with ❤️ by _
+Made with ❤️ by GFC
