@@ -7,15 +7,25 @@ function Write-Section {
 }
 
 function Write-ErrorAndExit {
-    param([string]$Message)
+    param(
+        [string]$Message,
+        [scriptblock]$BeforeExit = $null
+    )
     Write-Host "[ERROR] $Message" -ForegroundColor Red
+    if ($BeforeExit) { & $BeforeExit }
     exit 1
 }
 #endregion
 
 $ErrorActionPreference = 'Stop'
 $startTime = Get-Date
-$totalSteps = 9
+$totalSteps = 10
+
+# Check for uncommitted changes before starting
+$gitStatus = git status --porcelain
+if ($gitStatus) {
+    Write-ErrorAndExit "There are uncommitted changes in the repository. Please commit or stash them before running the release script." { Write-Host $gitStatus }
+}
 
 try {
     # Step 1: Version Increment
@@ -129,13 +139,17 @@ try {
     foreach ($line in $commitLines) {
         if ($line -match "--global") {
             $desc = $line -replace "--global", "" -replace "^\s*-*\s*", "" -replace "\s+$", ""
-            if ($desc) { $globalNotes += "- $desc" }
+            if ($desc) {
+                $desc = $desc.Substring(0,1).ToUpper() + $desc.Substring(1)
+                $globalNotes += "- $desc"
+            }
         } else {
             $typeTags = [regex]::Matches($line, "--(feat|bug|change|chore)") | ForEach-Object { $_.Groups[1].Value }
             $dirTags = [regex]::Matches($line, "--(electron|pos|web)") | ForEach-Object { $_.Groups[1].Value }
             if ($typeTags.Count -gt 0 -and $dirTags.Count -gt 0) {
                 $desc = $line -replace "--(feat|bug|change|chore)", "" -replace "--(electron|pos|web)", "" -replace "^\s*-*\s*", "" -replace "\s+$", ""
                 if ($desc) {
+                    $desc = $desc.Substring(0,1).ToUpper() + $desc.Substring(1)
                     foreach ($type in $typeTags) {
                         foreach ($dir in $dirTags) {
                             $dirKey = $dirMap[$dir]
@@ -162,9 +176,29 @@ try {
                     $changelogSection += ($grouped[$dir][$type] -join "`n") + "`n"
                 }
             }
-            # $changelogSection += "`n"
         }
     }
+    # Capitalize the first letter of each bullet point in changelogSection
+    function Capitalize-FirstLetter {
+        param([string]$text)
+        if ($text.Length -gt 1) {
+            return ($text.Substring(0,2).ToUpper() + $text.Substring(2))
+        } elseif ($text.Length -eq 1) {
+            return $text.ToUpper()
+        } else {
+            return $text
+        }
+    }
+    $changelogSection = ($changelogSection -split "`n") | ForEach-Object {
+        if ($_ -match '^\s*- ') {
+            $bullet = $_.Substring(0, $_.IndexOf('-')+2)
+            $rest = $_.Substring($_.IndexOf('-')+2).TrimStart()
+            $capitalized = if ($rest.Length -gt 0) { $rest.Substring(0,1).ToUpper() + $rest.Substring(1) } else { $rest }
+            "$bullet$capitalized"
+        } else {
+            $_
+        }
+    } | Out-String
     # Insert changelog section after the 7th line (index 6), with one blank line before and after
     $changelogLines = Get-Content $changelogPath
     $newSection = @($changelogSection)
@@ -172,10 +206,20 @@ try {
     $after = $changelogLines[7..($changelogLines.Count-1)]
     $finalChangelog = $before + $newSection + $after
     Set-Content $changelogPath -Value $finalChangelog -Encoding UTF8
-    $releaseNotes = $changelogSection
+    # Custom header for release notes
+    $releaseNotesHeader = "### 🚀 Kermes POS $newVersion Release Notes ($newDate)`n"
+    $releaseNotes = $releaseNotesHeader + $changelogSection
 
-    # Step 9: Create GitHub release and upload assets
-    Write-Section "Create GitHub Release" 9 $totalSteps
+    # Step 9: Push commits before changelog and release
+    Write-Section "Push commits" 9 $totalSteps
+    git add .
+    git commit -m "chore: prepare release $newVersion"
+    git push
+    if ($LASTEXITCODE -ne 0) { Write-ErrorAndExit "Git push failed." }
+
+
+    # Step 10: Create GitHub release and upload assets
+    Write-Section "Create GitHub Release" 10 $totalSteps
     $tag = "v$newVersion"
     $releaseTitle = "Kermes POS $newVersion"
     Write-Host "Creating GitHub release $tag..." -ForegroundColor Cyan
