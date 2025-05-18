@@ -1,3 +1,7 @@
+param(
+    [switch]$force
+)
+
 #region Helper Functions
 function Write-Section {
     param([string]$Title, [int]$Step, [int]$Total)
@@ -21,10 +25,12 @@ $ErrorActionPreference = 'Stop'
 $startTime = Get-Date
 $totalSteps = 10
 
-# Check for uncommitted changes before starting
-$gitStatus = git status --porcelain
-if ($gitStatus) {
-    Write-ErrorAndExit "There are uncommitted changes in the repository. Please commit or stash them before running the release script." { Write-Host $gitStatus }
+# Check for uncommitted changes before starting (unless --force is set)
+if (-not $force) {
+    $gitStatus = git status --porcelain
+    if ($gitStatus) {
+        Write-ErrorAndExit "There are uncommitted changes in the repository. Please commit or stash them before running the release script." { Write-Host $gitStatus }
+    }
 }
 
 try {
@@ -38,7 +44,7 @@ try {
     Write-Host "1. Major"
     Write-Host "2. Minor"
     Write-Host "3. Patch"
-    $choice = Read-Host "Enter 1, 2, or 3"
+    $choice = Read-Host "Enter 1, 2, or 3 (or q to quit)"
     $versionParts = $currentVersion -split '\.'
     $major = [int]$versionParts[0]
     $minor = [int]$versionParts[1]
@@ -47,6 +53,7 @@ try {
         '1' { $major++; $minor=0; $patch=0 }
         '2' { $minor++; $patch=0 }
         '3' { $patch++ }
+        'q' { exit 0 }
         default { Write-ErrorAndExit "Invalid choice. Exiting." }
     }
     $newVersion = "$major.$minor.$patch"
