@@ -25,4 +25,4 @@ jobs:
 
       - name: Run release script
         shell: pwsh
-        run: ./release.ps1 --force
+        run: ./release.ps1 -force
