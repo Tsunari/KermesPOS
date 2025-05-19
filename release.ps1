@@ -88,8 +88,9 @@ try {
     Write-Section "Update title in build index.html" 3 $totalSteps
     $indexPath = "./kermes-pos/build/index.html"
     if (Test-Path $indexPath) {
-        (Get-Content $indexPath) -replace '<title>.*?</title>', '<title>Kermes POS</title>' | Set-Content $indexPath -Encoding UTF8
-        Write-Host "Updated <title> in build/index.html to 'Kermes POS'" -ForegroundColor Green
+        $newTitle = "<title>Kermes POS v$newVersion</title>"
+        (Get-Content $indexPath) -replace '<title>.*?</title>', $newTitle | Set-Content $indexPath -Encoding UTF8
+        Write-Host "Updated <title> in build/index.html to 'Kermes POS v$newVersion'" -ForegroundColor Green
     } else {
         Write-ErrorAndExit "build/index.html not found!"
     }
