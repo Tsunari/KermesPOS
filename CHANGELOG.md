@@ -5,6 +5,32 @@ All notable changes to the Kermes project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 19-05-2025
+### Global
+- Title now includes version name --change
+- Change release script to also update kermes-web version --change
+- Added automatic changelog
+
+### Kermes Web
+#### Changed
+- Changed icon
+- Renamed to Preview
+### Kermes Electron
+#### Added
+- Added print summary functionality
+#### Changed
+- Changed icon
+### Kermes POS
+#### Added
+- Add support mail function in about section
+- Set signers through dialog when generating report
+#### Changed
+- Use name specified in cart for summary kursName
+- Easily access states across files with variableContextProvider
+- Display pos version according to package.json
+- Changed icon
+
+
 ## [1.2.0] - 18-05-2025
 ### Global
 - added automatic changelog
