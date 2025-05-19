@@ -222,6 +222,14 @@
       "confirm": "Confirm",
       "selectQuantity": "Select Quantity",
       "quantity": "Quantity"
+    },
+    "signers": {
+      "setSigners": "Set Signers",
+      "receiver": "Receiver (Teslim Alan)",
+      "deliverer": "Deliverer (Teslim Eden)",
+      "name": "Name",
+      "surname": "Surname",
+      "generate": "Generate PDF"
     }
   }
-} 
+}

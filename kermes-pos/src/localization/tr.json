@@ -223,6 +223,14 @@
       "confirm": "Onayla",
       "selectQuantity": "Miktar Seç",
       "quantity": "Miktar"
+    },
+    "signers": {
+      "setSigners": "İmzalayanları Ayarla",
+      "receiver": "Teslim Alan",
+      "deliverer": "Teslim Eden",
+      "name": "Isim",
+      "surname": "Soyisim",
+      "generate": "PDF Oluştur"
     }
   }
-} 
+}

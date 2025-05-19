@@ -223,6 +223,14 @@
       "confirm": "Bestätigen",
       "selectQuantity": "Menge auswählen",
       "quantity": "Menge"
+    },
+    "signers": {
+      "setSigners": "Unterzeichner festlegen",
+      "receiver": "Empfänger (Teslim Alan)",
+      "deliverer": "Übergeber (Teslim Eden)",
+      "name": "Name",
+      "surname": "Nachname",
+      "generate": "PDF generieren"
     }
   }
-} 
+}

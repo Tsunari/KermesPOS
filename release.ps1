@@ -64,6 +64,16 @@ try {
     $packageJson.version = $newVersion
     $packageJson | ConvertTo-Json -Depth 100 | Set-Content $packageJsonPath -Encoding UTF8
     Write-Host "Updated version to $newVersion in $packageJsonPath" -ForegroundColor Green
+    # Also update kermes-pos/package.json version
+    $posPackageJsonPath = "./kermes-pos/package.json"
+    if (Test-Path $posPackageJsonPath) {
+        $posPackageJson = Get-Content $posPackageJsonPath | ConvertFrom-Json
+        $posPackageJson.version = $newVersion
+        $posPackageJson | ConvertTo-Json -Depth 100 | Set-Content $posPackageJsonPath -Encoding UTF8
+        Write-Host "Updated version to $newVersion in $posPackageJsonPath" -ForegroundColor Green
+    } else {
+        Write-Host "kermes-pos/package.json not found, skipping version update for kermes-pos." -ForegroundColor Yellow
+    }
     #endregion Step 1
 
     #region Step 2: Build kermes-pos
@@ -112,7 +122,7 @@ try {
     #endregion Step 6
 
     #region Step 7: Prepare release files
-    Write-Section "Prepare release files" 7 $totalSteps # Ömer war hier, ömer ist ein bisschen freaky
+    Write-Section "Prepare release files" 7 $totalSteps # Ömer war hier, ömer ist ein bisschen freaky, talha war hier, ich liebe essen
     $distPath = "./kermes-electron/dist"
     $exeFile = Get-ChildItem $distPath -Filter *.exe | Select-Object -First 1
     $ymlFile = Get-ChildItem $distPath -Filter latest.yml | Select-Object -First 1

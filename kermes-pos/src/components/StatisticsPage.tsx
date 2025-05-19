@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Paper, ToggleButton, ToggleButtonGroup, IconButton, Dialog, DialogTitle, DialogContent, Tooltip, Button, Stack } from '@mui/material';
+import { Box, Typography, Paper, ToggleButton, ToggleButtonGroup, IconButton, Dialog, DialogTitle, DialogContent, Tooltip, Button, Stack, DialogActions, TextField } from '@mui/material';
 import GridViewIcon from '@mui/icons-material/GridView';
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
@@ -9,6 +9,7 @@ import { cartTransactionService } from '../services/cartTransactionService';
 import { generateSummaryPDF } from '../services/summary';
 import { exampleTransactions } from '../services/exampleTransactions';
 import { useSettings } from '../context/SettingsContext';
+import { useVariableContext } from '../context/VariableContext';
 
 interface StatisticsPageProps {
   products: Product[];
@@ -52,6 +53,13 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
   const [showAllProducts, setShowAllProducts] = useState(false);
   const [allProductStats, setAllProductStats] = useState<ProductStats[]>([]);
   const [transactions, setTransactions] = useState<CartTransaction[]>([]);
+  const [signersDialogOpen, setSignersDialogOpen] = useState(false);
+  const [signers, setSigners] = useState([
+    { name: 'Test Isim', surname: 'Test Soyisim' },
+    { name: 'Test Isim', surname: 'Test Soyisim' },
+    { name: 'Test Isim', surname: 'Test Soyisim' },
+  ]);
+  const { kursName } = useVariableContext();
 
   useEffect(() => {
     const loadData = async () => {
@@ -377,6 +385,57 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
         </DialogContent>
       </Dialog>
 
+      <Dialog open={signersDialogOpen} onClose={() => setSignersDialogOpen(false)}>
+        <DialogTitle>{t('app.signers.setSigners')}</DialogTitle>
+        <DialogContent>
+          {signers.map((signer, idx) => (
+            <Box key={idx} sx={{ display: 'flex', gap: 2, mb: 2, mt: 2, alignItems: 'center' }}>
+              <TextField
+                label={t('app.signers.name')}
+                value={signer.name}
+                onChange={e => {
+                  const newSigners = [...signers];
+                  newSigners[idx].name = e.target.value;
+                  setSigners(newSigners);
+                }}
+                fullWidth
+              />
+              <TextField
+                label={t('app.signers.surname')}
+                value={signer.surname}
+                onChange={e => {
+                  const newSigners = [...signers];
+                  newSigners[idx].surname = e.target.value;
+                  setSigners(newSigners);
+                }}
+                fullWidth
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+                {idx === 0 ? t('app.signers.receiver') : t('app.signers.deliverer')}
+              </Typography>
+            </Box>
+          ))}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSignersDialogOpen(false)}>{t('common.cancel')}</Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              const transactions = await cartTransactionService.getTransactions();
+              generateSummaryPDF({
+                transactions,
+                signers,
+                kursName: kursName,
+                date: new Date().toLocaleDateString('de-DE'),
+              });
+              setSignersDialogOpen(false);
+            }}
+          >
+            {t('app.signers.generate')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 2, justifyContent: 'center' }}>
         <Button
           variant="outlined"
@@ -400,20 +459,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
           variant="outlined"
           startIcon={<DownloadIcon />}
           sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
-          onClick={async () => {
-            const transactions = await cartTransactionService.getTransactions();
-            generateSummaryPDF({
-              transactions,
-              signers: [
-                { name: 'Test Isim 1', surname: 'Test Soyisim 1' },
-                { name: 'Test Isim 2', surname: 'Test Soyisim 2' },
-                { name: 'Test Isim 3', surname: 'Test Soyisim 3' },
-              ],
-              currency: '€',
-              kursName: 'Münih Fatih Kermes',
-              date: new Date().toLocaleDateString('de-DE'),
-            });
-          }}
+          onClick={() => setSignersDialogOpen(true)}
         >
           Download Summary (PDF)
         </Button>

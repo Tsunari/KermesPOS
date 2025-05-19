@@ -39,6 +39,7 @@ import AppearanceSettings from './components/AppearanceSettings';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import StatisticsPage from './components/StatisticsPage';
 import { generateReceiptContent } from './services/printerService';
+import { VariableContext, VariableContextProvider } from './context/VariableContext';
 
 /**
  * The `AppContent` component serves as the main application layout and logic handler for the Kermes POS system.
@@ -307,9 +308,9 @@ const App: React.FC = () => {
     <SettingsProvider>
       <ThemeProvider>
         <LanguageProvider>
-          
+          <VariableContextProvider>
             <AppContent />
-          
+          </VariableContextProvider>
         </LanguageProvider>
       </ThemeProvider>
     </SettingsProvider>

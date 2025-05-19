@@ -277,8 +277,20 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
         <Typography variant="body1" paragraph>
           {t('settings.about.description')}
         </Typography>
+        <Typography variant="body2" paragraph>
+          Support:{' '}
+          <Button
+            variant="text"
+            color="primary"
+            component="a"
+            href="mailto:talebelergfc@gmail.com?subject=Kermes%20POS%20Support"
+            sx={{ textTransform: 'none', padding: '5px', minWidth: 0 }}
+          >
+            talebelergfc@gmail.com
+          </Button>
+        </Typography>
         <Typography variant="body2" color="text.secondary">
-          {t('settings.about.version')} 1.0.0
+            {t('settings.about.version')} {require('../../package.json').version || 'Problem with fetching version'}
         </Typography>
       </Paper>
     </Box>
