@@ -188,7 +188,7 @@ app.on("ready", async () => {
   } else {
     const kermesPosPath = path.join(__dirname, 'build/index.html');
     //mainWindow.loadFile(kermesPosPath);
-    mainWindow.loadURL('http://localhost:3001');
+    mainWindow.loadURL('http://localhost:3000');
   }
   //mainWindow.webContents.openDevTools();
   //colorLogger.info('Application is ready.');

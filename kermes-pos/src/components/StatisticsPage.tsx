@@ -7,9 +7,12 @@ import { useLanguage } from '../context/LanguageContext';
 import { Product } from '../types/index';
 import { cartTransactionService } from '../services/cartTransactionService';
 import { generateSummaryPDF } from '../services/summary';
+import { exampleTransactions } from '../services/exampleTransactions';
+import { useSettings } from '../context/SettingsContext';
 
 interface StatisticsPageProps {
   products: Product[];
+  devMode: boolean;
 }
 
 interface DailyStats {
@@ -40,7 +43,7 @@ interface CartTransaction {
   payment_method: string;
 }
 
-const StatisticsPage: React.FC<StatisticsPageProps> = ({ products }) => {
+const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) => {
   const { t } = useLanguage();
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
   const [categoryStats, setCategoryStats] = useState<CategoryStats[]>([]);
@@ -60,8 +63,18 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products }) => {
         ]);
         
         setDailyStats(dailyStatsData);
-        setTransactions(transactionsData);
+        if (devMode) {
+          setTransactions(exampleTransactions);
+          // log exampleTransactions for debugging
+          console.log('Example transactions:', exampleTransactions);
+          
+        } else {
+          setTransactions(transactionsData);
+        }
         
+        // Use the correct transactions array for statistics calculations
+        const usedTransactions = devMode ? exampleTransactions : transactionsData;
+
         // Calculate revenue for each category
         const categoryStatsWithRevenue = categoryStatsData.map(stat => {
           const product = products.find(p => p.category === stat.categories);
@@ -75,9 +88,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products }) => {
 
         // Calculate product-level statistics
         const productStats = new Map<string, ProductStats>();
-        
-        // Process each transaction to get product-level stats
-        transactionsData.forEach(transaction => {
+        usedTransactions.forEach(transaction => {
           try {
             const items = JSON.parse(transaction.items_data);
             items.forEach((item: any) => {
@@ -116,7 +127,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products }) => {
     };
 
     loadData();
-  }, [products, sortBy]);
+  }, [products, devMode, sortBy]);
 
   const todayStats = dailyStats[0] || { total_revenue: 0, total_items: 0, transaction_count: 0 };
   const yesterdayStats = dailyStats[1] || { total_revenue: 0, total_items: 0 };
@@ -133,8 +144,25 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products }) => {
     ? (todayStats.total_revenue / todayStats.transaction_count).toFixed(2)
     : '0.00';
 
+  // Calculate all-time stats (sum over all used transactions)
+  // const usedTransactions = devMode ? exampleTransactions : transactions;
+  // const allStats = usedTransactions.reduce((acc, tx) => {
+  //   acc.total_revenue += tx.total_amount;
+  //   acc.total_items += tx.items_count;
+  //   acc.transaction_count += 1;
+  //   return acc;
+  // }, { total_revenue: 0, total_items: 0, transaction_count: 0 });
+  // const allAverageOrderValue = allStats.transaction_count
+  //   ? (allStats.total_revenue / allStats.transaction_count).toFixed(2)
+  //   : '0.00';
+
   return (
     <Box sx={{ p: 3 }}>
+      {devMode && (
+        <Typography variant="body2" color="warning.main" sx={{ mb: 2, fontWeight: 'bold' }}>
+          ⚠️ Example statistics are being used (DEV MODE)
+        </Typography>
+      )}
       <Typography variant="h4" gutterBottom>{t('app.statistics.title')}</Typography>
       <Typography variant="body1" paragraph>
         {t('app.statistics.description')}
@@ -143,20 +171,17 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products }) => {
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 3, mt: 3 }}>
         <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Typography variant="h6" color="text.secondary">{t('app.statistics.todaySales')}</Typography>
-          <Typography variant="h3" color="primary">{todayStats.total_revenue.toFixed(2)}€</Typography>
-          <Typography variant="body2" color="text.secondary">+{revenueChange}% {t('app.statistics.fromYesterday')}</Typography>
+          <Typography variant="h3" color="primary">{todayStats.total_revenue.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€</Typography>
         </Paper>
         
         <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Typography variant="h6" color="text.secondary">{t('app.statistics.itemsSold')}</Typography>
-          <Typography variant="h3" color="primary">{todayStats.total_items}</Typography>
-          <Typography variant="body2" color="text.secondary">{t('app.statistics.average')}: {Math.round(todayStats.total_items / (todayStats.transaction_count || 1))} {t('app.statistics.itemsPerDay')}</Typography>
+          <Typography variant="h3" color="primary">{todayStats.total_items.toLocaleString('de-DE')}</Typography>
         </Paper>
-        
+
         <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Typography variant="h6" color="text.secondary">{t('app.statistics.averageOrder')}</Typography>
-          <Typography variant="h3" color="primary">{averageOrderValue}€</Typography>
-          <Typography variant="body2" color="text.secondary">+{itemsChange}% {t('app.statistics.fromYesterday')}</Typography>
+          <Typography variant="h3" color="primary">{Number(averageOrderValue).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€</Typography>
         </Paper>
       </Box>
 
@@ -257,7 +282,15 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products }) => {
               const totalRevenue = Array.from(categoryRevenues.values()).reduce((sum, revenue) => sum + revenue, 0);
 
               // Create array of category stats with correct revenue
-              return Array.from(categoryRevenues.entries()).map(([category, revenue]) => {
+              const categoryStatsArray = Array.from(categoryRevenues.entries());
+              if (categoryStatsArray.length === 0) {
+                return (
+                  <Typography variant="body1" color="text.secondary" sx={{ p: 2 }}>
+                    {t('app.statistics.noData')}
+                  </Typography>
+                );
+              }
+              return categoryStatsArray.map(([category, revenue]) => {
                 const percentage = totalRevenue > 0 ? ((revenue / totalRevenue) * 100).toFixed(0) : '0';
                 const categoryColor = category === 'food' ? 'primary' : 
                                     category === 'drink' ? 'info' : 'secondary';

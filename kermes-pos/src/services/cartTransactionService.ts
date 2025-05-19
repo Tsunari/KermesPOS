@@ -1,6 +1,6 @@
 import { CartItem } from '../types/index';
 
-interface CartTransaction {
+export interface CartTransaction {
     id: number;
     transaction_date: string;
     total_amount: number;

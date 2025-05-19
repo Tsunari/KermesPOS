@@ -191,14 +191,14 @@ function AppContent() {
                   <BarChartIcon />
                 </IconButton>
               </Link>
-              <Link to="/import-export" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <IconButton color="inherit" size="large">
-                  <ImportExportIcon />
-                </IconButton>
-              </Link>
               <Link to="/settings" style={{ color: 'inherit', textDecoration: 'none' }}>
                 <IconButton color="inherit" size="large">
                   <SettingsIcon />
+                </IconButton>
+              </Link>
+              <Link to="/import-export" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <IconButton color="inherit" size="large">
+                  <ImportExportIcon />
                 </IconButton>
               </Link>
               <ThemeToggle />
@@ -269,7 +269,7 @@ function AppContent() {
             />
             <Route 
               path="/statistics" 
-              element={<StatisticsPage products={products} />} 
+              element={<StatisticsPage products={products} devMode={devMode} />} 
             />
             <Route 
               path="/import-export" 

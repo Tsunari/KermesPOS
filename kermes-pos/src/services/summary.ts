@@ -146,15 +146,18 @@ export function generateSummaryPDF(options: SummaryOptions): void {
   const sigSpacing = 10;
   const sigStartX = 105 - ((signers.length * sigWidth + (signers.length - 1) * sigSpacing) / 2);
   signers.forEach((signer, i) => {
-    // Teslim alan, Teslim eden, Teslim eden instead of surname change name to surname name
     const x = sigStartX + i * (sigWidth + sigSpacing);
     doc.line(x, sigY, x + sigWidth, sigY); // signature line
     doc.setFont('times', 'normal');
-    doc.setFontSize(10);
-    doc.text(signer.name, x + sigWidth / 2, sigY + 5, { align: 'center' });
     doc.setFontSize(8);
-    doc.text(signer.surname, x + sigWidth / 2, sigY + 10, { align: 'center' });
-    doc.setFontSize(12); // Reset to default for next loop/section
+    doc.text(signer.name + ' ' + signer.surname, x + sigWidth / 2, sigY + 5, { align: 'center' });
+    doc.setFontSize(10);
+    if (i === 0) {
+      doc.text('Teslim alan', x + sigWidth / 2, sigY + 10, { align: 'center' });
+    } else {
+      doc.text('Teslim eden', x + sigWidth / 2, sigY + 10, { align: 'center' });
+    }
+    doc.setFontSize(12); // Reset to default for next loop/section 
   });
 
   // Download in browser
