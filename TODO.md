@@ -47,8 +47,9 @@
 
 ----------------------------
 
-## Version 1.3.0
+## Version 1.X.0
 ### Kermes POS
+- [ ] Page Caching
 
 #### Technical Debt
 - [ ] Code optimization
@@ -57,7 +58,7 @@
 
 ### Kermes Electron
 #### Features
-- [x] Offline mode support
+- [ ] Offline mode support
 - [ ] Enhance update functionality
 - [ ] Backup and restore functionality
 
