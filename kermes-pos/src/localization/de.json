@@ -185,7 +185,9 @@
       "viewAll": "Alle Artikel anzeigen",
       "exportTransactions": "Transaktionen exportieren (CSV)",
       "clearDatabase": "Datenbank löschen",
-      "downloadSummary": "Zusammenfassung herunterladen (PDF)"
+      "downloadSummary": "Zusammenfassung herunterladen (PDF)",
+      "totalSales": "Gesamtverkäufe",
+      "totalRevenue": "Gesamtumsatz"
     },
     "cart": {
       "total": "Gesamt",
@@ -202,7 +204,8 @@
       "addItemsToPrint": "Fügen Sie Artikel zum Warenkorb hinzu, um einen Beleg zu drucken",
       "printerSettings": "Druckereinstellungen",
       "setKursName": "Kurs Name setzen",
-      "kursName": "Kurs Name"
+      "kursName": "Kurs Name",
+      "cancelPrint": "Drucken abbrechen"
     },
     "product": {
       "categories": {

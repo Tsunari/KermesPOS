@@ -51,6 +51,7 @@
 ### Kermes POS
 - [ ] Page Caching
 - [x] Icon Button in TodaysSales to open popup and view all sales
+- [ ] Logo in AppBar which opens website
 - [ ] Fix example statistics usage in statistics page
 - [ ] Code cleanup and optimization
 - [ ] Performance improvements

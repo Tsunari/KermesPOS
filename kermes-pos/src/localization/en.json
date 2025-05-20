@@ -184,7 +184,9 @@
       "viewAll": "View All Items",
       "exportTransactions": "Export transactions (CSV)",
       "clearDatabase": "Clear database",
-      "downloadSummary": "Download summary (PDF)"
+      "downloadSummary": "Download summary (PDF)",
+      "totalSales": "Total Sales",
+      "totalRevenue": "Total Revenue"
     },
     "cart": {
       "total": "Total",
@@ -201,7 +203,8 @@
       "addItemsToPrint": "Add items to cart to print receipt",
       "printerSettings": "Printer Settings",
       "setKursName": "Set Kurs Name",
-      "kursName": "Kurs Name"
+      "kursName": "Kurs Name",
+      "cancelPrint": "Cancel Print"
     },
     "product": {
       "categories": {

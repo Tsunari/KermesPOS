@@ -481,7 +481,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                 .map(([date, txs]) => {
                   const totalRevenue = txs.reduce((sum, tx) => sum + tx.total_amount, 0);
                   return (
-                    <Accordion key={date} defaultExpanded={txs.length > 0 && date === new Date().toLocaleDateString('de-DE')}>
+                    <Accordion key={date} defaultExpanded={txs.length > 0 && date === new Date().toLocaleDateString('de-DE')} sx={{ boxShadow: 4, mb: 0, borderRadius: 2 }}>
                       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%', justifyContent: 'space-between' }}>
                           <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mr: 2, display: 'flex', alignItems: 'center', gap: 1 }}>

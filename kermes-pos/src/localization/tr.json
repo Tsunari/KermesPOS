@@ -185,7 +185,9 @@
       "viewAll": "Tümünü Görüntüle",
       "exportTransactions": "İşlemleri indir",
       "clearDatabase": "Verileri temizle",
-      "downloadSummary": "Tutanak indir (PDF)"
+      "downloadSummary": "Tutanak indir (PDF)",
+      "totalSales": "Toplam Satış",
+      "totalRevenue": "Toplam Gelir"
     },
     "cart": {
       "total": "Toplam",
@@ -202,7 +204,8 @@
       "addItemsToPrint": "Fiş yazdırmak için sepete ürün ekleyin",
       "printerSettings": "Yazıcı Ayarları",
       "setKursName": "Kurs ismini ayarla",
-      "kursName": "Kurs ismi"
+      "kursName": "Kurs ismi",
+      "cancelPrint": "Baskıyı iptal et"
     },
     "product": {
       "categories": {
