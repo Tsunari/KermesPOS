@@ -53,10 +53,12 @@
 - [x] Icon Button in TodaysSales to open popup and view all sales
 - [ ] Logo in AppBar which opens website
 - [ ] Fix example statistics usage in statistics page
+- [ ] Show items sold when hovered/clicked in accordion
 - [ ] Code cleanup and optimization
 - [ ] Performance improvements
 - [ ] Sizes of cards editable in UI (or ensure all cards always visible with any screen size)
 - [ ] More categories (or "Other" category)
+- [ ] Fix reset kurs name is saved without even pressing save
 
 ### Kermes Electron
 #### Features

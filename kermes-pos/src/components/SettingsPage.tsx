@@ -111,7 +111,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
                 label={t('common.active')}
                 size="small"
                 color="success"
-                sx={{ ml: 1 }}
+                variant="outlined"
+                sx={{ ml: 0 }}
               />
             )}
           </Box>
@@ -152,7 +153,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
                 label={t('common.active')}
                 size="small"
                 color="success"
-                sx={{ ml: 1 }}
+                variant="outlined"
+                sx={{ ml: 0 }}
               />
             )}
           </Box>
@@ -170,29 +172,20 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
       </Typography>
       
       <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
+        {/* <Typography variant="h6" gutterBottom>
           {t('settings.appearance.title')}
-        </Typography>
+        </Typography> */}
         
         <List>
+
           {renderSettingItem(
-            <CodeIcon />,
-            t('settings.developer.devMode'),
-            t('settings.developer.devModeDescription'),
-            devMode,
-            setDevMode,
-            true
-          )}
-          
-          <Divider />
-          
-          {renderSettingItem(
-            <TouchAppIcon />,
-            t('settings.doubleClick'),
-            t('settings.doubleClickDescription'),
-            useDoubleClick,
-            setUseDoubleClick,
-            true
+            <PaletteIcon />,
+            t('settings.appearance.title'),
+            t('settings.appearance.darkModeDescription'),
+            appearance,
+            setAppearance,
+            true,
+            "/settings/appearance"
           )}
           
           <Divider />
@@ -205,37 +198,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
             setShowDescription,
             true
           )}
-          
+
           <Divider />
-          
+
           {renderSettingItem(
-            <NotificationsIcon />,
-            t('settings.notifications.enable'),
-            t('settings.notifications.description'),
-            notifications,
-            setNotifications
-          )}
-          
-          <Divider />
-          
-          {renderSettingItem(
-            <SecurityIcon />,
-            t('settings.security.enable'),
-            t('settings.security.description'),
-            security,
-            setSecurity
-          )}
-          
-          <Divider />
-          
-          {renderSettingItem(
-            <PaletteIcon />,
-            t('settings.appearance.title'),
-            t('settings.appearance.darkModeDescription'),
-            appearance,
-            setAppearance,
-            true,
-            "/settings/appearance"
+            <TouchAppIcon />,
+            t('settings.doubleClick'),
+            t('settings.doubleClickDescription'),
+            useDoubleClick,
+            setUseDoubleClick,
+            true
           )}
           
           <Divider />
@@ -256,6 +228,37 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
               </Select>
             </FormControl>,
             true
+          )}
+          
+          <Divider />
+
+          {renderSettingItem(
+            <CodeIcon />,
+            t('settings.developer.devMode'),
+            t('settings.developer.devModeDescription'),
+            devMode,
+            setDevMode,
+            true
+          )}
+
+          <Divider />
+          
+          {renderSettingItem(
+            <NotificationsIcon />,
+            t('settings.notifications.enable'),
+            t('settings.notifications.description'),
+            notifications,
+            setNotifications
+          )}
+          
+          <Divider />
+          
+          {renderSettingItem(
+            <SecurityIcon />,
+            t('settings.security.enable'),
+            t('settings.security.description'),
+            security,
+            setSecurity
           )}
           
           <Divider />
