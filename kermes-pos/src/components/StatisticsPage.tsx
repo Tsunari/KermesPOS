@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Paper, ToggleButton, ToggleButtonGroup, IconButton, Dialog, DialogTitle, DialogContent, Tooltip, Button, Stack, DialogActions, TextField } from '@mui/material';
+import { Box, Typography, Paper, ToggleButton, ToggleButtonGroup, IconButton, Dialog, DialogTitle, DialogContent, Tooltip, Button, Stack, DialogActions, TextField, Accordion, AccordionSummary, AccordionDetails, List, ListItem, ListItemText, ListItemIcon, Divider } from '@mui/material';
 import GridViewIcon from '@mui/icons-material/GridView';
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { useLanguage } from '../context/LanguageContext';
 import { Product } from '../types/index';
 import { cartTransactionService } from '../services/cartTransactionService';
 import { generateSummaryPDF } from '../services/summary';
 import { exampleTransactions } from '../services/exampleTransactions';
-import { useSettings } from '../context/SettingsContext';
 import { useVariableContext } from '../context/VariableContext';
+import { Euro, Payments } from '@mui/icons-material';
 
 interface StatisticsPageProps {
   products: Product[];
@@ -54,6 +57,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
   const [allProductStats, setAllProductStats] = useState<ProductStats[]>([]);
   const [transactions, setTransactions] = useState<CartTransaction[]>([]);
   const [signersDialogOpen, setSignersDialogOpen] = useState(false);
+  const [salesDialogOpen, setSalesDialogOpen] = useState(false);
   const [signers, setSigners] = useState([
     { name: 'Test Isim', surname: 'Test Soyisim' },
     { name: 'Test Isim', surname: 'Test Soyisim' },
@@ -177,7 +181,22 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
       </Typography>
       
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 3, mt: 3 }}>
-        <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1, position: 'relative' }}>
+          <IconButton
+            size="small"
+            sx={{ 
+                  position: 'absolute', top: 8, right: 8,
+                  color: 'primary.main',
+                  '&:hover': {
+                    bgcolor: 'primary.light',
+                    color: 'primary.dark'
+                  }
+                }}
+            onClick={() => setSalesDialogOpen(true)}
+            aria-label="Show all sales"
+          >
+            <GridViewIcon fontSize="small" />
+          </IconButton>
           <Typography variant="h6" color="text.secondary">{t('app.statistics.todaySales')}</Typography>
           <Typography variant="h3" color="primary">{todayStats.total_revenue.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€</Typography>
         </Paper>
@@ -436,6 +455,95 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
         </DialogActions>
       </Dialog>
 
+      <Dialog open={salesDialogOpen} onClose={() => setSalesDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>{t('app.statistics.totalSales')}</DialogTitle>
+        <DialogContent>
+          {transactions && transactions.length > 0 ? (
+            <Box>
+              {/* Group transactions by date */}
+              {Object.entries(
+                transactions.reduce((acc, tx) => {
+                  const date = new Date(tx.transaction_date).toLocaleDateString('de-DE');
+                  if (!acc[date]) acc[date] = [];
+                  acc[date].push(tx);
+                  return acc;
+                }, {} as Record<string, CartTransaction[]>)
+              )
+                // Sort by date descending (most recent first)
+                .sort((a, b) => {
+                  // Parse date strings as dd.mm.yyyy or dd/mm/yyyy or dd-mm-yyyy
+                  const parse = (s: string) => {
+                    const [day, month, year] = s.split(/[./-]/).map(Number);
+                    return new Date(year, month - 1, day).getTime();
+                  };
+                  return parse(b[0]) - parse(a[0]);
+                })
+                .map(([date, txs]) => {
+                  const totalRevenue = txs.reduce((sum, tx) => sum + tx.total_amount, 0);
+                  return (
+                    <Accordion key={date} defaultExpanded={txs.length > 0 && date === new Date().toLocaleDateString('de-DE')}>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%', justifyContent: 'space-between' }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mr: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {date}
+                            <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                              {txs.length} {t('app.statistics.itemsSold')}
+                            </Typography>
+                          </Typography>
+                          <Typography variant="body2" color="" sx={{ fontWeight: 500, mr: 1 }}>{totalRevenue.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€</Typography>
+                        </Box>
+                      </AccordionSummary>
+                      <AccordionDetails sx={{ p: 0 }}>
+                        <List dense>
+                          {txs.map((tx, idx) => (
+                            <React.Fragment key={tx.id || idx}>
+                              <ListItem alignItems="flex-start" sx={{ py: 1, px: 2 }}>
+                                <ListItemIcon>
+                                  {tx.payment_method && tx.payment_method.toLowerCase().includes('card') ? (
+                                    <CreditCardIcon color="primary" fontSize="small" />
+                                  ) : (
+                                    <Euro color="primary" fontSize="small" />
+                                  )}
+                                </ListItemIcon>
+                                <ListItemText
+                                  primary={
+                                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+                                      <Typography variant="body2" sx={{ fontWeight: 500 }} color="">
+                                        {t('app.statistics.revenue')}: {tx.total_amount.toFixed(2)}€
+                                      </Typography>
+                                      <Typography variant="body2" color="text.secondary">
+                                        {t('app.statistics.itemsSold')}: {tx.items_count}
+                                      </Typography>
+                                      <Typography variant="caption" color="text.disabled">
+                                        {new Date(tx.transaction_date).toLocaleTimeString('de-DE')}
+                                      </Typography>
+                                    </Box>
+                                  }
+                                />
+                              </ListItem>
+                              {idx < txs.length - 1 && <Divider component="li" />}
+                            </React.Fragment>
+                          ))}
+                        </List>
+                      </AccordionDetails>
+                    </Accordion>
+                  );
+                })}
+            </Box>
+          ) : (
+            <Typography>{t('app.statistics.noData')}</Typography>
+          )}
+        </DialogContent>
+        {/* Sum of all daily total revenues */}
+        {transactions && transactions.length > 0 && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', p: 2, pt: 0, mr: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+              {t('app.statistics.totalRevenue') || 'Total Revenue'}: {transactions.reduce((sum, tx) => sum + tx.total_amount, 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€
+            </Typography>
+          </Box>
+        )}
+      </Dialog>
+
       <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 2, justifyContent: 'center' }}>
         <Button
           variant="outlined"
@@ -444,7 +552,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
           onClick={() => cartTransactionService.exportTransactionsAsCSV()}
           sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
         >
-          Export Transactions (CSV)
+          {t('app.statistics.exportTransactions')}
         </Button>
         <Button
           variant="outlined"
@@ -453,7 +561,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
           onClick={() => cartTransactionService.clearAllTransactions()}
           sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
         >
-          Clear Database
+          ({t('app.statistics.clearDatabase')})
         </Button>
         <Button
           variant="outlined"
@@ -461,7 +569,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
           sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
           onClick={() => setSignersDialogOpen(true)}
         >
-          Download Summary (PDF)
+          ({t('app.statistics.downloadSummary')})
         </Button>
       </Stack>
     </Box>

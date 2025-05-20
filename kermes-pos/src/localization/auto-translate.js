@@ -1,21 +1,38 @@
 // auto-translate.js
 // Node.js script to scan for translation keys, add missing keys, and auto-translate using Google Translate API (free, unofficial)
-// Usage: node auto-translate.js
+// Usage: node --experimental-modules auto-translate.js
 
-const fs = require('fs');
-const path = require('path');
-const glob = require('glob');
-const translate = require('@vitalets/google-translate-api');
+import fs from 'fs';
+import path from 'path';
+import { translate } from '@vitalets/google-translate-api';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const LOCALE_DIR = __dirname;
+const SRC_DIR = path.resolve(LOCALE_DIR, '..');
 
 const LANGS = ['en', 'tr', 'de'];
-const LOCALE_DIR = path.join(__dirname);
-const FILES = LANGS.map(lang => path.join(LOCALE_DIR, `${lang}.json`));
+
+// 1. Recursively get all source files in the codebase (no glob needed)
+function getAllSourceFiles(dir, exts = ['.ts', '.tsx', '.js', '.jsx']) {
+  let results = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results = results.concat(getAllSourceFiles(fullPath, exts));
+    } else if (exts.includes(path.extname(entry.name))) {
+      results.push(fullPath);
+    }
+  }
+  return results;
+}
 
 // 1. Find all translation keys in the codebase (t('...'))
 function findAllKeys() {
-  const files = glob.sync(path.join(__dirname, '../src/**/*.{ts,tsx,js,jsx}'));
-  // Improved regex: allow spaces and more characters inside the key
-  const keyRegex = /t\(["'`]([\w\d_.\- ]+)["'`]/g;
+  const files = getAllSourceFiles(SRC_DIR);
+  console.log('Scanning files:', files); // Debug output
+  const keyRegex = /t\s*\(\s*["'`]([^"'`]+)["'`]\s*\)/g;
   const keys = new Set();
   for (const file of files) {
     const content = fs.readFileSync(file, 'utf8');
@@ -64,35 +81,65 @@ function getNested(obj, key) {
   return value === '' || value === null ? undefined : value;
 }
 
+function getMissingTranslationKeys(keys, locales) {
+  const missing = {};
+  for (const lang of LANGS) {
+    missing[lang] = [];
+    for (const key of keys) {
+      if (getNested(locales[lang], key) === undefined) {
+        missing[lang].push(key);
+      }
+    }
+  }
+  return missing;
+}
+
+// Main
 async function main() {
-  const keys = findAllKeys();
+  let keys = findAllKeys();
+  // Filter out obviously invalid keys (e.g., single letters, empty, or no dot)
+  keys = keys.filter(k => k && k.length > 2 && k.includes('.'));
   const locales = loadLocales();
   let changed = false;
   let missingKeys = [];
 
   for (const key of keys) {
-    // English: use key as fallback value
-    const enVal = getNested(locales['en'], key);
-    if (enVal === undefined || enVal === "") {
-      setNested(locales['en'], key, key);
+    // Extract the last word after the last dot
+    const lastWord = key.split('.').pop();
+    // Convert camelCase or PascalCase to spaced, capitalized string
+    const spaced = lastWord
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2')
+      .replace(/_/g, ' ')
+      .replace(/-/g, ' ')
+      .replace(/^./, s => s.toUpperCase());
+    // English: only set if missing
+    if (getNested(locales['en'], key) === undefined) {
+      setNested(locales['en'], key, spaced);
       changed = true;
     }
-    // Other languages: auto-translate if missing or empty
+    // Other languages: only set if missing
     for (const lang of LANGS) {
       if (lang === 'en') continue;
-      const val = getNested(locales[lang], key);
-      if (val === undefined || val === "") {
+      if (getNested(locales[lang], key) === undefined) {
         try {
-          const res = await translate(key, { to: lang });
+          const res = await translate(spaced, { to: lang });
           setNested(locales[lang], key, res.text);
-          console.log(`Auto-translated '${key}' to [${lang}]: ${res.text}`);
+          console.log(`Auto-translated '${spaced}' to [${lang}]: ${res.text}`);
           changed = true;
         } catch (e) {
-          console.error(`Failed to translate '${key}' to [${lang}]`, e);
+          if (e && e.message && e.message.match(/429|too many requests|rate limit/i)) {
+            console.error('ERROR: Too many requests to the translation API. Please try again later.');
+            process.exit(1);
+          } else {
+            console.error(`Failed to translate '${spaced}' to [${lang}]`, e);
+          }
         }
       }
     }
   }
+  const missing = getMissingTranslationKeys(keys, locales);
+  console.log(missing);
   if (changed) {
     saveLocales(locales);
     console.log('Locales updated!');
@@ -105,3 +152,4 @@ async function main() {
 }
 
 main();
+

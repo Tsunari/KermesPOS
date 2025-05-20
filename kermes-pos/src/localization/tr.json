@@ -182,7 +182,10 @@
       "allSoldItems": "Tüm Satılan Ürünler",
       "byRevenue": "Gelire Göre",
       "byUnits": "Adete Göre",
-      "viewAll": "Tümünü Görüntüle"
+      "viewAll": "Tümünü Görüntüle",
+      "exportTransactions": "İşlemleri indir",
+      "clearDatabase": "Verileri temizle",
+      "downloadSummary": "Tutanak indir (PDF)"
     },
     "cart": {
       "total": "Toplam",

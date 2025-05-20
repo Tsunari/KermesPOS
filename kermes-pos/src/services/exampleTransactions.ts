@@ -6,7 +6,7 @@ import { CartTransaction } from "./cartTransactionService";
 export const exampleTransactions: CartTransaction[] = [
   {
     id: 1,
-    transaction_date: '2025-05-18T10:15:00.000Z',
+    transaction_date: '2025-05-20T10:15:00.000Z',
     total_amount: 25.50,
     items_count: 3,
     items_data: JSON.stringify([
@@ -17,7 +17,7 @@ export const exampleTransactions: CartTransaction[] = [
   },
   {
     id: 2,
-    transaction_date: '2025-05-18T11:00:00.000Z',
+    transaction_date: '2025-05-20T11:00:00.000Z',
     total_amount: 12.00,
     items_count: 2,
     items_data: JSON.stringify([
@@ -39,7 +39,7 @@ export const exampleTransactions: CartTransaction[] = [
   },
   {
     id: 4,
-    transaction_date: '2025-05-19T09:45:00.000Z',
+    transaction_date: '2025-05-17T09:45:00.000Z',
     total_amount: 18.00,
     items_count: 2,
     items_data: JSON.stringify([

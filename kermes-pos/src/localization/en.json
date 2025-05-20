@@ -181,7 +181,10 @@
       "allSoldItems": "All Sold Items",
       "byRevenue": "By Revenue",
       "byUnits": "By Units",
-      "viewAll": "View All Items"
+      "viewAll": "View All Items",
+      "exportTransactions": "Export transactions (CSV)",
+      "clearDatabase": "Clear database",
+      "downloadSummary": "Download summary (PDF)"
     },
     "cart": {
       "total": "Total",

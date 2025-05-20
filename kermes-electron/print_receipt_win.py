@@ -139,39 +139,39 @@ def main():
     hdc.DeleteDC()
     win32print.ClosePrinter(hprinter)
 
-def escpos():
-    cart = json.load(sys.stdin)
-    # Update these IDs for your printer (use lsusb or Windows Device Manager)
-    p = Usb(0x0519, 0x2013, 0, 0x81, 0x02)  # Example for Star TSP100
+# def escpos():
+#     cart = json.load(sys.stdin)
+#     # Update these IDs for your printer (use lsusb or Windows Device Manager)
+#     p = Usb(0x0519, 0x2013, 0, 0x81, 0x02)  # Example for Star TSP100
 
-    now = datetime.now().strftime("%d.%m.%Y %H:%M")
-    for item in cart["items"]:
-        p.set(align='center', width=2, height=2)
-        p.text(KERMES_NAME + "\n")
-        p.set(align='left', width=1, height=1)
-        p.text(f"Tarih: {now}\n")
-        p.text("--------------------------\n")
-        p.text(f"Ürün: {item['name']}\n")
-        p.text(f"Adet: {item['quantity']}\n")
-        p.text(f"Fiyat: {item['price']:.2f} €\n")
-        p.text("--------------------------\n")
-        p.cut()  # Real cut after each item
+#     now = datetime.now().strftime("%d.%m.%Y %H:%M")
+#     for item in cart["items"]:
+#         p.set(align='center', width=2, height=2)
+#         p.text(KERMES_NAME + "\n")
+#         p.set(align='left', width=1, height=1)
+#         p.text(f"Tarih: {now}\n")
+#         p.text("--------------------------\n")
+#         p.text(f"Ürün: {item['name']}\n")
+#         p.text(f"Adet: {item['quantity']}\n")
+#         p.text(f"Fiyat: {item['price']:.2f} €\n")
+#         p.text("--------------------------\n")
+#         p.cut()  # Real cut after each item
 
-    # Print total and thanks at the end
-    p.set(align='left', width=1, height=1)
-    p.text(f"Toplam: {cart['total']:.2f} €\n")
-    p.text("Teşekkürler!\n")
-    p.cut()
+#     # Print total and thanks at the end
+#     p.set(align='left', width=1, height=1)
+#     p.text(f"Toplam: {cart['total']:.2f} €\n")
+#     p.text("Teşekkürler!\n")
+#     p.cut()
 
-def list_usb_printers():
-    devices = usb.core.find(find_all=True)
-    for dev in devices:
-        try:
-            manufacturer = usb.util.get_string(dev, dev.iManufacturer)
-            product = usb.util.get_string(dev, dev.iProduct)
-        except Exception:
-            manufacturer = product = "Unknown"
-        print(f"VID: {hex(dev.idVendor)}, PID: {hex(dev.idProduct)}, Manufacturer: {manufacturer}, Product: {product}")
+# def list_usb_printers():
+#     devices = usb.core.find(find_all=True)
+#     for dev in devices:
+#         try:
+#             manufacturer = usb.util.get_string(dev, dev.iManufacturer)
+#             product = usb.util.get_string(dev, dev.iProduct)
+#         except Exception:
+#             manufacturer = product = "Unknown"
+#         print(f"VID: {hex(dev.idVendor)}, PID: {hex(dev.idProduct)}, Manufacturer: {manufacturer}, Product: {product}")
 
 if __name__ == '__main__':
     # If called with --clear-queue, clear and exit

@@ -182,7 +182,10 @@
       "allSoldItems": "Alle verkauften Artikel",
       "byRevenue": "Nach Umsatz",
       "byUnits": "Nach Einheiten",
-      "viewAll": "Alle Artikel anzeigen"
+      "viewAll": "Alle Artikel anzeigen",
+      "exportTransactions": "Transaktionen exportieren (CSV)",
+      "clearDatabase": "Datenbank löschen",
+      "downloadSummary": "Zusammenfassung herunterladen (PDF)"
     },
     "cart": {
       "total": "Gesamt",

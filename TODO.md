@@ -50,17 +50,24 @@
 ## Version 1.X.0
 ### Kermes POS
 - [ ] Page Caching
-
-#### Technical Debt
-- [ ] Code optimization
+- [x] Icon Button in TodaysSales to open popup and view all sales
+- [ ] Fix example statistics usage in statistics page
+- [ ] Code cleanup and optimization
 - [ ] Performance improvements
-- [ ] Documentation updates
+- [ ] Sizes of cards editable in UI (or ensure all cards always visible with any screen size)
+- [ ] More categories (or "Other" category)
 
 ### Kermes Electron
 #### Features
-- [ ] Offline mode support
+- [x] Offline mode support
 - [ ] Enhance update functionality
 - [ ] Backup and restore functionality
+
+### Kermes Web
+- [ ] Display TODO and CHANGELOG
+- [ ] Add Impressum etc
+- [ ] Decide how to route (UI)
+- [ ] Thumbnails for pages
 
 ----------------------------
 
