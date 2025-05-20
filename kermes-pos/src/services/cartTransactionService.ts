@@ -203,6 +203,17 @@ class CartTransactionService {
             tx.onerror = () => reject(tx.error);
         });
     }
+
+    async deleteTransaction(id: number): Promise<void> {
+        if (!this.db) await this.initDB();
+        return new Promise((resolve, reject) => {
+            const tx = this.db!.transaction(this.storeName, 'readwrite');
+            const store = tx.objectStore(this.storeName);
+            const request = store.delete(id);
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    }
 }
 
 export const cartTransactionService = new CartTransactionService();

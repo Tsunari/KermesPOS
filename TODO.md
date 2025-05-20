@@ -59,9 +59,9 @@
 - [ ] Sizes of cards editable in UI (or ensure all cards always visible with any screen size)
 - [ ] More categories (or "Other" category)
 - [ ] Fix reset kurs name is saved without even pressing save
+- [ ] Fix new page if summary table is too long
 
 ### Kermes Electron
-#### Features
 - [x] Offline mode support
 - [ ] Enhance update functionality
 - [ ] Backup and restore functionality

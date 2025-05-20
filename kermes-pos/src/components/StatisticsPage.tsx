@@ -63,83 +63,85 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
     { name: 'Test Isim', surname: 'Test Soyisim' },
     { name: 'Test Isim', surname: 'Test Soyisim' },
   ]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<CartTransaction | null>(null);
   const { kursName } = useVariableContext();
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [dailyStatsData, categoryStatsData, transactionsData] = await Promise.all([
-          cartTransactionService.getDailyStats(),
-          cartTransactionService.getCategoryStats(),
-          cartTransactionService.getTransactions()
-        ]);
+  // Move loadData outside useEffect so it can be called after deletion
+  const loadData = React.useCallback(async () => {
+    try {
+      const [dailyStatsData, categoryStatsData, transactionsData] = await Promise.all([
+        cartTransactionService.getDailyStats(),
+        cartTransactionService.getCategoryStats(),
+        cartTransactionService.getTransactions()
+      ]);
+      setDailyStats(dailyStatsData);
+      if (devMode) {
+        setTransactions(exampleTransactions);
+        // log exampleTransactions for debugging
+        console.log('Example transactions:', exampleTransactions);
         
-        setDailyStats(dailyStatsData);
-        if (devMode) {
-          setTransactions(exampleTransactions);
-          // log exampleTransactions for debugging
-          console.log('Example transactions:', exampleTransactions);
-          
-        } else {
-          setTransactions(transactionsData);
-        }
-        
-        // Use the correct transactions array for statistics calculations
-        const usedTransactions = devMode ? exampleTransactions : transactionsData;
+      } else {
+        setTransactions(transactionsData);
+      }
+      
+      // Use the correct transactions array for statistics calculations
+      const usedTransactions = devMode ? exampleTransactions : transactionsData;
 
-        // Calculate revenue for each category
-        const categoryStatsWithRevenue = categoryStatsData.map(stat => {
-          const product = products.find(p => p.category === stat.categories);
-          return {
-            ...stat,
-            revenue: (product?.price || 0) * stat.count
-          };
-        });
-        
-        setCategoryStats(categoryStatsWithRevenue);
+      // Calculate revenue for each category
+      const categoryStatsWithRevenue = categoryStatsData.map(stat => {
+        const product = products.find(p => p.category === stat.categories);
+        return {
+          ...stat,
+          revenue: (product?.price || 0) * stat.count
+        };
+      });
+      
+      setCategoryStats(categoryStatsWithRevenue);
 
-        // Calculate product-level statistics
-        const productStats = new Map<string, ProductStats>();
-        usedTransactions.forEach(transaction => {
-          try {
-            const items = JSON.parse(transaction.items_data);
-            items.forEach((item: any) => {
-              if (item?.product?.id) {
-                const product = products.find(p => p.id === item.product.id);
-                if (product) {
-                  const existing = productStats.get(product.id);
-                  if (existing) {
-                    existing.count += item.quantity || 0;
-                    existing.revenue += (item.quantity || 0) * product.price;
-                  } else {
-                    productStats.set(product.id, {
-                      product,
-                      count: item.quantity || 0,
-                      revenue: (item.quantity || 0) * product.price
-                    });
-                  }
+      // Calculate product-level statistics
+      const productStats = new Map<string, ProductStats>();
+      usedTransactions.forEach(transaction => {
+        try {
+          const items = JSON.parse(transaction.items_data);
+          items.forEach((item: any) => {
+            if (item?.product?.id) {
+              const product = products.find(p => p.id === item.product.id);
+              if (product) {
+                const existing = productStats.get(product.id);
+                if (existing) {
+                  existing.count += item.quantity || 0;
+                  existing.revenue += (item.quantity || 0) * product.price;
+                } else {
+                  productStats.set(product.id, {
+                    product,
+                    count: item.quantity || 0,
+                    revenue: (item.quantity || 0) * product.price
+                  });
                 }
               }
-            });
-          } catch (error) {
-            console.error('Error parsing transaction items:', error);
-          }
-        });
+            }
+          });
+        } catch (error) {
+          console.error('Error parsing transaction items:', error);
+        }
+      });
 
-        // Convert to array and filter valid products
-        const allProductsData = Array.from(productStats.values())
-          .filter(stat => stat.product && stat.count > 0)
-          .sort((a, b) => sortBy === 'revenue' ? b.revenue - a.revenue : b.count - a.count);
+      // Convert to array and filter valid products
+      const allProductsData = Array.from(productStats.values())
+        .filter(stat => stat.product && stat.count > 0)
+        .sort((a, b) => sortBy === 'revenue' ? b.revenue - a.revenue : b.count - a.count);
 
-        setAllProductStats(allProductsData);
-        setTopProducts(allProductsData.slice(0, 4));
-      } catch (error) {
-        console.error('Error loading statistics:', error);
-      }
-    };
-
-    loadData();
+      setAllProductStats(allProductsData);
+      setTopProducts(allProductsData.slice(0, 4));
+    } catch (error) {
+      console.error('Error loading statistics:', error);
+    }
   }, [products, devMode, sortBy]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const todayStats = dailyStats[0] || { total_revenue: 0, total_items: 0, transaction_count: 0 };
   const yesterdayStats = dailyStats[1] || { total_revenue: 0, total_items: 0 };
@@ -387,11 +389,12 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                   p: 2, 
                   display: 'flex', 
                   flexDirection: 'column', 
+                  boxShadow: 3,
                   gap: 1,
                   transition: 'transform 0.2s',
                   '&:hover': {
                     transform: 'scale(1.02)',
-                    boxShadow: 3
+                    boxShadow: 4
                   }
                 }}
               >
@@ -520,6 +523,19 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                                     </Box>
                                   }
                                 />
+                                {/* Delete button at the end of the list item */}
+                                <IconButton
+                                  edge="end"
+                                  color="error"
+                                  aria-label={t('app.statistics.deleteTransaction')}
+                                  onClick={() => {
+                                    setTransactionToDelete(tx);
+                                    setDeleteDialogOpen(true);
+                                  }}
+                                  sx={{ ml: 2 }}
+                                >
+                                  <DeleteForeverIcon />
+                                </IconButton>
                               </ListItem>
                               {idx < txs.length - 1 && <Divider component="li" />}
                             </React.Fragment>
@@ -542,6 +558,32 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
             </Typography>
           </Box>
         )}
+      </Dialog>
+
+      {/* Delete transaction confirmation dialog */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>{t('app.statistics.confirmDeleteTitle') || 'Delete Transaction?'}</DialogTitle>
+        <DialogContent>
+          <Typography>{t('app.statistics.confirmDeleteText') || 'Are you sure you want to delete this transaction?'}</Typography>
+          {transactionToDelete && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2">{t('app.statistics.revenue')}: {transactionToDelete.total_amount.toFixed(2)}€</Typography>
+              <Typography variant="body2">{t('app.statistics.itemsSold')}: {transactionToDelete.items_count}</Typography>
+              <Typography variant="caption" color="text.disabled">{new Date(transactionToDelete.transaction_date).toLocaleString('de-DE')}</Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>{t('common.cancel') || 'Cancel'}</Button>
+          <Button color="error" variant="contained" onClick={async () => {
+            if (transactionToDelete) {
+              await cartTransactionService.deleteTransaction(transactionToDelete.id);
+              await loadData();
+            }
+            setDeleteDialogOpen(false);
+            setTransactionToDelete(null);
+          }}>{t('common.delete') || 'Delete'}</Button>
+        </DialogActions>
       </Dialog>
 
       <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 2, justifyContent: 'center' }}>
