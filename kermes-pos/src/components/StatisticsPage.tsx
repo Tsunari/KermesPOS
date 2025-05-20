@@ -6,13 +6,16 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import LocalBarIcon from '@mui/icons-material/LocalBar';
 import { useLanguage } from '../context/LanguageContext';
 import { Product } from '../types/index';
 import { cartTransactionService } from '../services/cartTransactionService';
 import { generateSummaryPDF } from '../services/summary';
 import { exampleTransactions } from '../services/exampleTransactions';
 import { useVariableContext } from '../context/VariableContext';
-import { Euro, Payments } from '@mui/icons-material';
+import { Block, Coffee, Cookie, Euro, FoodBank, MiscellaneousServices, Payments } from '@mui/icons-material';
+import Collapse from '@mui/material/Collapse';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 interface StatisticsPageProps {
   products: Product[];
@@ -65,6 +68,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
   ]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<CartTransaction | null>(null);
+  const [expandedTxId, setExpandedTxId] = useState<number | null>(null);
   const { kursName } = useVariableContext();
 
   // Move loadData outside useEffect so it can be called after deletion
@@ -498,48 +502,122 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                       </AccordionSummary>
                       <AccordionDetails sx={{ p: 0 }}>
                         <List dense>
-                          {txs.map((tx, idx) => (
-                            <React.Fragment key={tx.id || idx}>
-                              <ListItem alignItems="flex-start" sx={{ py: 1, px: 2 }}>
-                                <ListItemIcon>
-                                  {tx.payment_method && tx.payment_method.toLowerCase().includes('card') ? (
-                                    <CreditCardIcon color="primary" fontSize="small" />
-                                  ) : (
-                                    <Euro color="primary" fontSize="small" />
-                                  )}
-                                </ListItemIcon>
-                                <ListItemText
-                                  primary={
-                                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-                                      <Typography variant="body2" sx={{ fontWeight: 500 }} color="">
-                                        {t('app.statistics.revenue')}: {tx.total_amount.toFixed(2)}€
-                                      </Typography>
-                                      <Typography variant="body2" color="text.secondary">
-                                        {t('app.statistics.itemsSold')}: {tx.items_count}
-                                      </Typography>
-                                      <Typography variant="caption" color="text.disabled">
-                                        {new Date(tx.transaction_date).toLocaleTimeString('de-DE')}
-                                      </Typography>
-                                    </Box>
-                                  }
-                                />
-                                {/* Delete button at the end of the list item */}
-                                <IconButton
-                                  edge="end"
-                                  color="error"
-                                  aria-label={t('app.statistics.deleteTransaction')}
-                                  onClick={() => {
-                                    setTransactionToDelete(tx);
-                                    setDeleteDialogOpen(true);
-                                  }}
-                                  sx={{ ml: 2 }}
-                                >
-                                  <DeleteForeverIcon />
-                                </IconButton>
-                              </ListItem>
-                              {idx < txs.length - 1 && <Divider component="li" />}
-                            </React.Fragment>
-                          ))}
+                          {txs
+                            .slice()
+                            .sort((a, b) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime())
+                            .map((tx, idx) => (
+                              <React.Fragment key={tx.id || idx}>
+                                <ListItem alignItems="flex-start" sx={{ py: 1, px: 2 }}>
+                                  {/* Expand/collapse button for transaction details */}
+                                  <IconButton
+                                    edge="start"
+                                    size="small"
+                                    aria-label={t('app.statistics.showProducts') || 'Show products'}
+                                    onClick={() => setExpandedTxId(expandedTxId === tx.id ? null : tx.id)}
+                                    sx={{ mr: 1 }}
+                                  >
+                                    <ChevronRightIcon
+                                      sx={{
+                                        transform: expandedTxId === tx.id ? 'rotate(90deg)' : 'rotate(0deg)',
+                                        transition: 'transform 0.2s',
+                                      }}
+                                    />
+                                  </IconButton>
+                                  <ListItemIcon>
+                                    {tx.payment_method && tx.payment_method.toLowerCase().includes('card') ? (
+                                      <CreditCardIcon color="primary" fontSize="small" />
+                                    ) : (
+                                      <Euro color="primary" fontSize="small" />
+                                    )}
+                                  </ListItemIcon>
+                                  <ListItemText
+                                    primary={
+                                      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+                                        <Typography variant="body2" sx={{ fontWeight: 500 }} color="">
+                                          {t('app.statistics.revenue')}: {tx.total_amount.toFixed(2)}€
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                          {t('app.statistics.itemsSold')}: {tx.items_count}
+                                        </Typography>
+                                        <Typography variant="caption" color="text.disabled">
+                                          {new Date(tx.transaction_date).toLocaleTimeString('de-DE')}
+                                        </Typography>
+                                      </Box>
+                                    }
+                                  />
+                                  {/* Delete button at the end of the list item */}
+                                  <IconButton
+                                    edge="end"
+                                    color="error"
+                                    aria-label={t('app.statistics.deleteTransaction')}
+                                    onClick={() => {
+                                      setTransactionToDelete(tx);
+                                      setDeleteDialogOpen(true);
+                                    }}
+                                    sx={{ ml: 2 }}
+                                  >
+                                    <DeleteForeverIcon />
+                                  </IconButton>
+                                </ListItem>
+                                {/* Collapsible product details for this transaction */}
+                                <Collapse in={expandedTxId === tx.id} timeout="auto" unmountOnExit>
+                                  <Box sx={{ pl: 7, pr: 2, pb: 1 }}>
+                                    <List dense disablePadding>
+                                      {(() => {
+                                        let items: any[] = [];
+                                        try {
+                                          items = JSON.parse(tx.items_data);
+                                        } catch (e) {}
+                                        if (!items.length) {
+                                          return (
+                                            <ListItem disableGutters>
+                                              <Typography variant="body2" color="text.secondary">{t('app.statistics.noProducts') || 'No products'}</Typography>
+                                            </ListItem>
+                                          );
+                                        }
+                                        return items.map((item, i) => {
+                                          const product = products.find(p => p.id === item.product?.id);
+                                          // Choose icon based on category
+                                          let icon = null;
+                                          if (product && product.category) {
+                                            if (product.category === 'food') {
+                                              icon = <FoodBank color="info" fontSize="small" sx={{ mr: 1 }} />;
+                                            } else if (product.category === 'drink') {
+                                              icon = <Coffee color="info" fontSize="small" sx={{ mr: 1 }} />;
+                                            } else if (product.category === 'dessert') {
+                                              icon = <Cookie color="info" fontSize="small" sx={{ mr: 1 }} />;
+                                            } else if (product.category === 'other') {
+                                              icon = <MiscellaneousServices color="warning" fontSize="small" sx={{ mr: 1 }} />;
+                                            } else {
+                                              icon = <Block color="disabled" fontSize="small" sx={{ mr: 1 }} />;
+                                            }
+                                          } else {
+                                            icon = <Block color="disabled" fontSize="small" sx={{ mr: 1 }} />;
+                                          }
+                                          return (
+                                            <ListItem key={i} disableGutters sx={{ py: 0.5 }}>
+                                              {icon}
+                                              <Typography variant="body2" sx={{ minWidth: 120, fontWeight: 500 }}>
+                                                {product ? product.name : (item.product?.name || t('app.statistics.unknownProduct'))}
+                                              </Typography>
+                                              <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+                                                {t('app.statistics.quantity') || 'Qty'}: {item.quantity}
+                                              </Typography>
+                                              <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+                                                {t('app.statistics.price') || 'Price'}: {product ? product.price.toFixed(2) : '-'}€
+                                              </Typography>
+                                              {/* <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+                                                {t('app.statistics.total') || 'Total'}: {(product ? product.price * item.quantity : 0).toFixed(2)}€ 
+                                              </Typography> */}
+                                            </ListItem>
+                                          );
+                                        });
+                                      })()}
+                                    </List>
+                                  </Box>
+                                </Collapse>
+                              </React.Fragment>
+                            ))}
                         </List>
                       </AccordionDetails>
                     </Accordion>
