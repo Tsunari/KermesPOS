@@ -7,6 +7,7 @@ import { Product } from '../types/index';
 import ProductCard from './ProductCard';
 import { useSettings } from '../context/SettingsContext';
 import { getCategoryStyle } from '../utils/categoryUtils';
+import Slider from '@mui/material/Slider';
 
 interface ProductGridProps {
   products: Product[];
@@ -74,6 +75,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   const { showDescription } = useSettings();
   const theme = useTheme();
   const [orderedProducts, setOrderedProducts] = useState<Product[]>(products);
+  const [cardsPerRow, setCardsPerRow] = useState(6); // default value
+  const [fixedGridMode, setFixedGridMode] = useState(false); // false: responsive, true: slider
 
   useEffect(() => {
     const storedOrder = localStorage.getItem('product_order');
@@ -166,6 +169,37 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           },
         },
       }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2 }}>
+          <Box component="span" sx={{ fontWeight: 500, color: 'text.secondary' }}>
+            Mode:
+          </Box>
+          <Box
+            component="button"
+            onClick={() => setFixedGridMode((v) => !v)}
+            sx={{
+              px: 2, py: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: fixedGridMode ? 'primary.main' : 'background.paper', color: fixedGridMode ? 'primary.contrastText' : 'text.primary', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', mr: 2
+            }}
+          >
+            {fixedGridMode ? 'Fixed (Slider)' : 'Responsive (Window)'}
+          </Box>
+          {fixedGridMode && (
+            <>
+              <Slider
+                value={cardsPerRow}
+                min={2}
+                max={12}
+                step={1}
+                marks
+                valueLabelDisplay="auto"
+                onChange={(_, value) => setCardsPerRow(value as number)}
+                sx={{ width: 240 }}
+              />
+              <Box component="span" sx={{ fontWeight: 500, color: 'text.secondary' }}>
+                Cards per row: {cardsPerRow}
+              </Box>
+            </>
+          )}
+        </Box>
         {categoryOrder
           .filter(category => groupedProducts[category] && groupedProducts[category].length > 0)
           .map(category => {
@@ -179,35 +213,25 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                   <Box
                     sx={{
                       display: 'grid',
-                      gridTemplateColumns: {
-                        xs: 'repeat(4, 1fr)',
-                        sm: 'repeat(6, 1fr)',
-                        md: 'repeat(8, 1fr)',
-                        lg: 'repeat(10, 1fr)',
-                      },
-                      gap: 0.5,
-                      minHeight: 'fit-content',
+                      gridTemplateColumns: fixedGridMode
+                        ? `repeat(${cardsPerRow}, 1fr)`
+                        : 'repeat(auto-fit, minmax(180px, 1fr))',
+                      gap: 1.5,
                       width: '100%',
-                      boxSizing: 'border-box',
+                      alignItems: 'stretch',
                     }}
                   >
-                    {groupedProducts[category].map((product, index) => (
-                      <React.Fragment key={product.id}>
-                        <Box sx={{ width: '100%' }}>
-                          <SortableProductCard
-                            product={product}
-                            onStockChange={onStockChange}
-                            onEdit={onEdit}
-                            onDelete={onDelete}
-                            showDescription={showDescription}
-                            onClick={() => onProductClick(product)}
-                            categoryStyle={categoryStyle}
-                          />
-                        </Box>
-                        {(index + 1) % 8 === 0 && (
-                          <Box sx={{ gridColumn: '1 / -1', height: '0.5px', width: '100%', bgcolor: 'divider' }} />
-                        )}
-                      </React.Fragment>
+                    {groupedProducts[category].map((product) => (
+                      <SortableProductCard
+                        key={product.id}
+                        product={product}
+                        onStockChange={onStockChange}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        showDescription={showDescription}
+                        categoryStyle={categoryStyle}
+                        onClick={() => onProductClick(product)}
+                      />
                     ))}
                   </Box>
                 </SortableContext>

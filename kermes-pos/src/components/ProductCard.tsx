@@ -108,8 +108,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <Card 
       sx={{ 
-        width: 180,
-        height: 140,
+        width: '100%', // fill grid cell
+        height: '100%', // fill grid cell
+        minHeight: 140, // keep a reasonable min height
         display: 'flex',
         flexDirection: 'column',
         cursor: localStockStatus ? 'pointer' : 'not-allowed',
@@ -270,4 +271,4 @@ const ProductCard: React.FC<ProductCardProps> = ({
   );
 };
 
-export default ProductCard; 
+export default ProductCard;
