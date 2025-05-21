@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { 
   AppBar, 
   Toolbar, 
@@ -11,6 +11,7 @@ import {
   SpeedDial,
   SpeedDialIcon,
   SpeedDialAction,
+  Slider,
 } from '@mui/material';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import BarChartIcon from '@mui/icons-material/BarChart';
@@ -20,7 +21,8 @@ import ImportExportIcon from '@mui/icons-material/ImportExport';
 import MenuIcon from '@mui/icons-material/Menu';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import PrintIcon from '@mui/icons-material/Print';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
+import ViewComfyIcon from '@mui/icons-material/ViewComfy';
 import Cart from './components/cart/Cart';
 import ProductDialog from './components/ProductDialog';
 import ProductGrid from './components/ProductGrid';
@@ -32,14 +34,13 @@ import { addToCart } from './store/slices/cartSlice';
 import { productService } from './services/productService';
 import SettingsPage from './components/SettingsPage';
 import ImportExport from './components/ImportExport';
-import { SettingsProvider, useSettings } from './context/SettingsContext';
+import { SettingsProvider } from './context/SettingsContext';
 import { ThemeToggle } from './components/ui/ThemeToggle';
 import { ThemeProvider } from './context/ThemeContext';
 import AppearanceSettings from './components/AppearanceSettings';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import StatisticsPage from './components/StatisticsPage';
-import { generateReceiptContent } from './services/printerService';
-import { VariableContext, VariableContextProvider } from './context/VariableContext';
+import { VariableContextProvider, useVariableContext } from './context/VariableContext';
 import { useTheme } from '@mui/material/styles';
 
 /**
@@ -100,6 +101,7 @@ function AppContent() {
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
   const theme = useTheme();
+  const { fixedGridMode, setFixedGridMode, cardsPerRow, setCardsPerRow } = useVariableContext();
 
   useEffect(() => {
     loadProducts();
@@ -164,12 +166,24 @@ function AppContent() {
     }
   };
 
+  // Add grid mode toggle and slider actions for SpeedDial
+  const [speedDialOpen, setSpeedDialOpen] = useState(false);
+
+  const handleToggleGridMode = () => {
+    setFixedGridMode(!fixedGridMode);
+  };
+
   const actions = [
     { icon: <AddIcon />, name: t("products.add"), onClick: handleAddProduct },
-    { 
-      icon: isAppBarVisible ? <VisibilityOffIcon /> : <VisibilityIcon />, 
-      name: isAppBarVisible ? t("common.hide") : t("common.show"), 
-      onClick: () => setIsAppBarVisible(!isAppBarVisible) 
+    {
+      icon: isAppBarVisible ? <VisibilityOffIcon /> : <VisibilityIcon />,
+      name: isAppBarVisible ? t("common.hide") : t("common.show"),
+      onClick: () => setIsAppBarVisible(!isAppBarVisible)
+    },
+    {
+      icon: fixedGridMode ? <ViewModuleIcon /> : <ViewComfyIcon />, // improved icons
+      name: fixedGridMode ? t('products.grid_fixed') : t('products.grid_responsive'),
+      onClick: handleToggleGridMode,
     },
   ];
 
@@ -239,7 +253,32 @@ function AppContent() {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', width: '100%' }}>
               <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
                 <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
-                  <Badge badgeContent={totalQuantity} color="error">
+                  <Badge
+                    badgeContent={totalQuantity}
+                    color="error"
+                    sx={{
+                      '& .MuiBadge-badge': {
+                        minWidth: 22,
+                        height: 22,
+                        px: 1.2,
+                        fontWeight: 700,
+                        fontSize: 13,
+                        borderRadius: 8,
+                        background: theme => theme.palette.mode === 'dark'
+                          ? 'rgba(255,255,255,0.18)'
+                          : 'rgba(0,0,0,0.10)',
+                        color: theme => theme.palette.mode === 'dark'
+                          ? theme.palette.primary.light
+                          : theme.palette.primary.dark,
+                        boxShadow: '0 2px 8px 0 rgba(31,38,135,0.10)',
+                        border: theme => `1.5px solid ${theme.palette.divider}`,
+                        backdropFilter: 'blur(6px)',
+                        transition: 'background 0.2s, color 0.2s',
+                        transform: 'translate(25px, -20px)',
+                      },
+                    }}
+                    overlap="circular"
+                  >
                     <RestaurantMenuIcon />
                   </Badge>
                 </IconButton>
@@ -333,12 +372,15 @@ function AppContent() {
                       },
                     }}
                     icon={<SpeedDialIcon openIcon={<MenuIcon />} />}
+                    onOpen={() => setSpeedDialOpen(true)}
+                    onClose={() => setSpeedDialOpen(false)}
+                    open={speedDialOpen}
                   >
-                    {actions.map((action) => (
+                    {actions.map((action, idx) => (
                       <SpeedDialAction
                         key={action.name}
                         icon={action.icon}
-                        title={action.name}
+                        tooltipTitle={action.name}
                         onClick={action.onClick}
                         sx={{
                           bgcolor: 'rgba(255,255,255,0.65)',
@@ -359,6 +401,81 @@ function AppContent() {
                         }}
                       />
                     ))}
+                    {/* Render slider as a custom SpeedDialAction inside the popover */}
+                    {fixedGridMode && (
+                      <SpeedDialAction
+                        key="slider-action"
+                        icon={
+                          <Box sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            height: 180,
+                            justifyContent: 'center',
+                            width: 56,
+                            overflow: 'visible',
+                            p: 0.5,
+                          }}>
+                            <Slider
+                              orientation="vertical"
+                              value={cardsPerRow}
+                              min={2}
+                              max={12}
+                              step={1}
+                              marks
+                              valueLabelDisplay="auto"
+                              onChange={(_, value) => setCardsPerRow(value as number)}
+                              sx={{
+                                height: 150,
+                                mx: 0,
+                                bgcolor: 'transparent',
+                                '& .MuiSlider-thumb': {
+                                  bgcolor: 'secondary.main',
+                                  transition: 'background 0.2s',
+                                  '&:hover, &.Mui-focusVisible, &.Mui-active': {
+                                    boxShadow: `0 0 0 8px ${theme.palette.secondary.main}22`,
+                                    bgcolor: 'secondary.dark',
+                                  },
+                                },
+                                '& .MuiSlider-rail': {
+                                  bgcolor: theme.palette.divider,
+                                  opacity: 1,
+                                },
+                                '& .MuiSlider-track': {
+                                  bgcolor: 'secondary.main',
+                                },
+                                '&:hover': {
+                                  bgcolor: 'transparent',
+                                },
+                              }}
+                            />
+                            <Box component="span" sx={{ fontWeight: 500, color: 'text.secondary', fontSize: 13, mt: 1 }}>
+                              {cardsPerRow}x
+                            </Box>
+                          </Box>
+                        }
+                        tooltipTitle={t('products.cards_per_row') || 'Cards per row'}
+                        tooltipOpen={false}
+                        onClick={e => e.stopPropagation()}
+                        sx={{
+                          bgcolor: 'background.paper',
+                          color: theme.palette.primary.main,
+                          borderRadius: 2,
+                          boxShadow: '0 1px 4px 0 rgba(31, 38, 135, 0.10)',
+                          minWidth: 56,
+                          minHeight: 180,
+                          border: `1.5px solid ${theme.palette.divider}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          pointerEvents: 'auto',
+                          overflow: 'visible',
+                          p: 0,
+                          '&:hover': {
+                            bgcolor: 'background.paper',
+                          },
+                        }}
+                      />
+                    )}
                   </SpeedDial>
                 </Box>
               }

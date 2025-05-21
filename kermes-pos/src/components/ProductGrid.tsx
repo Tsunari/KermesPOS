@@ -7,7 +7,7 @@ import { Product } from '../types/index';
 import ProductCard from './ProductCard';
 import { useSettings } from '../context/SettingsContext';
 import { getCategoryStyle } from '../utils/categoryUtils';
-import Slider from '@mui/material/Slider';
+import { useVariableContext } from '../context/VariableContext';
 
 interface ProductGridProps {
   products: Product[];
@@ -74,12 +74,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({
 }) => {
   const { showDescription } = useSettings();
   const theme = useTheme();
+  const { fixedGridMode, cardsPerRow } = useVariableContext();
   const [orderedProducts, setOrderedProducts] = useState<Product[]>(products);
-  const [cardsPerRow, setCardsPerRow] = useState(6); // default value
-  const [fixedGridMode, setFixedGridMode] = useState(() => {
-    const saved = localStorage.getItem('fixedGridMode');
-    return saved ? JSON.parse(saved) : false;
-  }); // false: responsive, true: slider
 
   useEffect(() => {
     const storedOrder = localStorage.getItem('product_order');
@@ -131,13 +127,6 @@ const ProductGrid: React.FC<ProductGridProps> = ({
     }
   };
 
-  const handleToggleGridMode = () => {
-    setFixedGridMode((v: boolean) => {
-      localStorage.setItem('fixedGridMode', JSON.stringify(!v));
-      return !v;
-    });
-  };
-
   // Group products by category
   const groupedProducts = orderedProducts.reduce((groups, product) => {
     const category = product.category || 'Other';
@@ -179,37 +168,6 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           },
         },
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2 }}>
-          <Box component="span" sx={{ fontWeight: 500, color: 'text.secondary' }}>
-            Mode:
-          </Box>
-          <Box
-            component="button"
-            onClick={handleToggleGridMode}
-            sx={{
-              px: 2, py: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: fixedGridMode ? 'primary.main' : 'background.paper', color: fixedGridMode ? 'primary.contrastText' : 'text.primary', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', mr: 2
-            }}
-          >
-            {fixedGridMode ? 'Fixed (Slider)' : 'Responsive (Window)'}
-          </Box>
-          {fixedGridMode && (
-            <>
-              <Slider
-                value={cardsPerRow}
-                min={2}
-                max={12}
-                step={1}
-                marks
-                valueLabelDisplay="auto"
-                onChange={(_, value) => setCardsPerRow(value as number)}
-                sx={{ width: 240 }}
-              />
-              <Box component="span" sx={{ fontWeight: 500, color: 'text.secondary' }}>
-                Cards per row: {cardsPerRow}
-              </Box>
-            </>
-          )}
-        </Box>
         {categoryOrder
           .filter(category => groupedProducts[category] && groupedProducts[category].length > 0)
           .map(category => {
