@@ -133,10 +133,27 @@ const ProductCard: React.FC<ProductCardProps> = ({
           backgroundColor: 'rgba(0, 0, 0, 0.1)',
           pointerEvents: 'none',
         } : {},
+        overflow: 'hidden',
       }}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
     >
+      <IconButton
+        size="small"
+        onClick={handleMenuClick}
+        sx={{ 
+          position: 'absolute',
+          top: 6,
+          right: 6,
+          zIndex: 2,
+          p: 0.5,
+          '&:hover': {
+            backgroundColor: 'action.hover',
+          },
+        }}
+      >
+        <MoreVertIcon />
+      </IconButton>
       <CardContent sx={{ 
         flex: 1,
         p: 1.5,
@@ -144,43 +161,25 @@ const ProductCard: React.FC<ProductCardProps> = ({
         flexDirection: 'column',
         gap: 0.5,
         opacity: localStockStatus ? 1 : 0.7,
+        pb: 3.5, // extra bottom padding for price
+        pr: 4,   // extra right padding for menu button
       }}>
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'flex-start',
-          mb: 0.5,
-        }}>
-          <Typography 
-            variant="subtitle1" 
-            sx={{ 
-              fontWeight: 'medium',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              lineHeight: 1.2,
-              color: localStockStatus ? 'text.primary' : 'text.disabled',
-              userSelect: 'none',
-            }}
-          >
-            {product.name}
-          </Typography>
-          <IconButton
-            size="small"
-            onClick={handleMenuClick}
-            sx={{ 
-              p: 0.5,
-              '&:hover': {
-                backgroundColor: 'action.hover',
-              },
-            }}
-          >
-            <MoreVertIcon />
-          </IconButton>
-        </Box>
-
+        <Typography 
+          variant="subtitle1" 
+          sx={{ 
+            fontWeight: 'medium',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            lineHeight: 1.2,
+            color: localStockStatus ? 'text.primary' : 'text.disabled',
+            userSelect: 'none',
+          }}
+        >
+          {product.name}
+        </Typography>
         <Typography 
           variant="body2" 
           color="text.secondary"
@@ -200,26 +199,30 @@ const ProductCard: React.FC<ProductCardProps> = ({
         >
           {product.description}
         </Typography>
-
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          mt: 'auto',
-        }}>
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              color: localStockStatus ? 'primary.main' : 'error.main',
-              textDecoration: localStockStatus ? 'none' : 'line-through',
-              userSelect: 'none',
-            }}
-          >
-            {product.price.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€
-          </Typography>
-        </Box>
       </CardContent>
-
+      <Box
+        sx={{
+          position: 'absolute',
+          left: 16,
+          bottom: 12,
+          zIndex: 2,
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            color: localStockStatus ? 'primary.main' : 'error.main',
+            textDecoration: localStockStatus ? 'none' : 'line-through',
+            userSelect: 'none',
+            fontWeight: 700,
+            fontSize: 18,
+          }}
+        >
+          {product.price.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€
+        </Typography>
+      </Box>
       <Menu
         anchorEl={anchorEl}
         open={open}

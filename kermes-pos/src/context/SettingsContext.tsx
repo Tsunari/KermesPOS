@@ -55,7 +55,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       security: false,
       appearance: false,
       autoBackup: false,
-      showDescription: true,
+      showDescription: false,
       showScrollbars: true,
       showPageScrollbars: false,
       showComponentScrollbars: true,
