@@ -5,6 +5,23 @@ All notable changes to the Kermes project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 21-05-2025
+### Kermes POS
+#### Added
+- Make the product grid either responsive or select a fixed amount of cards per line
+- Add functionality to delete transaction in the all sales view
+- Add total sales view to statistics page
+#### Changed
+- Huge improvements to UI
+- Defautl pageScrollbars to false
+- New modern App bar
+- New modern Speed Dial
+- Enhance transaction display with expandable details and sorting
+- Change settings items
+- Increase box shadow of total sales accordions for better visibility
+- Improvements to auto-translate script
+
+
 ## [1.3.0] - 19-05-2025
 ### Global
 - Title now includes version name --change
