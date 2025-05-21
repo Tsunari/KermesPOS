@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, Typography, useTheme } from '@mui/material';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface NumericKeypadProps {
   onNumberClick: (number: number) => void;
@@ -29,7 +29,7 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
         p: 1,
         bgcolor: 'background.paper',
         borderRadius: 2,
-        boxShadow: 1,
+        boxShadow: 3,
       }}
     >
       <Box

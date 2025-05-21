@@ -21,19 +21,19 @@ import {
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import PrintIcon from '@mui/icons-material/Print';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { RootState } from '../store';
-import { removeFromCart, clearCart, updateQuantity } from '../store/slices/cartSlice';
-import CartItemRow from './cart/CartItemRow';
-import CartFooter from './cart/CartFooter';
-import PrinterSettings from './PrinterSettings';
-import { CartItem } from '../types/index';
-import { useSettings } from '../context/SettingsContext';
-import { useLanguage } from '../context/LanguageContext';
-import { getCategoryStyle } from '../utils/categoryUtils';
-import { cartTransactionService } from '../services/cartTransactionService';
+import { RootState } from '../../store';
+import { removeFromCart, clearCart, updateQuantity } from '../../store/slices/cartSlice';
+import CartItemRow from './CartItemRow';
+import CartFooter from './CartFooter';
+import PrinterSettings from '../PrinterSettings';
+import { CartItem } from '../../types/index';
+import { useSettings } from '../../context/SettingsContext';
+import { useLanguage } from '../../context/LanguageContext';
+import { getCategoryStyle } from '../../utils/categoryUtils';
+import { cartTransactionService } from '../../services/cartTransactionService';
 import { EditSquare, Badge } from '@mui/icons-material';
 import SettingsIcon from '@mui/icons-material/Settings';
-import ReceiptPreview from './cart/receipt/ReceiptPreview';
+import ReceiptPreview from './receipt/ReceiptPreview';
 
 interface CartProps {
   devMode?: boolean;

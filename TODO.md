@@ -55,7 +55,7 @@
 - [ ] Logo in AppBar which opens website
 - [ ] Fix example statistics usage in statistics page
 - [ ] Show items sold when hovered/clicked in accordion
-- [ ] Code cleanup and optimization
+- [ ] Code cleanup and optimization (for example use VariableProvider)
 - [ ] Performance improvements
 - [ ] Sizes of cards editable in UI (or ensure all cards always visible with any screen size)
 - [ ] More categories (or "Other" category)
