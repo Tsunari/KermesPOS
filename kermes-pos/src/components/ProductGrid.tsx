@@ -60,7 +60,7 @@ const SortableProductCard = ({ product, ...props }: SortableProductCardProps) =>
         position: 'relative'
       }}
     >
-      <ProductCard product={product} {...props} />
+      <ProductCard product={product} {...props} height={135} />
     </Box>
   );
 };
@@ -76,7 +76,10 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   const theme = useTheme();
   const [orderedProducts, setOrderedProducts] = useState<Product[]>(products);
   const [cardsPerRow, setCardsPerRow] = useState(6); // default value
-  const [fixedGridMode, setFixedGridMode] = useState(false); // false: responsive, true: slider
+  const [fixedGridMode, setFixedGridMode] = useState(() => {
+    const saved = localStorage.getItem('fixedGridMode');
+    return saved ? JSON.parse(saved) : false;
+  }); // false: responsive, true: slider
 
   useEffect(() => {
     const storedOrder = localStorage.getItem('product_order');
@@ -128,6 +131,13 @@ const ProductGrid: React.FC<ProductGridProps> = ({
     }
   };
 
+  const handleToggleGridMode = () => {
+    setFixedGridMode((v: boolean) => {
+      localStorage.setItem('fixedGridMode', JSON.stringify(!v));
+      return !v;
+    });
+  };
+
   // Group products by category
   const groupedProducts = orderedProducts.reduce((groups, product) => {
     const category = product.category || 'Other';
@@ -175,7 +185,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           </Box>
           <Box
             component="button"
-            onClick={() => setFixedGridMode((v) => !v)}
+            onClick={handleToggleGridMode}
             sx={{
               px: 2, py: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: fixedGridMode ? 'primary.main' : 'background.paper', color: fixedGridMode ? 'primary.contrastText' : 'text.primary', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', mr: 2
             }}
@@ -216,7 +226,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                       gridTemplateColumns: fixedGridMode
                         ? `repeat(${cardsPerRow}, 1fr)`
                         : 'repeat(auto-fit, minmax(180px, 1fr))',
-                      gap: 1.5,
+                      gap: 0.5, // smaller gap
                       width: '100%',
                       alignItems: 'stretch',
                     }}

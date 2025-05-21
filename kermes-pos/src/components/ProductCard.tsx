@@ -29,6 +29,7 @@ interface ProductCardProps {
     borderColor: string;
     icon: string;
   };
+  height?: number; // add height prop
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ 
@@ -39,6 +40,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   showDescription = false,
   onClick,
   categoryStyle,
+  height,
 }) => {
   const dispatch = useDispatch();
   const { useDoubleClick } = useSettings();
@@ -109,8 +111,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     <Card 
       sx={{ 
         width: '100%', // fill grid cell
-        height: '100%', // fill grid cell
-        minHeight: 140, // keep a reasonable min height
+        height: height || 140, // use fixed height if provided
         display: 'flex',
         flexDirection: 'column',
         cursor: localStockStatus ? 'pointer' : 'not-allowed',
