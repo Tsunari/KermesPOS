@@ -9,16 +9,16 @@ export const ThemeToggle: React.FC = () => {
 
   return (
     <Tooltip title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
-      <IconButton
-        onClick={toggleTheme}
-        color="inherit"
-        sx={{
-          transition: 'transform 0.3s ease-in-out',
-          '&:hover': {
-            transform: 'rotate(180deg)',
-          },
-        }}
-      >
+      <IconButton 
+      color="primary" 
+      size="large" 
+      onClick={toggleTheme}
+      sx={{ 
+        mb: 1,
+        borderRadius: 2,
+         bgcolor: 'background.default', 
+         '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } 
+         }}>
         {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
       </IconButton>
     </Tooltip>

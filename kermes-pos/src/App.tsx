@@ -40,6 +40,7 @@ import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import StatisticsPage from './components/StatisticsPage';
 import { generateReceiptContent } from './services/printerService';
 import { VariableContext, VariableContextProvider } from './context/VariableContext';
+import { useTheme } from '@mui/material/styles';
 
 /**
  * The `AppContent` component serves as the main application layout and logic handler for the Kermes POS system.
@@ -98,6 +99,7 @@ function AppContent() {
   const isProductsPage = location.pathname === '/';
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
+  const theme = useTheme();
 
   useEffect(() => {
     loadProducts();
@@ -174,31 +176,86 @@ function AppContent() {
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
       {isAppBarVisible && (
-        <AppBar position="fixed" sx={{ width: '64px', height: '100vh', left: 0, top: 0 }}>
-          <Toolbar sx={{ flexDirection: 'column', height: '100%', justifyContent: 'flex-start', pt: 2 }}>
-            <Typography variant="h6" component="div" sx={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', mb: 4 }}>
-              Kermes POS
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <AppBar
+          position="fixed"
+          elevation={4}
+          sx={{
+            width: '80px',
+            height: '100vh',
+            left: 0,
+            top: 0,
+            bgcolor: theme.palette.background.paper,
+            borderRight: `1.5px solid ${theme.palette.divider}`,
+            boxShadow: '0 2px 16px 0 rgba(0,0,0,0.10)',
+            zIndex: 1201,
+            transition: 'width 0.3s',
+          }}
+        >
+          <Toolbar
+            disableGutters
+            sx={{
+              flexDirection: 'column',
+              height: '100%',
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+              pt: 2,
+              px: 0,
+              minWidth: 0,
+            }}
+          >
+            <Box sx={{ mb: 3, mt: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <a href="https://kermespos.web.app/" target="_blank" rel="noopener noreferrer">
+                  <img
+                  src={theme.palette.mode === 'dark' ? '/Mintika_round-cropped.svg' : '/Mintika_round_b-cropped.svg'}
+                  alt="Kermes POS Logo"
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 8,
+                    marginBottom: 8,
+                    transition: 'box-shadow 0.2s',
+                    cursor: 'pointer',
+                    background: theme.palette.mode === 'dark' ? '#fff' : '#000',
+                  }}
+                  />
+                </a>
+              <Typography
+                variant="caption"
+                component="div"
+                sx={{
+                  fontWeight: 700,
+                  letterSpacing: 1.5,
+                  color: theme.palette.text.secondary,
+                  textAlign: 'center',
+                  textTransform: 'uppercase',
+                  fontSize: 12,
+                  mt: 0.5,
+                  mb: 0.5,
+                }}
+              >
+                Kermes POS
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', width: '100%' }}>
               <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <IconButton color="inherit" size="large">
+                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
                   <Badge badgeContent={totalQuantity} color="error">
                     <RestaurantMenuIcon />
                   </Badge>
                 </IconButton>
               </Link>
               <Link to="/statistics" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <IconButton color="inherit" size="large">
+                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
                   <BarChartIcon />
                 </IconButton>
               </Link>
               <Link to="/settings" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <IconButton color="inherit" size="large">
+                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
                   <SettingsIcon />
                 </IconButton>
               </Link>
               <Link to="/import-export" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <IconButton color="inherit" size="large">
+                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
                   <ImportExportIcon />
                 </IconButton>
               </Link>
@@ -209,7 +266,7 @@ function AppContent() {
       )}
       <Box component="main" sx={{ 
         flexGrow: 1, 
-        ml: isAppBarVisible ? '64px' : 0,
+        ml: isAppBarVisible ? '80px' : 0, // was 64px, now matches AppBar width
         display: 'flex', 
         height: '100vh',
         transition: 'margin-left 0.3s ease-in-out'
@@ -253,7 +310,28 @@ function AppContent() {
                   />
                   <SpeedDial
                     ariaLabel="SpeedDial"
-                    sx={{ position: 'fixed', bottom: 16, right: 16 }}
+                    sx={{
+                      position: 'fixed',
+                      bottom: 24,
+                      right: 24,
+                      zIndex: 1300,
+                      '& .MuiFab-root': {
+                        width: 48,
+                        height: 48,
+                        borderRadius: '16px',
+                        background: 'rgba(40,40,60,0.55)',
+                        backdropFilter: 'blur(8px)',
+                        boxShadow: '0 4px 16px 0 rgba(31, 38, 135, 0.18)',
+                        color: 'white',
+                        border: '1.5px solid rgba(255,255,255,0.18)',
+                        transition: 'background 0.2s, box-shadow 0.2s',
+                        '&:hover': {
+                          background: theme.palette.primary.main,
+                          color: theme.palette.primary.contrastText,
+                          boxShadow: '0 8px 24px 0 rgba(31, 38, 135, 0.22)',
+                        },
+                      },
+                    }}
                     icon={<SpeedDialIcon openIcon={<MenuIcon />} />}
                   >
                     {actions.map((action) => (
@@ -262,6 +340,23 @@ function AppContent() {
                         icon={action.icon}
                         title={action.name}
                         onClick={action.onClick}
+                        sx={{
+                          bgcolor: 'rgba(255,255,255,0.65)',
+                          color: theme.palette.primary.main,
+                          borderRadius: 2,
+                          boxShadow: '0 1px 4px 0 rgba(31, 38, 135, 0.10)',
+                          minWidth: 40,
+                          minHeight: 36,
+                          px: 1.5,
+                          fontWeight: 600,
+                          fontSize: 14,
+                          backdropFilter: 'blur(8px)',
+                          transition: 'background 0.2s, color 0.2s',
+                          '&:hover': {
+                            bgcolor: theme.palette.primary.light,
+                            color: theme.palette.primary.contrastText,
+                          },
+                        }}
                       />
                     ))}
                   </SpeedDial>

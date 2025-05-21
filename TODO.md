@@ -20,6 +20,7 @@
   - [ ] Low stock alerts
   - [ ] Purchase orders
   - [ ] Sales trends and patterns
+  - [ ] More statistics with graphs
 - [ ] Reporting system
   - [ ] Advanced sales reports
   - [ ] Inventory reports

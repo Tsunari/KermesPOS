@@ -57,7 +57,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       autoBackup: false,
       showDescription: true,
       showScrollbars: true,
-      showPageScrollbars: true,
+      showPageScrollbars: false,
       showComponentScrollbars: true,
     };
   });
@@ -96,4 +96,4 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       {children}
     </SettingsContext.Provider>
   );
-}; 
+};
