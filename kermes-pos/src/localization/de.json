@@ -187,7 +187,16 @@
       "clearDatabase": "Datenbank löschen",
       "downloadSummary": "Zusammenfassung herunterladen (PDF)",
       "totalSales": "Gesamtverkäufe",
-      "totalRevenue": "Gesamtumsatz"
+      "totalRevenue": "Gesamtumsatz",
+      "showProducts": "Produkte anzeigen",
+      "deleteTransaction": "Transaktion löschen",
+      "noProducts": "Keine Produkte",
+      "unknownProduct": "Unbekanntes Produkt",
+      "quantity": "Menge",
+      "price": "Preis",
+      "total": "Gesamt",
+      "confirmDeleteTitle": "Löschen bestätigen",
+      "confirmDeleteText": "Sind Sie sicher, dass Sie diese Transaktion löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
     },
     "cart": {
       "total": "Gesamt",

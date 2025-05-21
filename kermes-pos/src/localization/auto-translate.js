@@ -4,7 +4,8 @@
 
 import fs from 'fs';
 import path from 'path';
-import { translate } from '@vitalets/google-translate-api';
+import { translate as googleTranslate } from '@vitalets/google-translate-api';
+import * as deepl from 'deepl-node';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -13,6 +14,10 @@ const LOCALE_DIR = __dirname;
 const SRC_DIR = path.resolve(LOCALE_DIR, '..');
 
 const LANGS = ['en', 'tr', 'de'];
+
+// DeepL Translator setup
+const DEEPL_API_KEY = process.env.DEEPL_API_KEY;
+const translator = new deepl.Translator(DEEPL_API_KEY, { serverUrl: 'https://api-free.deepl.com/v2' });
 
 // 1. Recursively get all source files in the codebase (no glob needed)
 function getAllSourceFiles(dir, exts = ['.ts', '.tsx', '.js', '.jsx']) {
@@ -31,7 +36,7 @@ function getAllSourceFiles(dir, exts = ['.ts', '.tsx', '.js', '.jsx']) {
 // 1. Find all translation keys in the codebase (t('...'))
 function findAllKeys() {
   const files = getAllSourceFiles(SRC_DIR);
-  console.log('Scanning files:', files); // Debug output
+  // console.log('Scanning files:', files); // Debug output
   const keyRegex = /t\s*\(\s*["'`]([^"'`]+)["'`]\s*\)/g;
   const keys = new Set();
   for (const file of files) {
@@ -41,7 +46,7 @@ function findAllKeys() {
       keys.add(match[1]);
     }
   }
-  console.log('Found translation keys:', Array.from(keys)); // Debug output
+  // console.log('Found translation keys:', Array.from(keys)); // Debug output
   return Array.from(keys);
 }
 
@@ -99,9 +104,21 @@ async function main() {
   let keys = findAllKeys();
   // Filter out obviously invalid keys (e.g., single letters, empty, or no dot)
   keys = keys.filter(k => k && k.length > 2 && k.includes('.'));
+  // Remove unwanted keys
+  const unwanted = [
+    '.MuiSwitch-root',
+    '.MuiIconButton-root',
+    'app.product.categories.${category}', // treat as string, not template
+    '...',
+    'No transactions to export.'
+  ];
+  keys = keys.filter(k => !unwanted.includes(k));
   const locales = loadLocales();
   let changed = false;
   let missingKeys = [];
+  const missing = getMissingTranslationKeys(keys, locales);
+  // Print missing keys in red color
+  console.log('\x1b[31m%s\x1b[0m', JSON.stringify(missing, null, 2));
 
   for (const key of keys) {
     // Extract the last word after the last dot
@@ -123,14 +140,25 @@ async function main() {
       if (lang === 'en') continue;
       if (getNested(locales[lang], key) === undefined) {
         try {
-          const res = await translate(spaced, { to: lang });
+          // Try Google Translate first
+          const res = await googleTranslate(spaced, { to: lang });
           setNested(locales[lang], key, res.text);
-          console.log(`Auto-translated '${spaced}' to [${lang}]: ${res.text}`);
+          console.log(`Auto-translated '${spaced}' to [${lang}] (Google): ${res.text}`);
           changed = true;
         } catch (e) {
           if (e && e.message && e.message.match(/429|too many requests|rate limit/i)) {
-            console.error('ERROR: Too many requests to the translation API. Please try again later.');
-            process.exit(1);
+            // Fallback to DeepL
+            try {
+              let deeplLang = lang.toUpperCase();
+              if (deeplLang === 'TR') deeplLang = 'TR';
+              if (deeplLang === 'DE') deeplLang = 'DE';
+              const res = await translator.translateText(spaced, null, deeplLang);
+              setNested(locales[lang], key, res.text);
+              console.log(`Auto-translated '${spaced}' to [${lang}] (DeepL): ${res.text}`);
+              changed = true;
+            } catch (deeplErr) {
+              console.error(`DeepL also failed for '${spaced}' to [${lang}]`, deeplErr);
+            }
           } else {
             console.error(`Failed to translate '${spaced}' to [${lang}]`, e);
           }
@@ -138,8 +166,6 @@ async function main() {
       }
     }
   }
-  const missing = getMissingTranslationKeys(keys, locales);
-  console.log(missing);
   if (changed) {
     saveLocales(locales);
     console.log('Locales updated!');

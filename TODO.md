@@ -26,6 +26,7 @@
   - [ ] Inventory reports
   - [ ] Enhanced Export functionality
 - [ ] Migrate to Next.js React framwork from Create React App (CRA)
+- [ ] Setup deepl API auto translate
 
 ### Kermes Electron
 #### Major Features
@@ -52,12 +53,12 @@
 ### Kermes POS
 - [ ] Page Caching
 - [x] Icon Button in TodaysSales to open popup and view all sales
-- [ ] Logo in AppBar which opens website
+- [x] Logo in AppBar which opens website
 - [ ] Fix example statistics usage in statistics page
-- [ ] Show items sold when hovered/clicked in accordion
+- [x] Show items sold when hovered/clicked in accordion
 - [ ] Code cleanup and optimization (for example use VariableProvider)
 - [ ] Performance improvements
-- [ ] Sizes of cards editable in UI (or ensure all cards always visible with any screen size)
+- [x] Sizes of cards editable in UI (or ensure all cards always visible with any screen size)
 - [ ] More categories (or "Other" category)
 - [ ] Fix reset kurs name is saved without even pressing save
 - [ ] Fix new page if summary table is too long

@@ -187,7 +187,16 @@
       "clearDatabase": "Verileri temizle",
       "downloadSummary": "Tutanak indir (PDF)",
       "totalSales": "Toplam Satış",
-      "totalRevenue": "Toplam Gelir"
+      "totalRevenue": "Toplam Gelir",
+      "showProducts": "Ürünleri Göster",
+      "deleteTransaction": "İşlemi Sil",
+      "noProducts": "Ürün yok",
+      "unknownProduct": "Bilinmeyen ürün",
+      "quantity": "Miktar",
+      "price": "Fiyat",
+      "total": "Toplam",
+      "confirmDeleteTitle": "Silme Onayı",
+      "confirmDeleteText": "Bu işlemi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
     },
     "cart": {
       "total": "Toplam",

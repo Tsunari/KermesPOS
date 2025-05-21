@@ -186,7 +186,16 @@
       "clearDatabase": "Clear database",
       "downloadSummary": "Download summary (PDF)",
       "totalSales": "Total Sales",
-      "totalRevenue": "Total Revenue"
+      "totalRevenue": "Total Revenue",
+      "showProducts": "Show Products",
+      "deleteTransaction": "Delete Transaction",
+      "noProducts": "No products",
+      "unknownProduct": "Unknown product",
+      "quantity": "Quantity",
+      "price": "Price",
+      "total": "Total",
+      "confirmDeleteTitle": "Confirm Deletion",
+      "confirmDeleteText": "Are you sure you want to delete this transaction? This action cannot be undone."
     },
     "cart": {
       "total": "Total",
