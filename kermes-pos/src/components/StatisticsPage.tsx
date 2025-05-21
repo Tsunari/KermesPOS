@@ -681,7 +681,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
           onClick={() => cartTransactionService.clearAllTransactions()}
           sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
         >
-          ({t('app.statistics.clearDatabase')})
+          {t('app.statistics.clearDatabase')}
         </Button>
         <Button
           variant="outlined"
@@ -689,7 +689,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
           sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
           onClick={() => setSignersDialogOpen(true)}
         >
-          ({t('app.statistics.downloadSummary')})
+          {t('app.statistics.downloadSummary')}
         </Button>
       </Stack>
     </Box>
