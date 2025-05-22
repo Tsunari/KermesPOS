@@ -418,11 +418,12 @@ function AppContent() {
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            height: 180,
+                            height: 160,
                             justifyContent: 'center',
                             width: 56,
                             overflow: 'visible',
                             p: 0.5,
+                            mt: 1,
                           }}>
                             <Slider
                               orientation="vertical"
@@ -469,7 +470,7 @@ function AppContent() {
                           bgcolor: 'background.paper',
                           color: theme.palette.primary.main,
                           borderRadius: 2,
-                          boxShadow: '0 1px 4px 0 rgba(31, 38, 135, 0.10)',
+                          // boxShadow: '0 1px 4px 0 rgba(31, 38, 135, 0.10)',
                           minWidth: 56,
                           minHeight: 180,
                           border: `1.5px solid ${theme.palette.divider}`,
@@ -480,6 +481,14 @@ function AppContent() {
                           p: 0,
                           '&:hover': {
                             bgcolor: 'background.paper',
+                          },
+                          boxShadow: 'none', // Remove fill/highlight on click/focus/active
+                          '&:hover, &:active, &.Mui-focusVisible': {
+                            bgcolor: 'background.paper',
+                            boxShadow: 'none', // Prevent fill/highlight
+                          },
+                          '& .MuiTouchRipple-root': {
+                            display: 'none', // Disable ripple effect
                           },
                         }}
                       />
