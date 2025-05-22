@@ -77,22 +77,44 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   const { fixedGridMode, cardsPerRow } = useVariableContext();
   const [orderedProducts, setOrderedProducts] = useState<Product[]>(products);
 
+  // Merge products with last saved order, keeping new products at the end
   useEffect(() => {
     const storedOrder = localStorage.getItem('product_order');
     if (storedOrder) {
       try {
         const orderMap = JSON.parse(storedOrder);
+        // Only keep products that still exist, and add new ones at the end
         const ordered = [...products].sort((a, b) => {
-          const orderA = orderMap[a.id] || Number.MAX_SAFE_INTEGER;
-          const orderB = orderMap[b.id] || Number.MAX_SAFE_INTEGER;
+          const orderA = orderMap[a.id] ?? Number.MAX_SAFE_INTEGER;
+          const orderB = orderMap[b.id] ?? Number.MAX_SAFE_INTEGER;
           return orderA - orderB;
         });
         setOrderedProducts(ordered);
+        // Update localStorage if new products were added
+        if (ordered.length !== Object.keys(orderMap).length) {
+          const newOrderMap: { [key: string]: number } = {};
+          ordered.forEach((item, idx) => {
+            newOrderMap[item.id] = idx;
+          });
+          localStorage.setItem('product_order', JSON.stringify(newOrderMap));
+        }
       } catch (error) {
         setOrderedProducts(products);
+        // Reset order if corrupted
+        const newOrderMap: { [key: string]: number } = {};
+        products.forEach((item, idx) => {
+          newOrderMap[item.id] = idx;
+        });
+        localStorage.setItem('product_order', JSON.stringify(newOrderMap));
       }
     } else {
       setOrderedProducts(products);
+      // Save initial order
+      const newOrderMap: { [key: string]: number } = {};
+      products.forEach((item, idx) => {
+        newOrderMap[item.id] = idx;
+      });
+      localStorage.setItem('product_order', JSON.stringify(newOrderMap));
     }
   }, [products]);
 

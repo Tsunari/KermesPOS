@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { Product } from '../types/index';
 
 // Define the shape of your global variables here
 export interface VariableContextType {
@@ -8,7 +9,8 @@ export interface VariableContextType {
   setFixedGridMode: (mode: boolean) => void;
   cardsPerRow: number;
   setCardsPerRow: (count: number) => void;
-  // Add more variables and setters as needed
+  products: Product[];
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
 }
 
 const defaultValues: VariableContextType = {
@@ -18,7 +20,8 @@ const defaultValues: VariableContextType = {
   setFixedGridMode: () => {},
   cardsPerRow: 8,
   setCardsPerRow: () => {},
-  // Add more default values as needed
+  products: [],
+  setProducts: () => {},
 };
 
 export const VariableContext = createContext<VariableContextType>(defaultValues);
@@ -37,6 +40,7 @@ export const VariableContextProvider: React.FC<{ children: React.ReactNode }> = 
     const saved = localStorage.getItem('cardsPerRow');
     return saved ? parseInt(saved, 10) : 9; // changed from 6 to 9
   });
+  const [products, setProducts] = useState<Product[]>([]);
 
   // Save kursName to localStorage on change
   const handleSetKursName = (name: string) => {
@@ -63,6 +67,8 @@ export const VariableContextProvider: React.FC<{ children: React.ReactNode }> = 
       setFixedGridMode: handleSetFixedGridMode,
       cardsPerRow,
       setCardsPerRow: handleSetCardsPerRow,
+      products,
+      setProducts,
       // Add more variables and setters here
     }}>
       {children}

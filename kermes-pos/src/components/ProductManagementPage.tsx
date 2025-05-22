@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -15,7 +15,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import AddIcon from '@mui/icons-material/Add';
-import { productService } from '../services/productService';
+import { useVariableContext } from '../context/VariableContext';
 import { Product } from '../types/index';
 
 const categoryLabels: Record<string, string> = {
@@ -29,7 +29,7 @@ const emptyProduct = { id: '', name: '', price: '', category: 'food', descriptio
 type EditableProduct = typeof emptyProduct & { id?: string };
 
 const ProductManagementPage: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const { products, setProducts } = useVariableContext();
   const [addRows, setAddRows] = useState({
     food: { name: '', price: '', description: '' },
     drink: { name: '', price: '', description: '' },
@@ -37,33 +37,26 @@ const ProductManagementPage: React.FC = () => {
   });
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  useEffect(() => {
-    setProducts(productService.getAllProducts());
-  }, []);
-
-  const refreshProducts = () => {
-    setProducts(productService.getAllProducts());
-  };
-
   const handleAddProduct = (cat: 'food' | 'drink' | 'dessert') => {
     const { name, price, description } = addRows[cat];
     if (name && price) {
-      productService.addProduct({
-        id: '',
-        name,
-        price: parseFloat(price),
-        category: cat,
-        description,
-        inStock: true,
-      });
+      setProducts(prev => [
+        ...prev,
+        {
+          id: Math.random().toString(36).substr(2, 9),
+          name,
+          price: parseFloat(price),
+          category: cat,
+          description,
+          inStock: true,
+        },
+      ]);
       setAddRows((prev) => ({ ...prev, [cat]: { name: '', price: '', description: '' } }));
-      refreshProducts();
     }
   };
 
   const handleDeleteProduct = (id: string) => {
-    productService.deleteProduct(id);
-    refreshProducts();
+    setProducts(prev => prev.filter(p => p.id !== id));
   };
 
   const handleFieldChange = (id: string, field: keyof EditableProduct, value: string) => {
@@ -75,11 +68,7 @@ const ProductManagementPage: React.FC = () => {
   };
 
   const handleSaveEdit = (id: string) => {
-    const prod = products.find((p) => p.id === id);
-    if (prod) {
-      productService.updateProduct(prod);
-      refreshProducts();
-    }
+    // No-op, as state is already updated
   };
 
   // Group products by category
@@ -187,7 +176,6 @@ const ProductManagementPage: React.FC = () => {
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, width: '100%' }}>
               {grouped[cat]?.length ? grouped[cat].map((prod) => {
-                const [hoveredId, setHoveredId] = [prod.id, null]; // placeholder, will use local state below
                 return (
                   <ProductRow
                     key={prod.id}

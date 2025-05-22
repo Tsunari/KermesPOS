@@ -15,13 +15,14 @@ import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
 import RestoreIcon from '@mui/icons-material/Restore';
 import CodeIcon from '@mui/icons-material/Code';
+import { useVariableContext } from '../context/VariableContext';
 
 interface ImportExportProps {
-  refreshProducts: () => void;
   devMode: boolean;
 }
 
-const ImportExport: React.FC<ImportExportProps> = ({ refreshProducts, devMode }) => {
+const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
+  const { setProducts } = useVariableContext();
   const [importJson, setImportJson] = useState('');
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -60,8 +61,7 @@ const ImportExport: React.FC<ImportExportProps> = ({ refreshProducts, devMode })
         severity: 'success',
       });
       setImportJson('');
-      // Refresh the products in the App component
-      refreshProducts();
+      setProducts(productService.getAllProducts());
     } else {
       setSnackbar({
         open: true,
@@ -79,14 +79,13 @@ const ImportExport: React.FC<ImportExportProps> = ({ refreshProducts, devMode })
         message: 'Products reset to default successfully!',
         severity: 'success',
       });
-      // Refresh the products in the App component
-      refreshProducts();
+      setProducts(productService.getAllProducts());
     }
   };
 
   const handleDefineDefault = () => {
     if (window.confirm('Are you sure you want to define the current product list as the default? This will update the source code and cannot be undone.')) {
-      const jsonString = productService.exportProducts();
+      /* In a real app, this would update the source code or backend */
       setSnackbar({
         open: true,
         message: 'Default products updated successfully! (Note: In a real application, this would update the source code)',
@@ -217,4 +216,4 @@ const ImportExport: React.FC<ImportExportProps> = ({ refreshProducts, devMode })
   );
 };
 
-export default ImportExport; 
+export default ImportExport;

@@ -92,7 +92,7 @@ import ProductManagementPage from './components/ProductManagementPage';
 function AppContent() {
   const { t } = useLanguage();
   const dispatch = useDispatch();
-  const [products, setProducts] = useState<Product[]>([]);
+  const { products, setProducts, fixedGridMode, setFixedGridMode, cardsPerRow, setCardsPerRow } = useVariableContext();
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   const [devMode, setDevMode] = useState(false);
@@ -103,10 +103,11 @@ function AppContent() {
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
   const theme = useTheme();
-  const { fixedGridMode, setFixedGridMode, cardsPerRow, setCardsPerRow } = useVariableContext();
 
+  // Load products from service into context on mount
   useEffect(() => {
     loadProducts();
+    // eslint-disable-next-line
   }, []);
 
   const loadProducts = () => {
@@ -493,7 +494,7 @@ function AppContent() {
             />
             <Route 
               path="/import-export" 
-              element={<ImportExport refreshProducts={loadProducts} devMode={devMode} />} 
+              element={<ImportExport devMode={devMode} />} 
             />
             <Route 
               path="/settings" 
