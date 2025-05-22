@@ -112,7 +112,7 @@ const ImportExport: React.FC<ImportExportProps> = ({ refreshProducts, devMode })
         
         <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
           <Button
-            variant="contained"
+            variant="outlined"
             startIcon={<DownloadIcon />}
             onClick={handleExport}
           >
@@ -131,7 +131,7 @@ const ImportExport: React.FC<ImportExportProps> = ({ refreshProducts, devMode })
           <Tooltip title={!devMode ? "Enable Dev Mode in Settings to use this feature" : ""}>
             <span>
               <Button
-                variant="contained"
+                variant="outlined"
                 color="warning"
                 startIcon={<CodeIcon />}
                 onClick={handleDefineDefault}
@@ -162,7 +162,7 @@ const ImportExport: React.FC<ImportExportProps> = ({ refreshProducts, devMode })
           placeholder={`{
   "products": [
     {
-      "id": "101",  // Food items start with 1 (1001-1999)
+      "id": "1001",  // Food items start with 1 (1001-1999)
       "name": "Example Food",
       "price": 10.99,
       "category": "food",
@@ -170,7 +170,7 @@ const ImportExport: React.FC<ImportExportProps> = ({ refreshProducts, devMode })
       "inStock": true
     },
     {
-      "id": "201",  // Drink items start with 2 (2001-2999)
+      "id": "2001",  // Drink items start with 2 (2001-2999)
       "name": "Example Drink",
       "price": 5.99,
       "category": "drink",
@@ -178,7 +178,7 @@ const ImportExport: React.FC<ImportExportProps> = ({ refreshProducts, devMode })
       "inStock": true
     },
     {
-      "id": "301",  // Dessert items start with 3 (3001-3999)
+      "id": "3001",  // Dessert items start with 3 (3001-3999)
       "name": "Example Dessert",
       "price": 8.99,
       "category": "dessert",
@@ -191,7 +191,7 @@ const ImportExport: React.FC<ImportExportProps> = ({ refreshProducts, devMode })
         />
         
         <Button
-          variant="contained"
+          variant="outlined"
           startIcon={<UploadIcon />}
           onClick={handleImport}
           disabled={!importJson.trim()}

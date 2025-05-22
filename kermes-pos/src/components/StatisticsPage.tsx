@@ -494,7 +494,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                           <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mr: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                             {date}
                             <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-                              {txs.length} {t('app.statistics.itemsSold')}
+                              {txs.length} {t('sales.title')}
                             </Typography>
                           </Typography>
                           <Typography variant="body2" color="" sx={{ fontWeight: 500, mr: 1 }}>{totalRevenue.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€</Typography>
@@ -664,34 +664,57 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
         </DialogActions>
       </Dialog>
 
-      <Stack direction="row" spacing={2} sx={{ mt: 4, mb: 2, justifyContent: 'center' }}>
-        <Button
-          variant="outlined"
-          color="primary"
-          startIcon={<DownloadIcon />}
-          onClick={() => cartTransactionService.exportTransactionsAsCSV()}
-          sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
-        >
-          {t('app.statistics.exportTransactions')}
-        </Button>
-        <Button
-          variant="outlined"
-          color="error"
-          startIcon={<DeleteForeverIcon />}
-          onClick={() => cartTransactionService.clearAllTransactions()}
-          sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
-        >
-          {t('app.statistics.clearDatabase')}
-        </Button>
-        <Button
-          variant="outlined"
-          startIcon={<DownloadIcon />}
-          sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
-          onClick={() => setSignersDialogOpen(true)}
-        >
-          {t('app.statistics.downloadSummary')}
-        </Button>
-      </Stack>
+      {/* Sticky action buttons at the bottom */}
+      <Box sx={{
+        position: 'fixed',
+        right: 0,
+        left: 'auto',
+        bottom: 0,
+        width: 'auto',
+        maxWidth: { xs: '100vw', sm: 'calc(100vw - 240px)' }, // 240px for typical MUI drawer/appbar
+        bgcolor: 'background.paper',
+        zIndex: 1201,
+        boxShadow: 8,
+        py: 2,
+        px: { xs: 1, sm: 4 },
+        display: 'flex',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 0,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
+        m: 0,
+      }}>
+        <Stack direction="row" spacing={2}>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<DownloadIcon />}
+            onClick={() => cartTransactionService.exportTransactionsAsCSV()}
+            sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
+          >
+            {t('app.statistics.exportTransactions')}
+          </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteForeverIcon />}
+            onClick={() => cartTransactionService.clearAllTransactions()}
+            sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
+          >
+            {t('app.statistics.clearDatabase')}
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<DownloadIcon />}
+            sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
+            onClick={() => setSignersDialogOpen(true)}
+          >
+            {t('app.statistics.downloadSummary')}
+          </Button>
+        </Stack>
+      </Box>
     </Box>
   );
 };

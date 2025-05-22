@@ -62,6 +62,7 @@
 - [ ] More categories (or "Other" category)
 - [ ] Fix reset kurs name is saved without even pressing save
 - [ ] Fix new page if summary table is too long
+- [ ] Product management page
 
 ### Kermes Electron
 - [x] Offline mode support

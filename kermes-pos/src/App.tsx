@@ -42,6 +42,8 @@ import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import StatisticsPage from './components/StatisticsPage';
 import { VariableContextProvider, useVariableContext } from './context/VariableContext';
 import { useTheme } from '@mui/material/styles';
+import { Inventory } from '@mui/icons-material';
+import ProductManagementPage from './components/ProductManagementPage';
 
 /**
  * The `AppContent` component serves as the main application layout and logic handler for the Kermes POS system.
@@ -288,6 +290,11 @@ function AppContent() {
                   <BarChartIcon />
                 </IconButton>
               </Link>
+              <Link to="/products" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
+                  <Inventory />
+                </IconButton>
+              </Link>
               <Link to="/settings" style={{ color: 'inherit', textDecoration: 'none' }}>
                 <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
                   <SettingsIcon />
@@ -495,6 +502,10 @@ function AppContent() {
             <Route 
               path="/settings/appearance" 
               element={<AppearanceSettings />} 
+            />
+            <Route 
+              path="/products" 
+              element={<ProductManagementPage/>}
             />
           </Routes>
         </Box>

@@ -183,7 +183,7 @@
       "byRevenue": "Gelire Göre",
       "byUnits": "Adete Göre",
       "viewAll": "Tümünü Görüntüle",
-      "exportTransactions": "İşlemleri indir",
+      "exportTransactions": "İşlemleri indir (CSV)",
       "clearDatabase": "Verileri temizle",
       "downloadSummary": "Tutanak indir (PDF)",
       "totalSales": "Toplam Satış",
