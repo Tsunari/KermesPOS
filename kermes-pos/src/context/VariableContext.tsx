@@ -34,11 +34,11 @@ export const VariableContextProvider: React.FC<{ children: React.ReactNode }> = 
 
   const [fixedGridMode, setFixedGridModeState] = useState<boolean>(() => {
     const saved = localStorage.getItem('fixedGridMode');
-    return saved ? JSON.parse(saved) : false;
+    return saved !== null ? JSON.parse(saved) : true;
   });
   const [cardsPerRow, setCardsPerRowState] = useState<number>(() => {
     const saved = localStorage.getItem('cardsPerRow');
-    return saved ? parseInt(saved, 10) : 9; // changed from 6 to 9
+    return saved ? parseInt(saved, 10) : 8;
   });
   const [products, setProducts] = useState<Product[]>([]);
 

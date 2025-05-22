@@ -150,7 +150,8 @@ const ProductManagementPage: React.FC = () => {
                 size="small"
                 placeholder="€"
                 type="number"
-                sx={{ minWidth: 40, flex: 1, '& .MuiInputBase-input': { fontSize: 13, py: 0.5, textAlign: 'left' } }}
+                inputMode="decimal"
+                sx={{ minWidth: 40, flex: 1, '& .MuiInputBase-input': { fontSize: 13, py: 0.5, textAlign: 'left' }, '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 }, '& input[type=number]': { MozAppearance: 'textfield' } }}
                 slotProps={{ input: { sx: { fontSize: 13, py: 0.5, textAlign: 'left' } } }}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddProduct(cat); } }}
               />
@@ -235,7 +236,8 @@ const ProductRow: React.FC<{
         size="small"
         placeholder="€"
         type="number"
-        sx={{ minWidth: 40, flex: 1, '& .MuiInputBase-input': { fontSize: 13, py: 0.5, textAlign: 'left' } }}
+        inputMode="decimal"
+        sx={{ minWidth: 40, flex: 1, '& .MuiInputBase-input': { fontSize: 13, py: 0.5, textAlign: 'left' }, '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 }, '& input[type=number]': { MozAppearance: 'textfield' } }}
         onBlur={() => handleSaveEdit && handleSaveEdit(prod.id)}
         InputProps={{ sx: { fontSize: 13, py: 0.5, textAlign: 'left' } }}
       />

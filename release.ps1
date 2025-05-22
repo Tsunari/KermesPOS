@@ -74,7 +74,12 @@ try {
     } else {
         Write-Host "kermes-pos/package.json not found, skipping version update for kermes-pos." -ForegroundColor Yellow
     }
-    #endregion Step 1
+    $deployToHosting = $false
+    $deployChoice = Read-Host "Do you want to deploy to hosting after release? (y/n)"
+    if ($deployChoice -eq 'y' -or $deployChoice -eq 'Y') {
+        $deployToHosting = $true
+    }
+    #endregion Version Increment
 
     #region Step 2: Build kermes-pos
     Write-Section "Build kermes-pos" 2 $totalSteps
@@ -261,6 +266,13 @@ try {
     if ($LASTEXITCODE -ne 0) { Write-ErrorAndExit "GitHub release failed." }
     Write-Host "Release created and assets uploaded." -ForegroundColor Green
     #endregion Step 10
+
+    if ($deployToHosting) {
+        Write-Host "Deploying to Firebase Hosting..." -ForegroundColor Cyan
+        Push-Location ./kermes-pos
+        firebase deploy --only hosting
+        Pop-Location
+    }
 
     #region Final Output
     $endTime = Get-Date

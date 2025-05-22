@@ -223,7 +223,7 @@ function AppContent() {
             <Box sx={{ mb: 3, mt: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <a href="https://kermespos.web.app/" target="_blank" rel="noopener noreferrer">
                   <img
-                  src={theme.palette.mode === 'dark' ? '/Mintika_round-cropped.svg' : '/Mintika_round_b-cropped.svg'}
+                  src={process.env.PUBLIC_URL + (theme.palette.mode === 'dark' ? '/Mintika_round-cropped.svg' : '/Mintika_round_b-cropped.svg')}
                   alt="Kermes POS Logo"
                   style={{
                     width: 44,
