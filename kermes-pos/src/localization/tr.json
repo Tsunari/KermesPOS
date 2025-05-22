@@ -110,7 +110,10 @@
     "image": "Resim",
     "actions": "İşlemler",
     "noProducts": "Ürün bulunamadı",
-    "searchPlaceholder": "Ürün ara..."
+    "searchPlaceholder": "Ürün ara...",
+    "grid_fixed": "Izgara sabit",
+    "grid_responsive": "Izgara esnek",
+    "cards_per_row": "Satır başına kartlar"
   },
   "sales": {
     "title": "Satışlar",

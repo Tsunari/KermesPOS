@@ -110,7 +110,10 @@
     "image": "Image",
     "actions": "Actions",
     "noProducts": "No products found",
-    "searchPlaceholder": "Search products..."
+    "searchPlaceholder": "Search products...",
+    "grid_fixed": "Grid fixed",
+    "grid_responsive": "Grid responsive",
+    "cards_per_row": "Cards per row"
   },
   "sales": {
     "title": "Sales",

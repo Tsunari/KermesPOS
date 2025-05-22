@@ -5,7 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { translate as googleTranslate } from '@vitalets/google-translate-api';
-import * as deepl from 'deepl-node';
+// import * as deepl from 'deepl-node';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,8 +16,8 @@ const SRC_DIR = path.resolve(LOCALE_DIR, '..');
 const LANGS = ['en', 'tr', 'de'];
 
 // DeepL Translator setup
-const DEEPL_API_KEY = process.env.DEEPL_API_KEY;
-const translator = new deepl.Translator(DEEPL_API_KEY, { serverUrl: 'https://api-free.deepl.com/v2' });
+// const DEEPL_API_KEY = process.env.DEEPL_API_KEY;
+// const translator = new deepl.Translator(DEEPL_API_KEY, { serverUrl: 'https://api-free.deepl.com/v2' });
 
 // 1. Recursively get all source files in the codebase (no glob needed)
 function getAllSourceFiles(dir, exts = ['.ts', '.tsx', '.js', '.jsx']) {
@@ -140,25 +140,14 @@ async function main() {
       if (lang === 'en') continue;
       if (getNested(locales[lang], key) === undefined) {
         try {
-          // Try Google Translate first
+          // Try Google Translate only
           const res = await googleTranslate(spaced, { to: lang });
           setNested(locales[lang], key, res.text);
           console.log(`Auto-translated '${spaced}' to [${lang}] (Google): ${res.text}`);
           changed = true;
         } catch (e) {
           if (e && e.message && e.message.match(/429|too many requests|rate limit/i)) {
-            // Fallback to DeepL
-            try {
-              let deeplLang = lang.toUpperCase();
-              if (deeplLang === 'TR') deeplLang = 'TR';
-              if (deeplLang === 'DE') deeplLang = 'DE';
-              const res = await translator.translateText(spaced, null, deeplLang);
-              setNested(locales[lang], key, res.text);
-              console.log(`Auto-translated '${spaced}' to [${lang}] (DeepL): ${res.text}`);
-              changed = true;
-            } catch (deeplErr) {
-              console.error(`DeepL also failed for '${spaced}' to [${lang}]`, deeplErr);
-            }
+            console.error(`Google Translate rate limit for '${spaced}' to [${lang}]`, e);
           } else {
             console.error(`Failed to translate '${spaced}' to [${lang}]`, e);
           }

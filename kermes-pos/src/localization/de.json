@@ -110,7 +110,10 @@
     "image": "Bild",
     "actions": "Aktionen",
     "noProducts": "Keine Produkte gefunden",
-    "searchPlaceholder": "Produkte suchen..."
+    "searchPlaceholder": "Produkte suchen...",
+    "grid_fixed": "Raster fest",
+    "grid_responsive": "Raster responsiv",
+    "cards_per_row": "Karten pro Reihe"
   },
   "sales": {
     "title": "Verkäufe",
