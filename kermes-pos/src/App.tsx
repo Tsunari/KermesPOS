@@ -191,51 +191,58 @@ function AppContent() {
   ];
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh' }}>
-      {isAppBarVisible && (
-        <AppBar
-          position="fixed"
-          elevation={4}
+    <Box sx={{ display: 'flex', height: '100vh', position: 'relative', bgcolor: 'background.default' }}>
+      {/* Animated AppBar */}
+      <AppBar
+        position="fixed"
+        elevation={4}
+        sx={{
+          width: isAppBarVisible ? '80px' : '0px',
+          minWidth: isAppBarVisible ? '80px' : '0px',
+          height: '100vh',
+          left: 0,
+          top: 0,
+          bgcolor: theme.palette.background.paper,
+          borderRight: isAppBarVisible ? `1.5px solid ${theme.palette.divider}` : 'none',
+          backdropFilter: 'blur(12px)',
+          boxShadow: isAppBarVisible ? '0 8px 32px 0 rgba(31,38,135,0.12)' : 'none',
+          zIndex: 1201,
+          transition: 'width 0.6s cubic-bezier(0.77,0,0.175,1), min-width 0.6s cubic-bezier(0.77,0,0.175,1), border-right 0.45s, box-shadow 0.45s',
+          overflow: 'hidden',
+          pointerEvents: isAppBarVisible ? 'auto' : 'none',
+        }}
+      >
+        <Toolbar
+          disableGutters
           sx={{
-            width: '80px',
-            height: '100vh',
-            left: 0,
-            top: 0,
-            bgcolor: theme.palette.background.paper,
-            borderRight: `1.5px solid ${theme.palette.divider}`,
-            boxShadow: '0 2px 16px 0 rgba(0,0,0,0.10)',
-            zIndex: 1201,
-            transition: 'width 0.3s',
+            flexDirection: 'column',
+            height: '100%',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            pt: 2,
+            px: 0,
+            minWidth: 0,
+            transition: 'opacity 0.35s cubic-bezier(0.77,0,0.175,1)',
+            opacity: isAppBarVisible ? 1 : 0,
+            pointerEvents: isAppBarVisible ? 'auto' : 'none',
           }}
         >
-          <Toolbar
-            disableGutters
-            sx={{
-              flexDirection: 'column',
-              height: '100%',
-              justifyContent: 'flex-start',
-              alignItems: 'center',
-              pt: 2,
-              px: 0,
-              minWidth: 0,
-            }}
-          >
-            <Box sx={{ mb: 3, mt: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <a href="https://kermespos.web.app/" target="_blank" rel="noopener noreferrer">
-                  <img
-                  src={process.env.PUBLIC_URL + (theme.palette.mode === 'dark' ? '/Mintika_round-cropped.svg' : '/Mintika_round_b-cropped.svg')}
-                  alt="Kermes POS Logo"
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 8,
-                    marginBottom: 8,
-                    transition: 'box-shadow 0.2s',
-                    cursor: 'pointer',
-                    background: theme.palette.mode === 'dark' ? '#fff' : '#000',
-                  }}
-                  />
-                </a>
+          <Box sx={{ mb: 3, mt: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <a href="https://kermespos.web.app/" target="_blank" rel="noopener noreferrer">
+                <img
+                src={process.env.PUBLIC_URL + (theme.palette.mode === 'dark' ? '/Mintika_round-cropped.svg' : '/Mintika_round_b-cropped.svg')}
+                alt="Kermes POS Logo"
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 8,
+                  marginBottom: 8,
+                  transition: 'box-shadow 0.2s',
+                  cursor: 'pointer',
+                  background: theme.palette.mode === 'dark' ? '#fff' : '#000',
+                }}
+                />
+              </a>
               <Typography
                 variant="caption"
                 component="div"
@@ -310,13 +317,15 @@ function AppContent() {
             </Box>
           </Toolbar>
         </AppBar>
-      )}
-      <Box component="main" sx={{ 
-        flexGrow: 1, 
-        ml: isAppBarVisible ? '80px' : 0, // was 64px, now matches AppBar width
-        display: 'flex', 
+      {/* Main content with animated margin-left */}
+      <Box component="main" sx={{
+        flexGrow: 1,
+        ml: isAppBarVisible ? { xs: '80px', sm: '80px' } : { xs: 0, sm: 0 },
+        display: 'flex',
         height: '100vh',
-        transition: 'margin-left 0.3s ease-in-out'
+        transition: 'margin-left 0.6s cubic-bezier(0.77,0,0.175,1)',
+        position: 'relative',
+        background: 'transparent',
       }}>
         {isProductsPage && (
           <Paper 
