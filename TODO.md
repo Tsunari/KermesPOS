@@ -63,11 +63,13 @@
 - [ ] Fix reset kurs name is saved without even pressing save
 - [ ] Fix new page if summary table is too long
 - [ ] Product management page
+- [ ] Add notice for + Shift fast delete functionaliy in Product Management
 
 ### Kermes Electron
 - [x] Offline mode support
 - [ ] Enhance update functionality
 - [ ] Backup and restore functionality
+- [ ] Open folder after download or send notification
 
 ### Kermes Web
 - [ ] Display TODO and CHANGELOG
