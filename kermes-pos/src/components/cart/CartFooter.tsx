@@ -6,6 +6,7 @@ import {
   Tooltip
 } from '@mui/material';
 import { useLanguage } from '../../context/LanguageContext';
+import ChangeCalculator from './ChangeCalculator';
 
 interface CartFooterProps {
   total: number;
@@ -28,9 +29,14 @@ const CartFooter: React.FC<CartFooterProps> = ({ total, onPrint, hasItems }) => 
       right: 0,
       zIndex: 10
     }}>
-      <Typography variant="h6" gutterBottom>
-        {t('app.cart.total')}: {total.toFixed(2).replace('.', ',')}€
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, minHeight: 48 }}>
+        <Typography variant="h6" gutterBottom sx={{ m: 0, flex: 1, fontWeight: 700, fontSize: 18, color: 'text.primary' }}>
+          {t('app.cart.total')}: {total.toFixed(2).replace('.', ',')}€
+        </Typography>
+        <Box sx={{ flexShrink: 0, ml: 2 }}>
+          <ChangeCalculator total={total} />
+        </Box>
+      </Box>
       <Tooltip title={hasItems ? "" : t('app.cart.addItemsToPrint')}>
         <span>
           <Button 
@@ -39,6 +45,7 @@ const CartFooter: React.FC<CartFooterProps> = ({ total, onPrint, hasItems }) => 
             onClick={onPrint}
             fullWidth
             disabled={!hasItems}
+            sx={{ mt: 2, fontWeight: 700, borderRadius: 2 }}
           >
             {t('sales.print')}
           </Button>
@@ -48,4 +55,4 @@ const CartFooter: React.FC<CartFooterProps> = ({ total, onPrint, hasItems }) => 
   );
 };
 
-export default CartFooter; 
+export default CartFooter;

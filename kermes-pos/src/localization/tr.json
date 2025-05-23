@@ -249,6 +249,10 @@
       "name": "Isim",
       "surname": "Soyisim",
       "generate": "PDF Oluştur"
+    },
+    "changeCalculator": {
+      "givenAmount": "Verilen miktar",
+      "change": "Para Üstü"
     }
   }
 }

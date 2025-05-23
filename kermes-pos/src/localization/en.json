@@ -248,6 +248,10 @@
       "name": "Name",
       "surname": "Surname",
       "generate": "Generate PDF"
+    },
+    "changeCalculator": {
+      "givenAmount": "Given Amount",
+      "change": "Change"
     }
   }
 }

@@ -249,6 +249,10 @@
       "name": "Name",
       "surname": "Nachname",
       "generate": "PDF generieren"
+    },
+    "changeCalculator": {
+      "givenAmount": "Erhalten",
+      "change": "Rückgeld"
     }
   }
 }
