@@ -55,6 +55,8 @@
 - [x] Icon Button in TodaysSales to open popup and view all sales
 - [x] Logo in AppBar which opens website
 - [ ] Fix example statistics usage in statistics page
+- [ ] Statistics page make more apparent which is today or total
+- [ ] Statistics maybe add a dropdown for date select
 - [x] Show items sold when hovered/clicked in accordion
 - [ ] Code cleanup and optimization (for example use VariableProvider)
 - [ ] Performance improvements
@@ -67,6 +69,8 @@
 
 ### Kermes Electron
 - [x] Offline mode support
+- [ ] Move from current bad printer functionality to more efficient one
+- [ ] Fix Weblink (No new Electron Window for homepage)
 - [ ] Enhance update functionality
 - [ ] Backup and restore functionality
 - [ ] Open folder after download or send notification
