@@ -169,6 +169,14 @@ export function generateSummaryPDF(options: SummaryOptions): void {
   doc.text(total.toFixed(2) + currency, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] / 2, y + 3.5, { align: 'center' });
   doc.setFont('times', 'normal');
   y += rowHeight * 2;
+  currentPageHeight += rowHeight * 2;
+
+  // Ensure summary text starts on a new page if needed
+  if (currentPageHeight + 20 > pageHeightThreshold) {
+    doc.addPage();
+    y = 20;
+    currentPageHeight = y;
+  }
 
   // Summary text (centered)
   doc.setFont('DejaVuSans', 'normal');
@@ -179,6 +187,8 @@ export function generateSummaryPDF(options: SummaryOptions): void {
   summaryLines.forEach((line: string, i: number) => {
     doc.text(line, 105, y + 6 + i * 5, { align: 'center' });
   });
+  y += 6 + summaryLines.length * 5;
+  currentPageHeight = y;
 
   // Signature fields (centered below)
   const sigY = y + 30;

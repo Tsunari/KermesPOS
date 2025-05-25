@@ -63,9 +63,10 @@
 - [ ] Performance improvements
 - [x] Sizes of cards editable in UI (or ensure all cards always visible with any screen size)
 - [ ] More categories (or "Other" category)
-- [ ] Fix reset kurs name is saved without even pressing save
-- [ ] Fix new page if summary table is too long
-- [ ] Product management page
+- [x] Fix reset kurs name is saved without even pressing save
+- [x] Fix new page if summary table is too long
+- [x] Product management page
+- [ ] Profiles in product management page
 - [ ] Add notice for + Shift fast delete functionaliy in Product Management
 - [ ] Database and products backup before each update
 - [ ] Modern page for backups and updates

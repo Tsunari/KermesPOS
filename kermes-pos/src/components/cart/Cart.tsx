@@ -463,7 +463,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleKursNameDialogClose}>{t('common.cancel')}</Button>
-            <Button type="submit">{t('common.save')}</Button>
+            <Button variant="contained" type="submit">{t('common.save')}</Button>
           </DialogActions>
         </form>
       </Dialog>
