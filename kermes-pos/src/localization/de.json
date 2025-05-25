@@ -221,7 +221,9 @@
       "printerSettings": "Druckereinstellungen",
       "setKursName": "Kurs Name setzen",
       "kursName": "Kurs Name",
-      "cancelPrint": "Drucken abbrechen"
+      "cancelPrint": "Drucken abbrechen",
+      "forSummary": "(für Zusammenfassung)",
+      "onReceipt": "(für Beleg)"
     },
     "product": {
       "categories": {

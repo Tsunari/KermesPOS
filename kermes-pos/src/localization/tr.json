@@ -221,7 +221,9 @@
       "printerSettings": "Yazıcı Ayarları",
       "setKursName": "Kurs ismini ayarla",
       "kursName": "Kurs ismi",
-      "cancelPrint": "Baskıyı iptal et"
+      "cancelPrint": "Baskıyı iptal et",
+      "forSummary": "(tutanak için)",
+      "onReceipt": "(fiş için)"
     },
     "product": {
       "categories": {

@@ -1,5 +1,6 @@
 import { CartItem } from '../types';
 import { jsPDF } from 'jspdf';
+import './DejaVuSans-normal.js';
 
 export interface SummarySigner {
   name: string;
@@ -19,7 +20,7 @@ export interface SummaryOptions {
  * @param options SummaryOptions
  */
 export function generateSummaryPDF(options: SummaryOptions): void {
-  let { transactions, signers, kursName = 'Münih Fatih Kermes', date = new Date().toLocaleDateString(), currency = '€' } = options;
+  let { transactions, signers, kursName = 'Münih Fatih', date = new Date().toLocaleDateString(), currency = '€' } = options;
 
   // Aggregate all sold items and total from transactions, grouped by product category
   const groupMap = new Map<string, { groupName: string, items: CartItem[] }>();
@@ -57,7 +58,6 @@ export function generateSummaryPDF(options: SummaryOptions): void {
   doc.setFont('DejaVuSans', 'normal');
   doc.setFontSize(9);
   // Center and wrap the header text
-  kursName = kursName.split(' ').slice(0, 2).join(' ');
   const headerText2 = `${date} Tarihinde - ${kursName} - etkinliğinde aşağıdaki tabloda belirtilen şekilde gelir elde edilmiştir.`;
   const headerText = `${date} Tarihinde - ${kursName} - etkinliginde asagidaki tabloda belirtilen sekilde gelir elde edilmistir.`;
   const headerLines = doc.splitTextToSize(headerText2, 180);

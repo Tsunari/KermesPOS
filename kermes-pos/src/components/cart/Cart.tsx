@@ -34,6 +34,7 @@ import { cartTransactionService } from '../../services/cartTransactionService';
 import { EditSquare, Badge } from '@mui/icons-material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ReceiptPreview from './receipt/ReceiptPreview';
+import { useVariableContext } from '../../context/VariableContext';
 
 interface CartProps {
   devMode?: boolean;
@@ -52,7 +53,10 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
   const [previewAnchorEl, setPreviewAnchorEl] = useState<HTMLElement | null>(null);
   const [selectedPrinter, setSelectedPrinter] = useState<string>('');
   const [isPrinting, setIsPrinting] = useState(false);
-  const [kursName, setKursName] = useState('Münih Fatih Kermes');
+  const { kursName, setKursName } = useVariableContext();
+  const [receiptKursName, setReceiptKursName] = useState('Münih Fatih Kermes');
+  const [kursNameDraft, setKursNameDraft] = useState(kursName);
+  const [receiptKursNameDraft, setReceiptKursNameDraft] = useState(receiptKursName);
   const [kursNameDialogOpen, setKursNameDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -62,10 +66,21 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
 
   useEffect(() => {
     const savedKursName = localStorage.getItem('kursName');
+    const savedReceiptKursName = localStorage.getItem('receiptKursName');
     if (savedKursName) {
       setKursName(savedKursName);
+      setKursNameDraft(savedKursName);
+    }
+    if (savedReceiptKursName) {
+      setReceiptKursName(savedReceiptKursName);
+      setReceiptKursNameDraft(savedReceiptKursName);
     }
   }, []);
+
+  useEffect(() => {
+    setKursNameDraft(kursName);
+    setReceiptKursNameDraft(receiptKursName);
+  }, [kursName, receiptKursName]);
 
   const handleRemoveItem = (id: string) => {
     dispatch(removeFromCart(id));
@@ -144,6 +159,8 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
   const previewOpen = Boolean(previewAnchorEl);
 
   const handleKursNameDialogOpen = () => {
+    setKursNameDraft(kursName);
+    setReceiptKursNameDraft(receiptKursName);
     setKursNameDialogOpen(true);
   };
 
@@ -152,18 +169,28 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
   };
 
   const handleKursNameDialogSave = () => {
+    setKursName(kursNameDraft);
+    setReceiptKursName(receiptKursNameDraft);
     if (window.electronAPI) {
-      console.log('Sending kurs name to Electron API:', kursName);
-      window.electronAPI.changeKursName(kursName);
+      window.electronAPI.changeKursName(receiptKursNameDraft);
     } else {
       console.error('Electron API not available');
     }
-    localStorage.setItem('kursName', kursName); // Save kurs name to localStorage
+    localStorage.setItem('receiptKursName', receiptKursNameDraft);
     setKursNameDialogOpen(false);
-  }
+  };
 
   const handleKursNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setKursName(event.target.value);
+    setKursNameDraft(event.target.value);
+  };
+
+  const handleReceiptKursNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setReceiptKursNameDraft(event.target.value);
+  };
+
+  const handleKursNameReset = () => {
+    setKursNameDraft('Münih Fatih');
+    setReceiptKursNameDraft('Münih Fatih Kermes');
   };
 
   // Group items by category
@@ -174,7 +201,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
     }
     groups[category].push(item);
     return groups;
-  }, {} as Record<string, typeof cartItems>);
+  }, {} as Record<string, CartItem[]>);
 
   // Define the order of categories to ensure food is always at the top
   const categoryOrder = ['food', 'drink', 'dessert', 'Other'];
@@ -404,7 +431,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 1 }}>
             <DialogTitle sx={{ flex: 1 }}>{t('app.cart.setKursName')}</DialogTitle>
             <Button
-              onClick={() => setKursName('Münih Fatih Kermes')}
+              onClick={handleKursNameReset}
               color="secondary"
               size="small"
               sx={{ minWidth: 'unset', ml: 1, mr: 1 }}
@@ -416,11 +443,21 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
             <TextField
               autoFocus
               margin="dense"
-              label={t('app.cart.kursName')}
+              label={t('app.cart.kursName') + " " + t('app.cart.forSummary')}
               type="text"
               fullWidth
-              value={kursName}
+              value={kursNameDraft}
               onChange={handleKursNameChange}
+              placeholder="Münih Fatih"
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              margin="dense"
+              label={t('app.cart.kursName') + " " + t('app.cart.onReceipt')}
+              type="text"
+              fullWidth
+              value={receiptKursNameDraft}
+              onChange={handleReceiptKursNameChange}
               placeholder="Münih Fatih Kermes"
             />
           </DialogContent>

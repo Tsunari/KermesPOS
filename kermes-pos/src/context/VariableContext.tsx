@@ -14,7 +14,7 @@ export interface VariableContextType {
 }
 
 const defaultValues: VariableContextType = {
-  kursName: 'Münih Fatih Kermes',
+  kursName: 'Münih Fatih',
   setKursName: () => {},
   fixedGridMode: false,
   setFixedGridMode: () => {},
@@ -29,7 +29,7 @@ export const VariableContext = createContext<VariableContextType>(defaultValues)
 export const VariableContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Add more variables here as needed
   const [kursName, setKursName] = useState<string>(
-    localStorage.getItem('kursName') || 'Münih Fatih Kermes'
+    localStorage.getItem('kursName') || 'Münih Fatih'
   );
 
   const [fixedGridMode, setFixedGridModeState] = useState<boolean>(() => {
