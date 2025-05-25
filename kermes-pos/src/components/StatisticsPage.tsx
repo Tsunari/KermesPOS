@@ -729,7 +729,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
               label={t('app.statistics.addProduct') || 'Add Product'}
               value={editAddProductId !== null ? String(editAddProductId) : ''}
               onChange={e => setEditAddProductId(e.target.value ? Number(e.target.value) : null)}
-              sx={{ minWidth: 180 }}
+              sx={{ minWidth: 300 }}
             >
               <MenuItem value="">{t('app.statistics.selectProduct') || 'Select product'}</MenuItem>
               {/* Group products by category */}
@@ -761,7 +761,24 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
               onClick={() => {
                 const prod = products.find(p => String(p.id) === String(editAddProductId));
                 if (prod) {
-                  setEditItems([...editItems, { product: { id: prod.id, name: prod.name }, quantity: editAddProductQty }]);
+                  // Check if product already exists in editItems
+                  const existingIdx = editItems.findIndex(it => String(it.product?.id) === String(prod.id));
+                  if (existingIdx !== -1) {
+                    // If exists, increment quantity
+                    const newItems = [...editItems];
+                    newItems[existingIdx] = {
+                      ...newItems[existingIdx],
+                      quantity: newItems[existingIdx].quantity + editAddProductQty,
+                      product: { id: prod.id, name: prod.name, price: prod.price, category: prod.category }
+                    };
+                    setEditItems(newItems);
+                  } else {
+                    // If not, add with full product info
+                    setEditItems([
+                      ...editItems,
+                      { product: { id: prod.id, name: prod.name, price: prod.price, category: prod.category }, quantity: editAddProductQty }
+                    ]);
+                  }
                   setEditAddProductId(null);
                   setEditAddProductQty(1);
                 }
@@ -776,16 +793,41 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
           <Button
             variant="contained"
             onClick={async () => {
-              // Fix: Use updateTransaction(id, updates) instead of passing the whole object
               if (transactionToEdit) {
                 try {
+                  // Always use the latest product info for each item
+                  const fixedEditItems = editItems.map(item => {
+                    // Always get the full product object from products list
+                    const prod = products.find(p => p.id === item.product?.id);
+                    if (prod) {
+                      return {
+                        ...item,
+                        product: {
+                          id: prod.id,
+                          name: prod.name,
+                          price: prod.price,
+                          category: prod.category,
+                          description: prod.description,
+                          inStock: prod.inStock
+                        }
+                      };
+                    } else {
+                      // fallback: keep whatever is there
+                      return item;
+                    }
+                  });
+                  const itemsData = JSON.stringify(fixedEditItems);
+                  const itemsCount = fixedEditItems.reduce((count, item) => count + item.quantity, 0);
+                  const totalAmount = fixedEditItems.reduce((sum, item) => {
+                    return sum + (item.product && typeof item.product.price === 'number' ? item.product.price * item.quantity : 0);
+                  }, 0);
+                  // Save with the same structure as saveTransaction
                   await cartTransactionService.updateTransaction(transactionToEdit.id, {
-                    items_data: JSON.stringify(editItems),
-                    total_amount: editItems.reduce((sum, item) => {
-                      const product = products.find(p => p.id === item.product?.id);
-                      return sum + (product ? product.price * item.quantity : 0);
-                    }, 0),
-                    items_count: editItems.reduce((count, item) => count + item.quantity, 0),
+                    items_data: itemsData,
+                    items_count: itemsCount,
+                    total_amount: totalAmount,
+                    // Optionally update transaction_date to now, or keep original
+                    // transaction_date: new Date().toISOString(),
                   });
                   await loadData();
                 } catch (error) {

@@ -56,6 +56,7 @@
 - [x] Logo in AppBar which opens website
 - [ ] Fix example statistics usage in statistics page
 - [ ] Statistics page make more apparent which is today or total
+- [ ] Fix today to only show today not last or change it up
 - [ ] Statistics maybe add a dropdown for date select
 - [x] Show items sold when hovered/clicked in accordion
 - [ ] Code cleanup and optimization (for example use VariableProvider)
