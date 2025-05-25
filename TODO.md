@@ -67,6 +67,9 @@
 - [ ] Fix new page if summary table is too long
 - [ ] Product management page
 - [ ] Add notice for + Shift fast delete functionaliy in Product Management
+- [ ] Database and products backup before each update
+- [ ] Modern page for backups and updates
+- [ ] Fix import export of products
 
 ### Kermes Electron
 - [x] Offline mode support

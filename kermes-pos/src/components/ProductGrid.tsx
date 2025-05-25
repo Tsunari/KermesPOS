@@ -66,7 +66,7 @@ const SortableProductCard = ({ product, ...props }: SortableProductCardProps) =>
 };
 
 const ProductGrid: React.FC<ProductGridProps> = ({
-  products,
+  products: _productsProp, // ignore prop, use context
   onStockChange,
   onEdit,
   onDelete,
@@ -74,7 +74,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
 }) => {
   const { showDescription } = useSettings();
   const theme = useTheme();
-  const { fixedGridMode, cardsPerRow } = useVariableContext();
+  const { fixedGridMode, cardsPerRow, products } = useVariableContext(); // use context products
   const [orderedProducts, setOrderedProducts] = useState<Product[]>(products);
 
   // Merge products with last saved order, keeping new products at the end

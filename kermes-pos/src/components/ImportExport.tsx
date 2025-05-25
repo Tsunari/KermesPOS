@@ -197,6 +197,48 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
         >
           Import Products
         </Button>
+        <Button
+          variant="outlined"
+          startIcon={<UploadIcon />}
+          component="label"
+          sx={{ ml: 2 }}
+        >
+          Import from File
+          <input
+            type="file"
+            accept="application/json"
+            hidden
+            onChange={async (e) => {
+              const file = e.target.files && e.target.files[0];
+              if (!file) return;
+              try {
+                const text = await file.text();
+                if (productService.importProducts(text)) {
+                  setSnackbar({
+                    open: true,
+                    message: 'Products imported successfully from file!',
+                    severity: 'success',
+                  });
+                  setProducts(productService.getAllProducts());
+                } else {
+                  setSnackbar({
+                    open: true,
+                    message: 'Failed to import products from file. Please check the JSON format.',
+                    severity: 'error',
+                  });
+                }
+              } catch (err) {
+                setSnackbar({
+                  open: true,
+                  message: 'Error reading file.',
+                  severity: 'error',
+                });
+              }
+              // Reset file input so same file can be selected again
+              e.target.value = '';
+            }}
+          />
+        </Button>
       </Paper>
       
       <Snackbar

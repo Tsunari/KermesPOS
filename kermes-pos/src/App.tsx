@@ -138,7 +138,8 @@ function AppContent() {
     } else {
       productService.addProduct(product);
     }
-    loadProducts();
+    // Force context update with a new array reference
+    setProducts([...productService.getAllProducts()]);
   };
 
   const handleStockChange = (productId: string, inStock: boolean) => {

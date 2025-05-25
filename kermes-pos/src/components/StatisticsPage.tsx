@@ -564,7 +564,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                                       try { setEditItems(JSON.parse(tx.items_data)); } catch { setEditItems([]); }
                                       setEditDialogOpen(true);
                                     }}
-                                    sx={{ pr: 0 }}
+                                    sx={{  }}
                                   >
                                     <EditIcon />
                                   </IconButton>

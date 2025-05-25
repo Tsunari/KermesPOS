@@ -73,6 +73,8 @@ export function generateSummaryPDF(options: SummaryOptions): void {
   const tableLeft = 105 - tableWidth / 2;
 
   let y = tableTop;
+  let currentPageHeight = y; // Track current height for pagination
+  const pageHeightThreshold = 270; // jsPDF default page height is ~297mm, leave margin
   doc.setFontSize(8);
 
   // For each group
@@ -80,6 +82,7 @@ export function generateSummaryPDF(options: SummaryOptions): void {
     // Add a bit of space before each group header except the first
     if (groupIdx > 0) {
       y += 1;
+      currentPageHeight += 1;
     }
     // Sort items in the group alphabetically by product name
     groupObj.items.sort((a, b) => a.product.name.localeCompare(b.product.name, 'tr'));
@@ -88,6 +91,7 @@ export function generateSummaryPDF(options: SummaryOptions): void {
     doc.text(groupObj.groupName.toLocaleUpperCase(), tableLeft + tableWidth / 2, y + 3, { align: 'center' });
     doc.setFont('times', 'normal');
     y += rowHeight;
+    currentPageHeight += rowHeight;
     // Table header
     doc.setDrawColor(0);
     doc.setLineWidth(0.2);
@@ -96,31 +100,62 @@ export function generateSummaryPDF(options: SummaryOptions): void {
     doc.text('Adet', tableLeft + colWidths[0] + colWidths[1] / 2, y + 3.5, { align: 'center' });
     doc.text('Fiyat', tableLeft + colWidths[0] + colWidths[1] + colWidths[2] / 2, y + 3.5, { align: 'center' });
     doc.text('Toplam', tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] / 2, y + 3.5, { align: 'center' });
-    // Draw vertical lines for columns
+    // Draw vertical lines for header row only
     let x = tableLeft;
     for (let i = 0; i <= colWidths.length; i++) {
-      doc.line(x, y, x, y + rowHeight * (groupObj.items.length + 1));
+      doc.line(x, y, x, y + rowHeight);
       x += colWidths[i] || 0;
     }
     // Table rows for this group
     let groupTotal = 0;
     groupObj.items.forEach(item => {
+      // Check if adding a new row would exceed the page height
+      if (currentPageHeight + rowHeight > pageHeightThreshold) {
+        doc.addPage();
+        y = 20; // Reset y for new page (top margin)
+        currentPageHeight = y;
+        // Redraw table header and vertical lines on new page
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.2);
+        doc.rect(tableLeft, y, tableWidth, rowHeight, 'S');
+        doc.text('Gelir adi', tableLeft + colWidths[0] / 2, y + 3.5, { align: 'center' });
+        doc.text('Adet', tableLeft + colWidths[0] + colWidths[1] / 2, y + 3.5, { align: 'center' });
+        doc.text('Fiyat', tableLeft + colWidths[0] + colWidths[1] + colWidths[2] / 2, y + 3.5, { align: 'center' });
+        doc.text('Toplam', tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] / 2, y + 3.5, { align: 'center' });
+        // Draw vertical lines for this header row only
+        let x2 = tableLeft;
+        for (let i = 0; i <= colWidths.length; i++) {
+          doc.line(x2, y, x2, y + rowHeight);
+          x2 += colWidths[i] || 0;
+        }
+        y += rowHeight;
+        currentPageHeight += rowHeight;
+      }
       y += rowHeight;
+      currentPageHeight += rowHeight;
       doc.rect(tableLeft, y, tableWidth, rowHeight, 'S');
       doc.text(item.product.name, tableLeft + colWidths[0] / 2, y + 3.5, { align: 'center' });
       doc.text(String(item.quantity), tableLeft + colWidths[0] + colWidths[1] / 2, y + 3.5, { align: 'center' });
       doc.text(item.product.price.toFixed(2) + currency, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] / 2, y + 3.5, { align: 'center' });
       doc.text((item.quantity * item.product.price).toFixed(2) + currency, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] / 2, y + 3.5, { align: 'center' });
+      // Draw vertical lines for this row only
+      let x2 = tableLeft;
+      for (let i = 0; i <= colWidths.length; i++) {
+        doc.line(x2, y, x2, y + rowHeight);
+        x2 += colWidths[i] || 0;
+      }
       groupTotal += item.quantity * item.product.price;
     });
     // Group total row
     doc.setFont('times', 'bold');
     y += rowHeight;
+    currentPageHeight += rowHeight;
     doc.rect(tableLeft, y, tableWidth, rowHeight, 'S');
     doc.text('Grup toplam', tableLeft + colWidths[0] / 2, y + 3.5, { align: 'center' });
     doc.text(groupTotal.toFixed(2) + currency, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] / 2, y + 3.5, { align: 'center' });
     doc.setFont('times', 'normal');
     y += rowHeight;
+    currentPageHeight += rowHeight;
   });
 
   // Overall total row
