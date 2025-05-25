@@ -214,6 +214,27 @@ class CartTransactionService {
             request.onerror = () => reject(request.error);
         });
     }
+
+    async updateTransaction(id: number, updates: Partial<CartTransaction>): Promise<void> {
+        if (!this.db) await this.initDB();
+        return new Promise((resolve, reject) => {
+            const tx = this.db!.transaction(this.storeName, 'readwrite');
+            const store = tx.objectStore(this.storeName);
+            const getRequest = store.get(id);
+            getRequest.onsuccess = () => {
+                const transaction = getRequest.result;
+                if (!transaction) {
+                    reject(new Error('Transaction not found'));
+                    return;
+                }
+                const updated = { ...transaction, ...updates };
+                const putRequest = store.put(updated);
+                putRequest.onsuccess = () => resolve();
+                putRequest.onerror = () => reject(putRequest.error);
+            };
+            getRequest.onerror = () => reject(getRequest.error);
+        });
+    }
 }
 
 export const cartTransactionService = new CartTransactionService();

@@ -199,7 +199,11 @@
       "price": "Fiyat",
       "total": "Toplam",
       "confirmDeleteTitle": "Silme Onayı",
-      "confirmDeleteText": "Bu işlemi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+      "confirmDeleteText": "Bu işlemi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+      "editTransaction": "İşlemi Düzenle",
+      "editSale": "Satışı Düzenle",
+      "addProduct": "Ürün Ekle",
+      "selectProduct": "Ürünü seç"
     },
     "cart": {
       "total": "Toplam",

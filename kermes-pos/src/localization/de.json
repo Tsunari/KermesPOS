@@ -199,7 +199,11 @@
       "price": "Preis",
       "total": "Gesamt",
       "confirmDeleteTitle": "Löschen bestätigen",
-      "confirmDeleteText": "Sind Sie sicher, dass Sie diese Transaktion löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+      "confirmDeleteText": "Sind Sie sicher, dass Sie diese Transaktion löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "editTransaction": "Transaktion bearbeiten",
+      "editSale": "Verkauf bearbeiten",
+      "addProduct": "Produkt hinzufügen",
+      "selectProduct": "Produkt auswählen"
     },
     "cart": {
       "total": "Gesamt",

@@ -198,7 +198,11 @@
       "price": "Price",
       "total": "Total",
       "confirmDeleteTitle": "Confirm Deletion",
-      "confirmDeleteText": "Are you sure you want to delete this transaction? This action cannot be undone."
+      "confirmDeleteText": "Are you sure you want to delete this transaction? This action cannot be undone.",
+      "editTransaction": "Edit Transaction",
+      "editSale": "Edit Sale",
+      "addProduct": "Add Product",
+      "selectProduct": "Select Product"
     },
     "cart": {
       "total": "Total",

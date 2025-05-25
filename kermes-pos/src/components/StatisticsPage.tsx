@@ -16,6 +16,9 @@ import { useVariableContext } from '../context/VariableContext';
 import { Block, Coffee, Cookie, Euro, FoodBank, MiscellaneousServices, Payments } from '@mui/icons-material';
 import Collapse from '@mui/material/Collapse';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import EditIcon from '@mui/icons-material/Edit';
+import MenuItem from '@mui/material/MenuItem';
+import ListSubheader from '@mui/material/ListSubheader';
 
 interface StatisticsPageProps {
   products: Product[];
@@ -70,6 +73,11 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
   const [transactionToDelete, setTransactionToDelete] = useState<CartTransaction | null>(null);
   const [expandedTxId, setExpandedTxId] = useState<number | null>(null);
   const { kursName } = useVariableContext();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [transactionToEdit, setTransactionToEdit] = useState<CartTransaction | null>(null);
+  const [editItems, setEditItems] = useState<any[]>([]);
+  const [editAddProductId, setEditAddProductId] = useState<number | null>(null);
+  const [editAddProductQty, setEditAddProductQty] = useState<number>(1);
 
   // Move loadData outside useEffect so it can be called after deletion
   const loadData = React.useCallback(async () => {
@@ -224,7 +232,8 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
             <Typography variant="h5">{t('app.statistics.topSelling')}</Typography>
             <Tooltip title={t('app.statistics.viewAll')}>
               <IconButton 
-                onClick={() => setShowAllProducts(true)}
+                onClick={() => setShowAllProducts(true)
+                }
                 sx={{ 
                   color: 'primary.main',
                   '&:hover': {
@@ -545,7 +554,20 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                                       </Box>
                                     }
                                   />
-                                  {/* Delete button at the end of the list item */}
+                                  {/* Edit and delete buttons at the end of the list item */}
+                                  <IconButton
+                                    edge="end"
+                                    color="primary"
+                                    aria-label={t('app.statistics.editTransaction') || 'Edit Transaction'}
+                                    onClick={() => {
+                                      setTransactionToEdit(tx);
+                                      try { setEditItems(JSON.parse(tx.items_data)); } catch { setEditItems([]); }
+                                      setEditDialogOpen(true);
+                                    }}
+                                    sx={{ pr: 0 }}
+                                  >
+                                    <EditIcon />
+                                  </IconButton>
                                   <IconButton
                                     edge="end"
                                     color="error"
@@ -661,6 +683,124 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
             setDeleteDialogOpen(false);
             setTransactionToDelete(null);
           }}>{t('common.delete') || 'Delete'}</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Sale Dialog */}
+      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>{t('app.statistics.editSale') || 'Edit Sale'}</DialogTitle>
+        <DialogContent>
+          {/* List current products in sale */}
+          <List>
+            {editItems.map((item, idx) => {
+              const product = products.find(p => p.id === item.product?.id);
+              return (
+                <ListItem key={idx} secondaryAction={
+                  <>
+                    <TextField
+                      type="number"
+                      size="small"
+                      value={item.quantity}
+                      inputProps={{ min: 1, style: { width: 60 } }}
+                      onChange={e => {
+                        const newItems = [...editItems];
+                        newItems[idx].quantity = Math.max(1, Number(e.target.value));
+                        setEditItems(newItems);
+                      }}
+                      sx={{ mr: 1 }}
+                    />
+                    <IconButton color="error" onClick={() => {
+                      setEditItems(editItems.filter((_, i) => i !== idx));
+                    }}>
+                      <DeleteForeverIcon />
+                    </IconButton>
+                  </>
+                }>
+                  <Typography sx={{ minWidth: 120 }}>{product ? product.name : (item.product?.name || t('app.statistics.unknownProduct'))}</Typography>
+                  <Typography sx={{ ml: 2 }}>{t('app.statistics.price')}: {product ? product.price.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}€</Typography>
+                </ListItem>
+              );
+            })}
+          </List>
+          {/* Add new product */}
+          <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, gap: 2 }}>
+            <TextField
+              select
+              label={t('app.statistics.addProduct') || 'Add Product'}
+              value={editAddProductId !== null ? String(editAddProductId) : ''}
+              onChange={e => setEditAddProductId(e.target.value ? Number(e.target.value) : null)}
+              sx={{ minWidth: 180 }}
+            >
+              <MenuItem value="">{t('app.statistics.selectProduct') || 'Select product'}</MenuItem>
+              {/* Group products by category */}
+              {Object.entries(
+                products
+                  .filter(p => !editItems.some(it => String(it.product?.id) === String(p.id)))
+                  .reduce((acc, p) => {
+                    acc[p.category] = acc[p.category] || [];
+                    acc[p.category].push(p);
+                    return acc;
+                  }, {} as Record<string, Product[]>)
+              ).map(([category, prods]) => [
+                <ListSubheader key={category}>{t(`app.product.categories.${category}`) || category}</ListSubheader>,
+                prods.map(prod => (
+                  <MenuItem key={prod.id} value={prod.id}>{prod.name}</MenuItem>
+                ))
+              ])}
+            </TextField>
+            <TextField
+              type="number"
+              label={t('app.statistics.quantity') || 'Qty'}
+              value={editAddProductQty}
+              onChange={e => setEditAddProductQty(Math.max(1, Number(e.target.value)))}
+              inputProps={{ min: 1, style: { width: 60 } }}
+            />
+            <Button
+              variant="contained"
+              disabled={!editAddProductId}
+              onClick={() => {
+                const prod = products.find(p => String(p.id) === String(editAddProductId));
+                if (prod) {
+                  setEditItems([...editItems, { product: { id: prod.id, name: prod.name }, quantity: editAddProductQty }]);
+                  setEditAddProductId(null);
+                  setEditAddProductQty(1);
+                }
+              }}
+            >
+              {t('common.add') || 'Add'}
+            </Button>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              // Fix: Use updateTransaction(id, updates) instead of passing the whole object
+              if (transactionToEdit) {
+                try {
+                  await cartTransactionService.updateTransaction(transactionToEdit.id, {
+                    items_data: JSON.stringify(editItems),
+                    total_amount: editItems.reduce((sum, item) => {
+                      const product = products.find(p => p.id === item.product?.id);
+                      return sum + (product ? product.price * item.quantity : 0);
+                    }, 0),
+                    items_count: editItems.reduce((count, item) => count + item.quantity, 0),
+                  });
+                  await loadData();
+                } catch (error) {
+                  console.error('Error updating transaction:', error);
+                }
+              }
+              setEditDialogOpen(false);
+              setTransactionToEdit(null);
+              setEditItems([]);
+              setEditAddProductId(null);
+              setEditAddProductQty(1);
+            }}
+          >
+            {t('common.save')}
+          </Button>
         </DialogActions>
       </Dialog>
 
