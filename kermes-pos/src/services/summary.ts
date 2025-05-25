@@ -54,12 +54,12 @@ export function generateSummaryPDF(options: SummaryOptions): void {
   doc.setFontSize(14);
   doc.text('TUTANAK', 105, 18, { align: 'center' });
 
-  doc.setFont('times', 'normal');
-  doc.setFontSize(11);
+  doc.setFont('DejaVuSans', 'normal');
+  doc.setFontSize(9);
   // Center and wrap the header text
   kursName = kursName.split(' ').slice(0, 2).join(' ');
-  const headerText = `${date} Tarihinde yapılan kermeste aşağıdaki tabloda belirtilen şekilde ${kursName} okul-aile birliğine gelir elde edilmiştir.`;
-  const headerText2 = `${date} Tarihinde - ${kursName} - etkinliginde asagidaki tabloda belirtilen sekilde gelir elde edilmistir.`;
+  const headerText2 = `${date} Tarihinde - ${kursName} - etkinliğinde aşağıdaki tabloda belirtilen şekilde gelir elde edilmiştir.`;
+  const headerText = `${date} Tarihinde - ${kursName} - etkinliginde asagidaki tabloda belirtilen sekilde gelir elde edilmistir.`;
   const headerLines = doc.splitTextToSize(headerText2, 180);
   headerLines.forEach((line: string, i: number) => {
     doc.text(line, 105, 30 + i * 5, { align: 'center' });
@@ -88,15 +88,17 @@ export function generateSummaryPDF(options: SummaryOptions): void {
     groupObj.items.sort((a, b) => a.product.name.localeCompare(b.product.name, 'tr'));
     // Group header
     doc.setFont('times', 'bold');
+    doc.setFontSize(8);
     doc.text(groupObj.groupName.toLocaleUpperCase(), tableLeft + tableWidth / 2, y + 3, { align: 'center' });
-    doc.setFont('times', 'normal');
+    doc.setFontSize(7);
+    doc.setFont('DejaVuSans', 'normal');
     y += rowHeight;
     currentPageHeight += rowHeight;
     // Table header
     doc.setDrawColor(0);
     doc.setLineWidth(0.2);
     doc.rect(tableLeft, y, tableWidth, rowHeight, 'S');
-    doc.text('Gelir adi', tableLeft + colWidths[0] / 2, y + 3.5, { align: 'center' });
+    doc.text('Gelir adı', tableLeft + colWidths[0] / 2, y + 3.5, { align: 'center' });
     doc.text('Adet', tableLeft + colWidths[0] + colWidths[1] / 2, y + 3.5, { align: 'center' });
     doc.text('Fiyat', tableLeft + colWidths[0] + colWidths[1] + colWidths[2] / 2, y + 3.5, { align: 'center' });
     doc.text('Toplam', tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] / 2, y + 3.5, { align: 'center' });
@@ -148,28 +150,31 @@ export function generateSummaryPDF(options: SummaryOptions): void {
     });
     // Group total row
     doc.setFont('times', 'bold');
+    doc.setFontSize(8);
     y += rowHeight;
     currentPageHeight += rowHeight;
     doc.rect(tableLeft, y, tableWidth, rowHeight, 'S');
     doc.text('Grup toplam', tableLeft + colWidths[0] / 2, y + 3.5, { align: 'center' });
     doc.text(groupTotal.toFixed(2) + currency, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] / 2, y + 3.5, { align: 'center' });
     doc.setFont('times', 'normal');
+    doc.setFontSize(7);
     y += rowHeight;
     currentPageHeight += rowHeight;
   });
 
   // Overall total row
   doc.setFont('times', 'bold');
+  doc.setFontSize(8);
   doc.text('Genel toplam', tableLeft + colWidths[0] / 2, y + 3.5, { align: 'center' });
   doc.text(total.toFixed(2) + currency, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] / 2, y + 3.5, { align: 'center' });
   doc.setFont('times', 'normal');
   y += rowHeight * 2;
 
   // Summary text (centered)
-  doc.setFont('times', 'normal');
-  doc.setFontSize(11);
-  const summaryText = `Genel toplamda ${total.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}${currency} gelir elde edilmiş olup ve okul aile birliği hesabına yatırılmıştır.\nİş bu tutanak tarafımızca imza altına alınmıştır.`;
-  const summaryText2 = `Genel toplamda ${total.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}${currency} gelir elde edilmis olup,\nIs bu tutanak tarafimizca imza altina alinmistir.`;
+  doc.setFont('DejaVuSans', 'normal');
+  doc.setFontSize(9);
+  const summaryText2 = `Genel toplamda ${total.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}${currency} gelir elde edilmiş olup,\nİş bu tutanak tarafımızca imza altına alınmıştır.`;
+  const summaryText = `Genel toplamda ${total.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}${currency} gelir elde edilmis olup,\nIs bu tutanak tarafimizca imza altina alinmistir.`;
   const summaryLines = doc.splitTextToSize(summaryText2, 180);
   summaryLines.forEach((line: string, i: number) => {
     doc.text(line, 105, y + 6 + i * 5, { align: 'center' });
@@ -183,15 +188,17 @@ export function generateSummaryPDF(options: SummaryOptions): void {
   signers.forEach((signer, i) => {
     const x = sigStartX + i * (sigWidth + sigSpacing);
     doc.line(x, sigY, x + sigWidth, sigY); // signature line
-    doc.setFont('times', 'normal');
-    doc.setFontSize(8);
+    doc.setFont('DejaVuSans', 'normal');
+    doc.setFontSize(7);
     doc.text(signer.name + ' ' + signer.surname, x + sigWidth / 2, sigY + 5, { align: 'center' });
+    doc.setFont('times', 'normal');
     doc.setFontSize(10);
     if (i === 0) {
       doc.text('Teslim alan', x + sigWidth / 2, sigY + 10, { align: 'center' });
     } else {
       doc.text('Teslim eden', x + sigWidth / 2, sigY + 10, { align: 'center' });
     }
+    doc.setFont('DejaVuSans', 'normal');
     doc.setFontSize(12); // Reset to default for next loop/section 
   });
 
