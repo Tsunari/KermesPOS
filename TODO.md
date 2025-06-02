@@ -71,6 +71,7 @@
 - [ ] Database and products backup before each update
 - [ ] Modern page for backups and updates
 - [ ] Fix import export of products
+- [ ] Table management
 
 ### Kermes Electron
 - [x] Offline mode support
