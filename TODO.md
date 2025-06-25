@@ -87,6 +87,10 @@
 - [ ] Decide how to route (UI)
 - [ ] Thumbnails for pages
 
+### Kermes Menu
+- [ ] Add functionality to take Products from POS system
+- [ ] Idea select Kermes from List and make API for each kermes system to fetch data (products etc.)
+
 ----------------------------
 
 ## Version 1.2.0 (Released)
