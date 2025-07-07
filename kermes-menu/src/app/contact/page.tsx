@@ -11,7 +11,8 @@ export default function ContactPage() {
   const mailto = () => {
     const subject = encodeURIComponent(`Kermes İletişim - ${name}`);
     const body = encodeURIComponent(message);
-    return `mailto:talebelergfc@gmail.com?subject=${subject}&body=${body}`;
+    // Send to mhsbkommuc@gmail.com, cc talebelergfc@gmail.com
+    return `mailto:mhsbkommuc@gmail.com?cc=talebelergfc@gmail.com&subject=${subject}&body=${body}`;
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -26,7 +27,11 @@ export default function ContactPage() {
     <PageContainer>
       <div className="bg-white/90 rounded-2xl shadow-lg p-6 border border-gray-200 mt-8 mb-6">
         <h1 className="text-3xl font-extrabold text-black mb-4 text-center tracking-tight">İletişim</h1>
-        <p className="text-gray-700 mb-2 text-center">Bize ulaşmak için aşağıdaki formu doldurun veya <a href="mailto:talebelergfc@gmail.com" className="text-black underline font-semibold">talebelergfc@gmail.com</a> adresine e-posta gönderin.</p>
+        <p className="text-gray-700 mb-2 text-center">
+          Bize ulaşmak için aşağıdaki formu doldurun veya{' '}
+          <a href="mailto:mhsbkommuc@gmail.com?cc=talebelergfc@gmail.com" className="text-black underline font-semibold">mhsbkommuc@gmail.com</a>{' '}
+          adresine e-posta gönderin.
+        </p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-3 bg-white/90 rounded-2xl shadow-lg p-5 border border-gray-200">
         <input

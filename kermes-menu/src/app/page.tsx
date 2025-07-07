@@ -1,22 +1,23 @@
 import Link from 'next/link';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
-import RateReviewIcon from '@mui/icons-material/RateReview';
 import InfoIcon from '@mui/icons-material/Info';
-import LocalDiningIcon from '@mui/icons-material/LocalDining';
 import ContactMailIcon from '@mui/icons-material/ContactMail';
 import PageContainer from './components/PageContainer';
 import Image from 'next/image';
-import { Info, PointOfSale, School, Settings } from '@mui/icons-material';
-import { SpeedDialIcon } from '@mui/material';
+import { CardGiftcard, Festival, Recommend, School } from '@mui/icons-material';
 
 const navCards = [
+  { label: 'Kermesimiz', href: '/festival', icon: <Festival fontSize="large" className="text-black" /> },
   { label: 'Menü', href: '/menu', icon: <RestaurantMenuIcon fontSize="large" className="text-black" /> },
-  //{ label: 'İncelemeler', href: '/reviews', icon: <RateReviewIcon fontSize="large" className="text-black" /> },
-  //{ label: 'Ayarlar', href: '/settings', icon: <Settings fontSize="large" className="text-black" /> },
-  { label: 'İletişim', href: '/contact', icon: <ContactMailIcon fontSize="large" className="text-black" /> },
   { label: 'Hakkımızda', href: '/about', icon: <InfoIcon fontSize="large" className="text-black" /> },
-  { label: 'Üniversite Yurtlarımız', href: 'https://www.vikz-studentenwohnheime.de', icon: <School fontSize="large" className="text-black" />, external: true },
-  { label: 'Kermes POS', href: 'https://kermespos.web.app/', icon: <PointOfSale fontSize="large" className="text-black" />, external: true },
+  { label: 'Sponsorlarımız', href: '/sponsor', icon: <Recommend fontSize="large" className="text-black" /> },
+  { label: 'Talebeleye İkram', href: '/ikram', icon: <CardGiftcard fontSize="large" className="text-black" /> },
+  // { label: 'Yurtlarımızın Tanıtımı', href: 'https://www.vikz-studentenwohnheime.de', icon: <School fontSize="large" className="text-black" />, external: true },
+  { label: 'Yurtlarımızın Tanıtımı', href: '/yurtlar', icon: <School fontSize="large" className="text-black" />,},
+  { label: 'İletişim', href: '/contact', icon: <ContactMailIcon fontSize="large" className="text-black" /> },
+  // { label: 'İncelemeler', href: '/reviews', icon: <RateReviewIcon fontSize="large" className="text-black" /> },
+  // { label: 'Ayarlar', href: '/settings', icon: <Settings fontSize="large" className="text-black" /> },
+  // { label: 'Kermes POS', href: 'https://kermespos.web.app/', icon: <PointOfSale fontSize="large" className="text-black" />, external: true },
 ];
 
 export default function Home() {
@@ -25,13 +26,15 @@ export default function Home() {
       <div className="flex flex-col items-center w-full px-2 py-8 gap-4">
         {/* Hero SVG header */}
         <div className="w-full flex justify-center mb-4">
-          <a href="https://kermespos.web.app/" target="_blank" rel="noopener noreferrer" className="w-fit">
+          <a 
+            //href="https://kermespos.web.app/" target="_blank" rel="noopener noreferrer" 
+            className="w-fit">
             <Image
               src="/Mintika_round_b-cropped.svg"
               alt="Mintika Hero Logo"
               width={120}
               height={120}
-              className="drop-shadow-lg rounded-full cursor-pointer"
+              className="drop-shadow-lg rounded-full"
               priority
             />
           </a>

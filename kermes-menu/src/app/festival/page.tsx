@@ -1,13 +1,13 @@
 "use client";
-import CenteredImage from '../components/CenteredImage';
 import PageContainer from '../components/PageContainer';
+import CenteredImage from '../components/CenteredImage';
 
-export default function MenuPage() {
+export default function FestivalPage() {
     return (
         <PageContainer>
             <CenteredImage
-                src="/Menu.jpg"
-                alt="Menu"
+                src="/Festival.jpg"
+                alt="Kermesimiz"
             />
         </PageContainer>
     );
