@@ -7,17 +7,16 @@ import Image from 'next/image';
 import { CardGiftcard, Festival, Recommend, School } from '@mui/icons-material';
 
 const navCards = [
-  { label: 'Kermesimiz', href: '/festival', icon: <Festival fontSize="large" className="text-black" /> },
-  { label: 'Menü', href: '/menu', icon: <RestaurantMenuIcon fontSize="large" className="text-black" /> },
-  { label: 'Hakkımızda', href: '/about', icon: <InfoIcon fontSize="large" className="text-black" /> },
-  { label: 'Sponsorlarımız', href: '/sponsor', icon: <Recommend fontSize="large" className="text-black" /> },
-  { label: 'Talebeleye İkram', href: '/ikram', icon: <CardGiftcard fontSize="large" className="text-black" /> },
-  // { label: 'Yurtlarımızın Tanıtımı', href: 'https://www.vikz-studentenwohnheime.de', icon: <School fontSize="large" className="text-black" />, external: true },
-  { label: 'Yurtlarımızın Tanıtımı', href: '/yurtlar', icon: <School fontSize="large" className="text-black" />,},
-  { label: 'İletişim', href: '/contact', icon: <ContactMailIcon fontSize="large" className="text-black" /> },
-  // { label: 'İncelemeler', href: '/reviews', icon: <RateReviewIcon fontSize="large" className="text-black" /> },
-  // { label: 'Ayarlar', href: '/settings', icon: <Settings fontSize="large" className="text-black" /> },
-  // { label: 'Kermes POS', href: 'https://kermespos.web.app/', icon: <PointOfSale fontSize="large" className="text-black" />, external: true },
+  { label: 'Kermesimiz', href: '/festival', icon: Festival },
+  { label: 'Menü', href: '/menu', icon: RestaurantMenuIcon },
+  { label: 'Hakkımızda', href: '/about', icon: InfoIcon },
+  { label: 'Sponsorlarımız', href: '/sponsor', icon: Recommend },
+  { label: 'Talebeleye İkram', href: '/ikram', icon: CardGiftcard },
+  { label: 'Yurtlarımızın Tanıtımı', href: '/yurtlar', icon: School },
+  { label: 'İletişim', href: '/contact', icon: ContactMailIcon, external: false },
+  // { label: 'İncelemeler', href: '/reviews', icon: RateReviewIcon /> },
+  // { label: 'Ayarlar', href: '/settings', icon: Settings /> },
+  // { label: 'Kermes POS', href: 'https://kermespos.web.app/', icon: PointOfSale, external: true },
 ];
 
 export default function Home() {
@@ -44,8 +43,9 @@ export default function Home() {
           <span className="block">Hoşgeldiniz</span>
         </h1>
         <div className="w-full flex flex-col gap-4">
-          {navCards.map(card => (
-            card.external ? (
+          {navCards.map(card => {
+            const Icon = card.icon;
+            return card.external ? (
               <a
                 key={card.href}
                 href={card.href}
@@ -53,7 +53,7 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-4 bg-gray-100 hover:bg-gray-200 transition rounded-2xl shadow p-4 text-lg font-semibold text-black border border-gray-200"
               >
-                <span>{card.icon}</span>
+                <span><Icon fontSize="large" className="text-black" /></span>
                 <span>{card.label}</span>
               </a>
             ) : (
@@ -62,11 +62,11 @@ export default function Home() {
                 href={card.href}
                 className="flex items-center gap-4 bg-gray-100 hover:bg-gray-200 transition rounded-2xl shadow p-4 text-lg font-semibold text-black border border-gray-200"
               >
-                <span>{card.icon}</span>
+                <span><Icon fontSize="large" className="text-black" /></span>
                 <span>{card.label}</span>
               </Link>
-            )
-          ))}
+            );
+          })}
         </div>
       </div>
     </PageContainer>
