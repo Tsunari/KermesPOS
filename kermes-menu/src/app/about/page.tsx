@@ -1,8 +1,14 @@
 "use client";
+import { useState } from 'react';
 import PageContainer from '../components/PageContainer';
 import Image from 'next/image';
+import CenteredImage from '../components/CenteredImage';
+import DoneIcon from '@mui/icons-material/Done';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 export default function AboutPage() {
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  
   return (
     <PageContainer>
       <h1 className="text-3xl font-extrabold text-black mb-3 mt-1 text-center tracking-tight">Hakkımızda</h1>
@@ -52,7 +58,7 @@ export default function AboutPage() {
           <div>
             <p className="font-semibold mb-2">🕌 Bu Kermesimizin Geliri Nereye?</p>
             <p>
-              Bu seneki kermesimizin tüm geliri, gençlerimizin ilim ve ahlakla yetişeceği, güzel ahlakın ve kardeşliğin yeşereceği yeni açılacak olan <span className="font-bold">Rosenheim Talebe Yurdu</span>muza bağışlanacaktır.<br/>
+              Bu seneki kermesimizin tüm geliri, gençlerimizin ilim ve ahlakla yetişeceği, güzel ahlakın ve kardeşliğin yeşereceği yeni açılacak olan <span className="font-bold">Rosenheim Talebe Yurdumuza</span> bağışlanacaktır.<br/>
               Yurtlarımız, sadece barınma değil; manevi eğitim, kardeşlik, sorumluluk ve ümmet bilinci kazandıran yuvamızdır.
             </p>
           </div>
@@ -74,7 +80,7 @@ export default function AboutPage() {
           </div>
         </div>
       </div>
-      <div className="flex justify-center items-center mb-8 w-full">
+      <div className="flex justify-center items-center mb-5 w-full">
         <div className="flex justify-center items-center w-full">
             <Image
                 src="/Rosenheim.jpg"
@@ -87,7 +93,7 @@ export default function AboutPage() {
             />
         </div>
       </div>
-      <div className="flex justify-center items-center w-full">
+      {/* <div className="flex justify-center items-center w-full">
         <div className="flex justify-center items-center w-full">
             <Image
                 src="/Rosenheim-Üye.jpg"
@@ -99,7 +105,66 @@ export default function AboutPage() {
                 priority
             />
         </div>
-      </div>
+      </div> */}
+      <div className="bg-white/90 rounded-2xl shadow-lg p-6 border border-gray-200 mt-0 mb-5">
+                <div className="text-gray-700 text-base text-center space-y-6">
+                    { [
+                        {
+                            label: "URVE-Regionalverband München e.V.",
+                            value: "URVE-Regionalverband München e.V.",
+                        },
+                        {
+                            label: "IBAN: DE39 7015 0000 1005 1226 82",
+                            value: "DE39 7015 0000 1005 1226 82",
+                        },
+                        {
+                            label: "VZ: Mitgliedsbeitrag Rosenheim",
+                            value: "Mitgliedsbeitrag Rosenheim",
+                        },
+                    ].map((item, idx) => (
+                        <div key={idx} className="flex items-center justify-center space-x-2 mb-5 last:mb-0">
+                            <span>{item.label}</span>
+                            <button
+                                type="button"
+                                className="p-1 rounded hover:bg-gray-200"
+                                onClick={() => {
+                                    navigator.clipboard.writeText(item.value);
+                                    //setSnackbarOpen(true);
+                                    setCopiedIdx(idx);
+                                    setTimeout(() => setCopiedIdx(null), 5000);
+                                }}
+                                aria-label="Copy to clipboard"
+                            >
+                                {copiedIdx === idx ? (
+                                    <DoneIcon className="text-gray-500" fontSize="small" />
+                                ) : (
+                                    <ContentCopyIcon className="text-gray-500" fontSize="small" />
+                                )}
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            <div className="bg-white/90 rounded-2xl shadow-lg p-0 border border-gray-200 mt-0 mb-5">
+                <div className="text-gray-700 text-base text-center space-y-6">
+                    {/* <p>Veya hızlıca:</p> */}
+                    <a
+                      href="https://www.paypal.me/URVEmuenchen"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block"
+                    >
+                      <CenteredImage
+                        width={150}
+                        innerClassName="flex justify-center items-center"
+                        outerClassName=""
+                        border={false}
+                        src="/paypal.png"
+                        alt="PayPal Logo"
+                      />
+                    </a>
+                </div>
+            </div>
     </PageContainer>
   );
 }
