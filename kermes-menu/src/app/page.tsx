@@ -1,3 +1,4 @@
+"use client";
 import Link from 'next/link';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import InfoIcon from '@mui/icons-material/Info';
@@ -5,6 +6,9 @@ import ContactMailIcon from '@mui/icons-material/ContactMail';
 import PageContainer from './components/PageContainer';
 import Image from 'next/image';
 import { CardGiftcard, Festival, Recommend, School } from '@mui/icons-material';
+import { useEffect, useState } from 'react';
+import { onSnapshot, doc } from "firebase/firestore";
+import { db } from "../../firebaseInit";
 
 const navCards = [
   { label: 'Kermesimiz', href: '/festival', icon: Festival },
@@ -19,9 +23,42 @@ const navCards = [
   // { label: 'Kermes POS', href: 'https://kermespos.web.app/', icon: PointOfSale, external: true },
 ];
 
+const SETTINGS_DOC = "settings/main";
+
 export default function Home() {
-  
-  const active = false;
+  const [active, setActive] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, SETTINGS_DOC), (snap) => {
+      if (snap.exists()) {
+        setActive(snap.data()?.active ?? null);
+      } else {
+        setActive(null);
+      }
+      setLoading(false);
+    }, () => setLoading(false));
+    return () => unsub();
+  }, []);
+
+  if (loading || active === null) {
+    return (
+      <PageContainer>
+        <div className="flex items-center justify-center min-h-screen bg-white">
+          <div className="flex flex-col items-center gap-6">
+            <span className="relative flex h-16 w-16">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-30"></span>
+              <span className="relative inline-flex rounded-full h-16 w-16 bg-gray-100 shadow-lg"></span>
+              <span className="absolute inset-0 flex items-center justify-center">
+                <Image src="/Mintika_round_b-cropped.svg" alt="Mintika Logo" width={40} height={40} className="rounded-full" />
+              </span>
+            </span>
+            {/* <span className="text-xl font-bold text-black tracking-tight">Loading...</span> */}
+          </div>
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>
@@ -30,8 +67,7 @@ export default function Home() {
           <>
             {/* Hero SVG header */}
             <div className="w-full flex justify-center mb-4">
-              <a 
-                className="w-fit">
+              <a className="w-fit">
                 <Image
                   src="/Mintika_round_b-cropped.svg"
                   alt="Mintika Hero Logo"

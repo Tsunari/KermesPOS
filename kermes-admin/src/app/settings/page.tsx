@@ -1,21 +1,21 @@
 "use client";
 import { useEffect, useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../../firebaseInit";
+import KermesLoading from "../../components/KermesLoading";
 
-const SETTINGS_PATH = "/settings.json";
+const SETTINGS_DOC = "settings/main";
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState(null);
+  const [settings, setSettings] = useState<{ active: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(SETTINGS_PATH)
-      .then((res) => {
-        if (!res.ok) throw new Error("Could not fetch settings.json");
-        return res.json();
-      })
-      .then((data) => {
-        setSettings(data);
+    getDoc(doc(db, SETTINGS_DOC))
+      .then((snap) => {
+        if (snap.exists()) setSettings({ active: snap.data()?.active ?? true });
+        else setError("No settings found");
         setLoading(false);
       })
       .catch((err) => {
@@ -24,7 +24,7 @@ export default function SettingsPage() {
       });
   }, []);
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  if (loading) return <KermesLoading message="Loading..." />;
   if (error) return <div className="text-red-500 p-8">Error: {error}</div>;
 
   return (
