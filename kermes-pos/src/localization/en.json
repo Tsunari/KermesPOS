@@ -245,7 +245,14 @@
       "clear": "Clear",
       "confirm": "Confirm",
       "selectQuantity": "Select Quantity",
-      "quantity": "Quantity"
+      "quantity": "Quantity",
+      "separateAddition": "Separate Addition",
+      "separateAdditionTooltip": "Toggle separate addition for quantity selection",
+      "quantitySeparate": "Quantity Selection Separate",
+      "quantitySeparateTooltip": "When enabled, quantity selection creates separate cart items. When disabled, quantities are merged with existing items.",
+      "productTapSeparate": "Product Tap Separate",
+      "productTapSeparateTooltip": "When enabled, tapping product cards creates separate cart items. When disabled, quantities are merged.",
+      "settings": "Settings"
     },
     "signers": {
       "setSigners": "Set Signers",

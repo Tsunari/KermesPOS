@@ -30,7 +30,7 @@ import NumericKeypad from './components/cart/NumericKeypad';
 import { Product } from './types/index';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from './store';
-import { addToCart } from './store/slices/cartSlice';
+import { addToCart, addToCartWithQuantity } from './store/slices/cartSlice';
 import { productService } from './services/productService';
 import SettingsPage from './components/SettingsPage';
 import ImportExport from './components/ImportExport';
@@ -98,6 +98,8 @@ function AppContent() {
   const [devMode, setDevMode] = useState(false);
   const [selectedQuantity, setSelectedQuantity] = useState(0);
   const [isAppBarVisible, setIsAppBarVisible] = useState(true);
+  const [separateAdditionEnabled, setSeparateAdditionEnabled] = useState(false);
+  const [productTapSeparateEnabled, setProductTapSeparateEnabled] = useState(true);
   const location = useLocation();
   const isProductsPage = location.pathname === '/';
   const cartItems = useSelector((state: RootState) => state.cart.items);
@@ -161,12 +163,29 @@ function AppContent() {
   // TODO Make this more efficient
   const handleProductClick = (product: Product) => {
     if (selectedQuantity > 0) {
-      for (let i = 0; i < selectedQuantity; i++) {
-        dispatch(addToCart(product));
+      if (separateAdditionEnabled) {
+        // Create separate cart items even with quantity selection
+        for (let i = 0; i < selectedQuantity; i++) {
+          dispatch(addToCart(product));
+        }
+      } else {
+        // Merge into one cart item with the selected quantity
+        dispatch(addToCartWithQuantity({ product, quantity: selectedQuantity }));
       }
       setSelectedQuantity(0);
     } else {
-      dispatch(addToCart(product));
+      if (productTapSeparateEnabled) {
+        // Create separate cart items for direct product taps
+        dispatch(addToCart(product));
+      } else {
+        // Try to merge with existing cart items of the same product
+        const existingItem = cartItems.find(item => item.product.id === product.id);
+        if (existingItem) {
+          dispatch(addToCartWithQuantity({ product, quantity: 1 }));
+        } else {
+          dispatch(addToCart(product));
+        }
+      }
     }
   };
 
@@ -345,6 +364,10 @@ function AppContent() {
                 onNumberClick={handleNumberClick}
                 onClear={handleClearQuantity}
                 selectedQuantity={selectedQuantity}
+                separateAdditionEnabled={separateAdditionEnabled}
+                onSeparateAdditionToggle={setSeparateAdditionEnabled}
+                productTapSeparateEnabled={productTapSeparateEnabled}
+                onProductTapSeparateToggle={setProductTapSeparateEnabled}
               />
             </Box>
             <Box sx={{ p: 2, flex: 1, overflow: 'auto' }}>

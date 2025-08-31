@@ -16,14 +16,24 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addToCart: (state, action: PayloadAction<Product>) => {
+      // Always add a new cart item, even if the product already exists
+      state.items.push({ product: action.payload, quantity: 1 });
+
+      state.total = state.items.reduce(
+        (total, item) => total + item.product.price * item.quantity,
+        0
+      );
+    },
+    addToCartWithQuantity: (state, action: PayloadAction<{ product: Product; quantity: number }>) => {
+      const { product, quantity } = action.payload;
       const existingItem = state.items.find(
-        (item) => item.product.id === action.payload.id
+        (item) => item.product.id === product.id
       );
 
       if (existingItem) {
-        existingItem.quantity += 1;
+        existingItem.quantity += quantity;
       } else {
-        state.items.push({ product: action.payload, quantity: 1 });
+        state.items.push({ product, quantity });
       }
 
       state.total = state.items.reduce(
@@ -59,6 +69,6 @@ const cartSlice = createSlice({
   },
 });
 
-export const { addToCart, removeFromCart, updateQuantity, clearCart } =
+export const { addToCart, addToCartWithQuantity, removeFromCart, updateQuantity, clearCart } =
   cartSlice.actions;
 export default cartSlice.reducer; 

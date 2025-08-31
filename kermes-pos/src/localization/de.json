@@ -246,7 +246,14 @@
       "clear": "Löschen",
       "confirm": "Bestätigen",
       "selectQuantity": "Menge auswählen",
-      "quantity": "Menge"
+      "quantity": "Menge",
+      "separateAddition": "Separat Hinzufügung",
+      "separateAdditionTooltip": "Separates Hinzufügen für Mengenauswahl umschalten",
+      "quantitySeparate": "Mengenauswahl Separat",
+      "quantitySeparateTooltip": "Wenn aktiviert, erstellt die Mengenauswahl separate Warenkorbartikel. Wenn deaktiviert, werden Mengen mit vorhandenen Artikeln zusammengeführt.",
+      "productTapSeparate": "Produkt-Tap Separat",
+      "productTapSeparateTooltip": "Wenn aktiviert, erstellt das Antippen von Produktkarten separate Warenkorbartikel. Wenn deaktiviert, werden Mengen zusammengeführt.",
+      "settings": "Einstellungen"
     },
     "signers": {
       "setSigners": "Unterzeichner festlegen",

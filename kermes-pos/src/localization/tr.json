@@ -246,7 +246,14 @@
       "clear": "Temizle",
       "confirm": "Onayla",
       "selectQuantity": "Miktar Seç",
-      "quantity": "Miktar"
+      "quantity": "Miktar",
+      "separateAddition": "Ayrı Ekleme",
+      "separateAdditionTooltip": "Miktar seçimi için ayrı eklemeyi aç/kapat",
+      "quantitySeparate": "Miktar Seçimi Ayrı",
+      "quantitySeparateTooltip": "Etkinleştirildiğinde, miktar seçimi ayrı sepet öğeleri oluşturur. Devre dışı bırakıldığında, miktarlar mevcut öğelerle birleştirilir.",
+      "productTapSeparate": "Ürün Dokunma Ayrı",
+      "productTapSeparateTooltip": "Etkinleştirildiğinde, ürün kartlarına dokunmak ayrı sepet öğeleri oluşturur. Devre dışı bırakıldığında, miktarlar birleştirilir.",
+      "settings": "Ayarlar"
     },
     "signers": {
       "setSigners": "İmzalayanları Ayarla",
