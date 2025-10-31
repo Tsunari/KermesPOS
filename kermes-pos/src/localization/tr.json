@@ -236,6 +236,14 @@
         "dessert": "Tatlı"
       }
     },
+    "products": {
+      "shortcutsTips": "Kısayollar & İpuçları",
+      "tooltipDelete": "Sil (Shift basılı tutarak anında)",
+      "tooltipDeleteInstant": "Anında sil",
+      "tooltipVisibilityShow": "Izgarada göster",
+      "tooltipVisibilityHide": "Izgaradan gizle",
+      "tooltipVisibilityMulti": "Toplu değiştirmek için basılı tutup sürükleyin"
+    },
     "devMode": {
       "enableToUse": "Bu özelliği kullanmak için Geliştirici Modunu etkinleştirin",
       "enableInSettings": "Bu özelliği kullanmak için Ayarlar'dan Geliştirici Modunu etkinleştirin"

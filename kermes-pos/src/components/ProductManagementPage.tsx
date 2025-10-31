@@ -11,13 +11,19 @@ import {
   DialogActions,
   Stack,
   Button, // restore Button import
+  Tooltip,
+  Popover,
+  Fade
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import AddIcon from '@mui/icons-material/Add';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import Keycap from './ui/Keycap';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { useVariableContext } from '../context/VariableContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Product } from '../types/index';
 import { productService } from '../services/productService';
 
@@ -32,6 +38,7 @@ const emptyProduct = { id: '', name: '', price: '', category: 'food', descriptio
 type EditableProduct = typeof emptyProduct & { id?: string };
 
 const ProductManagementPage: React.FC = () => {
+  const { t } = useLanguage();
   const { products, setProducts } = useVariableContext();
   const [addRows, setAddRows] = useState({
     food: { name: '', price: '', description: '' },
@@ -196,9 +203,56 @@ const ProductManagementPage: React.FC = () => {
 
   const addProductRefs = React.useRef<{ [cat: string]: HTMLInputElement | null }>({});
 
+  const [shortcutsAnchorEl, setShortcutsAnchorEl] = useState<HTMLElement | null>(null);
+
+
+
   return (
     <Box sx={{ p: 1, maxWidth: '100vw', mx: 'auto' }}>
-      <Typography variant="h6" gutterBottom sx={{ mb: 2, fontWeight: 700, fontSize: 24 }}>Product Management</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Typography variant="h6" gutterBottom sx={{ m: 0, fontWeight: 700, fontSize: 24 }}>Product Management</Typography>
+        <Tooltip title={t('app.products.shortcutsTips') || 'Shortcuts & Tips'}>
+          <IconButton size="small" onClick={(e) => setShortcutsAnchorEl(e.currentTarget)} aria-label="Shortcuts & Tips">
+            <HelpOutlineIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Popover
+          open={Boolean(shortcutsAnchorEl)}
+          anchorEl={shortcutsAnchorEl}
+          onClose={() => setShortcutsAnchorEl(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          TransitionComponent={Fade}
+          transitionDuration={{ enter: 220, exit: 180 }}
+          PaperProps={{ sx: { borderRadius: 2, boxShadow: 6 } }}
+        >
+          <Box sx={{ p: 2.5, width: 460, maxWidth: '86vw' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Shortcuts & Tips</Typography>
+            <Box component="ul" sx={{ pl: 2, m: 0, display: 'grid', gap: 0.9 }}>
+              <li>
+                <Typography variant="body2">
+                  Visibility: Click to toggle. Hold ~0.2s and drag across icons to multi-toggle.
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="body2">
+                  Delete: Click trash to confirm. Hold <Keycap>Shift</Keycap> + click for instant delete.
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="body2">
+                  Add row: <Keycap>Enter</Keycap> to add. <Keycap>Tab</Keycap> / <Keycap>Shift</Keycap> + <Keycap>Tab</Keycap> to move between fields.
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="body2">
+                  Price edit: Type freely (comma supported). <Keycap>Enter</Keycap>/<Keycap>Blur</Keycap> to save, <Keycap>Esc</Keycap> to cancel.
+                </Typography>
+              </li>
+            </Box>
+          </Box>
+        </Popover>
+      </Box>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="flex-start" sx={{ width: '100%' }}>
         {(['food', 'drink', 'dessert'] as const).map((cat) => (
           <Paper key={cat} sx={{
@@ -338,12 +392,15 @@ const ProductRow: React.FC<{
   onBulkMouseUp?: (id: string) => void;
   onBulkEnter?: (id: string) => void;
 }> = ({ prod, shiftDown, onDelete, setDeleteId, handleFieldChange, handleSaveEdit, bulkActive, onBulkMouseDown, onBulkMouseUp, onBulkEnter }) => {
+  const { t } = useLanguage();
   const [hovered, setHovered] = React.useState(false);
+  const [tooltipSuppressed, setTooltipSuppressed] = React.useState(false);
   // Local draft for price to allow free typing and validate on blur/commit
   const [isEditingPrice, setIsEditingPrice] = React.useState(false);
   const [priceDraft, setPriceDraft] = React.useState<string>(
     prod.price === undefined || prod.price === null ? '' : String(prod.price).replace(/\./g, ',')
   );
+  const cancelEditRef = React.useRef(false);
 
   // Keep draft in sync when product price changes externally (but not while actively editing)
   React.useEffect(() => {
@@ -369,6 +426,13 @@ const ProductRow: React.FC<{
     // Update context with fresh array to avoid stale refs
     setProducts([...productService.getAllProducts()]);
   };
+
+  // Suppress tooltips during bulk and until mouse leaves after bulk ends
+  React.useEffect(() => {
+    if (bulkActive) {
+      setTooltipSuppressed(true);
+    }
+  }, [bulkActive]);
 
   return (
     <Box sx={{
@@ -411,15 +475,26 @@ const ProductRow: React.FC<{
         }}
         onBlur={() => {
           setIsEditingPrice(false);
-          commitPrice();
-          handleSaveEdit && handleSaveEdit(prod.id);
+          if (cancelEditRef.current) {
+            // Cancel changes: restore from prod and do not commit
+            cancelEditRef.current = false;
+            setPriceDraft(
+              prod.price === undefined || prod.price === null ? '' : String(prod.price).replace(/\./g, ',')
+            );
+          } else {
+            commitPrice();
+            handleSaveEdit && handleSaveEdit(prod.id);
+          }
         }}
         onKeyDown={e => {
           if (e.key === 'Enter') {
             (e.target as HTMLInputElement).blur();
           } else if (e.key === 'Escape') {
             // Revert to the current product price and exit edit
-            setPriceDraft(prod.price === undefined || prod.price === null ? '' : String(prod.price).replace(/\./g, ','));
+            cancelEditRef.current = true;
+            setPriceDraft(
+              prod.price === undefined || prod.price === null ? '' : String(prod.price).replace(/\./g, ',')
+            );
             (e.target as HTMLInputElement).blur();
           }
         }}
@@ -439,36 +514,65 @@ const ProductRow: React.FC<{
         onBlur={() => handleSaveEdit && handleSaveEdit(prod.id)}
         InputProps={{ sx: { fontSize: 13, py: 0.5 } }}
       />
-      <IconButton
-        color={shiftDown && hovered ? 'error' : 'error'}
-        size="small"
-        onClick={e => {
-          if (shiftDown) {
-            onDelete(prod.id);
-          } else {
-            setDeleteId(prod.id);
-          }
-        }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+      <Tooltip
+        title={(bulkActive || tooltipSuppressed)
+          ? ''
+          : (shiftDown
+            ? (t('app.products.tooltipDeleteInstant') || 'Instant delete')
+            : (t('app.products.tooltipDelete') || 'Delete (hold Shift for instant)'))}
+        disableHoverListener={!!bulkActive || tooltipSuppressed}
+        disableFocusListener={!!bulkActive || tooltipSuppressed}
+        disableTouchListener={!!bulkActive || tooltipSuppressed}
+        enterDelay={0}
+        leaveDelay={0}
+        TransitionProps={(bulkActive || tooltipSuppressed) ? { timeout: 0 } : undefined}
       >
-        {shiftDown && hovered ? (
-          <DeleteForeverIcon fontSize="small" />
-        ) : (
-          <DeleteIcon fontSize="small" />
-        )}
-      </IconButton>
-      <IconButton
-        color={prod.hidden ? 'default' : 'primary'}
-        size="small"
-        onMouseDown={(e) => { e.preventDefault(); if (onBulkMouseDown) { onBulkMouseDown(prod.id, !prod.hidden); } else { toggleVisibility(); } }}
-        onMouseUp={() => { onBulkMouseUp && onBulkMouseUp(prod.id); }}
-        onMouseEnter={() => { if (bulkActive && onBulkEnter) onBulkEnter(prod.id); }}
-        sx={{ ml: 0.5, outline: bulkActive ? '2px solid rgba(25,118,210,0.4)' : 'none', outlineOffset: 2 }}
-        title={prod.hidden ? 'Show in grid' : 'Hide from grid'}
+        <IconButton
+          color={shiftDown && hovered ? 'error' : 'error'}
+          size="small"
+          onClick={e => {
+            if (shiftDown) {
+              onDelete(prod.id);
+            } else {
+              setDeleteId(prod.id);
+            }
+          }}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => { setHovered(false); if (!bulkActive) setTooltipSuppressed(false); }}
+        >
+          {shiftDown && hovered ? (
+            <DeleteForeverIcon fontSize="small" />
+          ) : (
+            <DeleteIcon fontSize="small" />
+          )}
+        </IconButton>
+      </Tooltip>
+      <Tooltip
+        title={(bulkActive || tooltipSuppressed)
+          ? ''
+          : `${prod.hidden
+            ? (t('app.products.tooltipVisibilityShow') || 'Show in grid')
+            : (t('app.products.tooltipVisibilityHide') || 'Hide from grid')}
+          — ${t('app.products.tooltipVisibilityMulti') || 'Hold and drag to multi-toggle'}`}
+        disableHoverListener={!!bulkActive || tooltipSuppressed}
+        disableFocusListener={!!bulkActive || tooltipSuppressed}
+        disableTouchListener={!!bulkActive || tooltipSuppressed}
+        enterDelay={0}
+        leaveDelay={0}
+        TransitionProps={(bulkActive || tooltipSuppressed) ? { timeout: 0 } : undefined}
       >
-        {prod.hidden ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
-      </IconButton>
+        <IconButton
+          color={prod.hidden ? 'default' : 'primary'}
+          size="small"
+          onMouseDown={(e) => { e.preventDefault(); setTooltipSuppressed(true); if (onBulkMouseDown) { onBulkMouseDown(prod.id, !prod.hidden); } else { toggleVisibility(); } }}
+          onMouseUp={() => { onBulkMouseUp && onBulkMouseUp(prod.id); }}
+          onMouseEnter={() => { if (bulkActive && onBulkEnter) onBulkEnter(prod.id); }}
+          onMouseLeave={() => { if (!bulkActive) setTooltipSuppressed(false); }}
+          sx={{ ml: 0.5, outline: bulkActive ? '2px solid rgba(25,118,210,0.4)' : 'none', outlineOffset: 2 }}
+        >
+          {prod.hidden ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+        </IconButton>
+      </Tooltip>
     </Box>
   );
 };

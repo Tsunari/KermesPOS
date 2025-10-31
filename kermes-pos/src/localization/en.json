@@ -235,6 +235,14 @@
         "dessert": "Dessert"
       }
     },
+    "products": {
+      "shortcutsTips": "Shortcuts & Tips",
+      "tooltipDelete": "Delete (hold Shift for instant)",
+      "tooltipDeleteInstant": "Instant delete",
+      "tooltipVisibilityShow": "Show in grid",
+      "tooltipVisibilityHide": "Hide from grid",
+      "tooltipVisibilityMulti": "Hold and drag to multi-toggle"
+    },
     "devMode": {
       "enableToUse": "Enable Dev Mode to use this feature",
       "enableInSettings": "Enable Dev Mode in Settings to use this feature"

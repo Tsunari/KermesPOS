@@ -236,6 +236,14 @@
         "dessert": "Dessert"
       }
     },
+    "products": {
+      "shortcutsTips": "Kurzbefehle & Tipps",
+      "tooltipDelete": "Löschen (mit Umschalt sofort)",
+      "tooltipDeleteInstant": "Sofort löschen",
+      "tooltipVisibilityShow": "Im Raster anzeigen",
+      "tooltipVisibilityHide": "Im Raster ausblenden",
+      "tooltipVisibilityMulti": "Halten und ziehen zum Mehrfach-Umschalten"
+    },
     "devMode": {
       "enableToUse": "Aktivieren Sie den Entwicklermodus, um diese Funktion zu nutzen",
       "enableInSettings": "Aktivieren Sie den Entwicklermodus in den Einstellungen, um diese Funktion zu nutzen"
