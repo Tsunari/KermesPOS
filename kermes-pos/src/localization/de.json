@@ -133,6 +133,8 @@
     "print": "Beleg drucken",
     "noItems": "Keine Artikel im Warenkorb",
     "receiptPrinted": "Beleg wurde erfolgreich gedruckt",
+    "transactionSavedNoReceipt": "Transaktion gespeichert ohne Belegdruck",
+    "record": "Transaktion speichern",
     "printFailed": "Beleg konnte nicht gedruckt werden",
     "errorSavingTransaction": "Fehler beim Speichern der Transaktion"
   },
@@ -223,7 +225,9 @@
       "kursName": "Kurs Name",
       "cancelPrint": "Drucken abbrechen",
       "forSummary": "(für Zusammenfassung)",
-      "onReceipt": "(für Beleg)"
+      "onReceipt": "(für Beleg)",
+      "printReceiptToggle": "Beleg drucken",
+      "printReceiptToggleHint": "Steuert, ob nach dem Verkauf ein Beleg gedruckt wird"
     },
     "product": {
       "categories": {

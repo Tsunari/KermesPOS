@@ -66,8 +66,8 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
         }}
       >
         <Typography variant="h6">
-          {selectedQuantity > 0 
-            ? `${t('app.numpad.quantity')}: ${selectedQuantity}` 
+          {selectedQuantity > 0
+            ? `${t('app.numpad.quantity')}: ${selectedQuantity}`
             : t('app.numpad.selectQuantity')}
         </Typography>
         <Button
@@ -104,7 +104,7 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
           <SettingsIcon fontSize="small" />
         </Button>
       </Box>
-      
+
       <Box
         sx={{
           display: 'grid',

@@ -31,7 +31,7 @@ import { useSettings } from '../../context/SettingsContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { getCategoryStyle } from '../../utils/categoryUtils';
 import { cartTransactionService } from '../../services/cartTransactionService';
-import { EditSquare, Badge } from '@mui/icons-material';
+import { Badge } from '@mui/icons-material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ReceiptPreview from './receipt/ReceiptPreview';
 import { useVariableContext } from '../../context/VariableContext';
@@ -58,6 +58,13 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
   const [kursNameDraft, setKursNameDraft] = useState(kursName);
   const [receiptKursNameDraft, setReceiptKursNameDraft] = useState(receiptKursName);
   const [kursNameDialogOpen, setKursNameDialogOpen] = useState(false);
+  const [isReceiptPrintingEnabled, setIsReceiptPrintingEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') {
+      return true;
+    }
+    const savedPreference = localStorage.getItem('printReceiptEnabled');
+    return savedPreference === null ? true : savedPreference === 'true';
+  });
 
   useEffect(() => {
     const savedPrinter = localStorage.getItem('selectedPrinter');
@@ -75,12 +82,16 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
       setReceiptKursName(savedReceiptKursName);
       setReceiptKursNameDraft(savedReceiptKursName);
     }
-  }, []);
+  }, [setKursName]);
 
   useEffect(() => {
     setKursNameDraft(kursName);
     setReceiptKursNameDraft(receiptKursName);
   }, [kursName, receiptKursName]);
+
+  useEffect(() => {
+    localStorage.setItem('printReceiptEnabled', String(isReceiptPrintingEnabled));
+  }, [isReceiptPrintingEnabled]);
 
   const handleRemoveItem = (id: string) => {
     dispatch(removeFromCart(id));
@@ -104,21 +115,28 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
     try {
       // Save transaction to IndexedDB
       await cartTransactionService.saveTransaction(cartItems, total, 'cash'); // or use a real payment method
-      setSuccessMessage(t('sales.receiptPrinted'));
+      setSuccessMessage(
+        isReceiptPrintingEnabled
+          ? t('sales.receiptPrinted')
+          : t('sales.transactionSavedNoReceipt')
+      );
     } catch (error) {
       setErrorMessage(t('sales.errorSavingTransaction'));
       console.error('Failed to save transaction:', error);
     }
 
-    if (window.electronAPI) {
-      console.log('Sending cart data to Electron API:', cartData);
-      window.electronAPI.printCart(cartData, { name: selectedPrinter || "" });
-    } else {
-      console.error('Electron API not available');
+    if (isReceiptPrintingEnabled) {
+      if (window.electronAPI) {
+        console.log('Sending cart data to Electron API:', cartData);
+        window.electronAPI.printCart(cartData, { name: selectedPrinter || "" });
+      } else {
+        console.error('Electron API not available');
+      }
     }
 
     // Clear the cart after printing and saving
     dispatch(clearCart());
+    setIsPrinting(false);
   };
 
   const handleCancelPrint = () => {
@@ -377,6 +395,8 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
         total={total}
         onPrint={handlePrintCart}
         hasItems={cartItems.length > 0}
+        isReceiptPrintingEnabled={isReceiptPrintingEnabled}
+        onToggleReceiptPrinting={setIsReceiptPrintingEnabled}
       />
       
       <Dialog

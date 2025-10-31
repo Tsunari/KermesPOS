@@ -5,7 +5,7 @@ import { execSync } from "child_process";
 import colorLogger from "./util/colorLogger.js";
 import { fileURLToPath } from "url";
 import fs from "fs";
-import pkg from "electron-updater"
+import pkg from "electron-updater";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,13 +44,17 @@ function printTestPage(selectedPrinter, cartData) {
   const printWindow = new BrowserWindow({ show: false });
 
   // Format cart items as HTML rows
-  const itemsHtml = cartData.items.map(item => `
+  const itemsHtml = cartData.items
+    .map(
+      (item) => `
     <tr>
       <td style="text-align:left;">${item.name}</td>
       <td style="text-align:center;">${item.quantity}</td>
       <td style="text-align:right;">${item.price.toFixed(2)} €</td>
     </tr>
-  `).join('');
+  `
+    )
+    .join("");
 
   const html = `
     <html>
@@ -92,18 +96,23 @@ function printTestPage(selectedPrinter, cartData) {
     </html>
   `;
 
-  printWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
-  printWindow.webContents.on('did-finish-load', () => {
+  printWindow.loadURL(
+    "data:text/html;charset=utf-8," + encodeURIComponent(html)
+  );
+  printWindow.webContents.on("did-finish-load", () => {
     setTimeout(() => {
-      printWindow.webContents.print({
-        silent: false,
-        printBackground: true,
-        deviceName: selectedPrinter.name,
-      }, (success, errorType) => {
-        if (!success) console.error('Print failed:', errorType);
-        else console.log('Print job sent to printer:', selectedPrinter.name);
-        printWindow.close();
-      });
+      printWindow.webContents.print(
+        {
+          silent: false,
+          printBackground: true,
+          deviceName: selectedPrinter.name,
+        },
+        (success, errorType) => {
+          if (!success) console.error("Print failed:", errorType);
+          else console.log("Print job sent to printer:", selectedPrinter.name);
+          printWindow.close();
+        }
+      );
     }, 500);
   });
 }
@@ -125,39 +134,45 @@ function printESCPOS() {
 }
 
 function printWithPythonWin(cartData) {
-	const basePath = getBasePath();
+  const basePath = getBasePath();
   const scriptPath = path.join(basePath, "print_receipt_win.py");
-  const pythonExe = path.join(basePath, "python-3.13.3-embed-amd64", "python.exe");
-  cartData.items.forEach(item => {
-		const singleCart = {
-			items: [item],
-      total: item.price * item.quantity
+  const pythonExe = path.join(
+    basePath,
+    "python-3.13.3-embed-amd64",
+    "python.exe"
+  );
+  cartData.items.forEach((item) => {
+    const singleCart = {
+      items: [item],
+      total: item.price * item.quantity,
     };
     // console.log("Current kurs name:", kursName);
     const proc = spawn(pythonExe, [scriptPath, kursName], {
-			stdio: ["pipe", "ignore", "ignore"],
-      windowsHide: true
+      stdio: ["pipe", "ignore", "ignore"],
+      windowsHide: true,
     });
     proc.stdin.write(JSON.stringify(singleCart));
     proc.stdin.end();
     pythonPrintProcesses.push(proc);
-    proc.on('exit', () => {
-			// Remove finished process from array
-      pythonPrintProcesses = pythonPrintProcesses.filter(p => p !== proc);
+    proc.on("exit", () => {
+      // Remove finished process from array
+      pythonPrintProcesses = pythonPrintProcesses.filter((p) => p !== proc);
     });
   });
 }
 
 function resetWindowsPrintSpooler() {
-	  try {
+  try {
     console.log("Stopping print spooler...");
-    execSync('net stop spooler', { stdio: 'inherit' });
+    execSync("net stop spooler", { stdio: "inherit" });
 
     console.log("Clearing print queue...");
-    execSync('del /Q /F "%systemroot%\\System32\\spool\\PRINTERS\\*"', { stdio: 'inherit' });
+    execSync('del /Q /F "%systemroot%\\System32\\spool\\PRINTERS\\*"', {
+      stdio: "inherit",
+    });
 
     console.log("Starting print spooler...");
-    execSync('net start spooler', { stdio: 'inherit' });
+    execSync("net start spooler", { stdio: "inherit" });
 
     console.log("Print spooler reset complete.");
   } catch (err) {
@@ -173,22 +188,21 @@ function resetWindowsPrintSpooler() {
 }
 
 function getBasePath() {
-	return app.isPackaged
-		? path.join(process.resourcesPath, 'app.asar.unpacked')
-		: __dirname;
+  return app.isPackaged
+    ? path.join(process.resourcesPath, "app.asar.unpacked")
+    : __dirname;
 }
-
 
 app.on("ready", async () => {
   createWindow();
-  
+
   if (app.isPackaged) {
-    mainWindow.loadFile('build/index.html');
+    mainWindow.loadFile("build/index.html");
     autoUpdater.checkForUpdatesAndNotify();
   } else {
-    const kermesPosPath = path.join(__dirname, 'build/index.html');
+    const kermesPosPath = path.join(__dirname, "build/index.html");
     //mainWindow.loadFile(kermesPosPath);
-    mainWindow.loadURL('http://localhost:3001');
+    mainWindow.loadURL("http://localhost:3000");
   }
   //mainWindow.webContents.openDevTools();
   //colorLogger.info('Application is ready.');
@@ -218,22 +232,26 @@ app.on("ready", async () => {
     // pythonPrintProcesses.forEach(proc => proc.kill());
     // pythonPrintProcesses = [];
     printWithPythonWin(cartData);
-		console.log("Selected printer:", selectedPrinter);
-		console.log("cartData:", cartData);
-		//fs.writeFileSync('test.json', JSON.stringify(cartData), 'utf8')
+    console.log("Selected printer:", selectedPrinter);
+    console.log("cartData:", cartData);
+    //fs.writeFileSync('test.json', JSON.stringify(cartData), 'utf8')
   });
 
   ipcMain.on("cancel-print", () => {
     resetWindowsPrintSpooler();
-    pythonPrintProcesses.forEach(proc => proc.kill());
+    pythonPrintProcesses.forEach((proc) => proc.kill());
     pythonPrintProcesses = [];
-		// Also clear the Windows print queue using the Python script
+    // Also clear the Windows print queue using the Python script
     const basePath = getBasePath();
     const scriptPath = path.join(basePath, "print_receipt_win.py");
-    const pythonExe = path.join(basePath, "python-3.13.3-embed-amd64", "python.exe");
+    const pythonExe = path.join(
+      basePath,
+      "python-3.13.3-embed-amd64",
+      "python.exe"
+    );
     const clearProc = spawn(pythonExe, [scriptPath, "--clear-queue"], {
       stdio: ["ignore", "ignore", "ignore"],
-      windowsHide: true
+      windowsHide: true,
     });
   });
 });

@@ -133,6 +133,8 @@
     "print": "Fiş Yazdır",
     "noItems": "Sepette ürün yok",
     "receiptPrinted": "Fiş başarıyla yazdırıldı",
+    "transactionSavedNoReceipt": "İşlem fiş yazdırılmadan kaydedildi",
+    "record": "İşlemi Kaydet",
     "printFailed": "Fiş yazdırılamadı",
     "errorSavingTransaction": "İşlem kaydedilirken hata oluştu"
   },
@@ -223,7 +225,9 @@
       "kursName": "Kurs ismi",
       "cancelPrint": "Baskıyı iptal et",
       "forSummary": "(tutanak için)",
-      "onReceipt": "(fiş için)"
+      "onReceipt": "(fiş için)",
+      "printReceiptToggle": "Fiş yazdır",
+      "printReceiptToggleHint": "Satıştan sonra fişin yazdırılıp yazdırılmayacağını kontrol eder"
     },
     "product": {
       "categories": {

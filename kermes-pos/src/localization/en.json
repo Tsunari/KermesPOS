@@ -133,6 +133,8 @@
     "print": "Print Receipt",
     "noItems": "No items in cart",
     "receiptPrinted": "Receipt printed and transaction saved",
+    "transactionSavedNoReceipt": "Transaction saved without printing a receipt",
+    "record": "Record Transaction",
     "errorSavingTransaction": "Error saving transaction"
   },
   "reports": {
@@ -222,7 +224,9 @@
       "kursName": "Kurs Name",
       "cancelPrint": "Cancel Print",
       "forSummary": "(for summary)",
-      "onReceipt": "(on receipt)"
+      "onReceipt": "(on receipt)",
+      "printReceiptToggle": "Print receipt",
+      "printReceiptToggleHint": "Toggle to control whether a receipt is printed"
     },
     "product": {
       "categories": {
