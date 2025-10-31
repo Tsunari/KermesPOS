@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>App Updates</title>
+    <link rel="stylesheet" href="update.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="title">Kermes POS — Updates</h1>
+      <p id="status" class="status">Idle</p>
+
+      <div id="details" class="details hidden"></div>
+
+      <div class="progress-wrapper hidden" id="progressWrapper">
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="progress-text" id="progressText">0%</div>
+      </div>
+
+      <div class="actions">
+        <button id="btnCheck" class="btn primary">Check for Updates</button>
+        <button id="btnDownload" class="btn" disabled>Download</button>
+        <button id="btnInstall" class="btn success" disabled>
+          Install & Restart
+        </button>
+      </div>
+
+      <div id="devRow" class="dev-row hidden">
+        <button id="btnOpenWindow" class="btn">Open Window</button>
+        <button id="btnSimulate" class="btn warn">Simulate Update (Dev)</button>
+      </div>
+    </div>
+    <script src="update.js"></script>
+  </body>
+</html>

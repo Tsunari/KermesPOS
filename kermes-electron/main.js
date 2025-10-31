@@ -1,4 +1,10 @@
-import { app, BrowserWindow, ipcMain, nativeTheme } from "electron";
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  nativeTheme,
+  globalShortcut,
+} from "electron";
 import { spawn, exec } from "child_process";
 import path from "path";
 import { execSync } from "child_process";
@@ -15,6 +21,138 @@ let mainWindow;
 let currentPythonProcess = null;
 let pythonPrintProcesses = [];
 let kursName = "Münih Fatih Kermes";
+let updateWindow = null;
+let lastUpdateStatus = { status: "idle", info: null };
+
+function sendUpdateStatus(channel, payload) {
+  // Send to update window if open
+  if (updateWindow && !updateWindow.isDestroyed()) {
+    updateWindow.webContents.send(channel, payload);
+  }
+  // Also log for visibility
+  console.log(`[update] ${channel}:`, payload);
+}
+
+function openUpdateWindow() {
+  if (updateWindow && !updateWindow.isDestroyed()) {
+    updateWindow.focus();
+    return;
+  }
+  const isDark = nativeTheme.shouldUseDarkColors;
+  const iconPath = isDark
+    ? path.join(__dirname, "assets", "Logo-dark-m.ico")
+    : path.join(__dirname, "assets", "Logo-light-m.ico");
+  updateWindow = new BrowserWindow({
+    width: 460,
+    height: 520,
+    title: "Updates",
+    icon: iconPath,
+    parent: mainWindow,
+    modal: false,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+    },
+  });
+  const basePath = getBasePath();
+  const updateHtml = path.join(basePath, "assets", "update.html");
+  updateWindow.loadFile(updateHtml).catch(() => {
+    // As a fallback, load a minimal inline page
+    updateWindow.loadURL(
+      "data:text/html;charset=utf-8," +
+        encodeURIComponent(
+          `<!doctype html><html><head><meta charset='utf-8'><title>Updates</title></head><body><h3>Update UI missing</h3><p>The update.html could not be loaded.</p></body></html>`
+        )
+    );
+  });
+  updateWindow.on("closed", () => {
+    updateWindow = null;
+  });
+  // push last known status on open
+  setTimeout(() => {
+    sendUpdateStatus("update:status", lastUpdateStatus);
+  }, 200);
+}
+
+function setupAutoUpdater() {
+  try {
+    autoUpdater.autoDownload = false;
+    autoUpdater.autoInstallOnAppQuit = false;
+
+    autoUpdater.on("checking-for-update", () => {
+      lastUpdateStatus = { status: "checking", info: null };
+      sendUpdateStatus("update:status", lastUpdateStatus);
+    });
+    autoUpdater.on("update-available", (info) => {
+      lastUpdateStatus = { status: "available", info };
+      sendUpdateStatus("update:status", lastUpdateStatus);
+    });
+    autoUpdater.on("update-not-available", (info) => {
+      lastUpdateStatus = { status: "not-available", info };
+      sendUpdateStatus("update:status", lastUpdateStatus);
+    });
+    autoUpdater.on("error", (err) => {
+      lastUpdateStatus = {
+        status: "error",
+        info: { message: err?.message || String(err) },
+      };
+      sendUpdateStatus("update:status", lastUpdateStatus);
+    });
+    autoUpdater.on("download-progress", (progressObj) => {
+      lastUpdateStatus = { status: "downloading", info: progressObj };
+      sendUpdateStatus("update:progress", progressObj);
+    });
+    autoUpdater.on("update-downloaded", (info) => {
+      lastUpdateStatus = { status: "downloaded", info };
+      sendUpdateStatus("update:status", lastUpdateStatus);
+    });
+  } catch (e) {
+    console.warn("autoUpdater setup failed:", e);
+  }
+}
+
+// Dev simulation for testing update flow without a server
+let simulateTimer = null;
+function simulateUpdateFlow() {
+  if (simulateTimer) return;
+  let percent = 0;
+  const step = () => {
+    if (percent === 0) {
+      lastUpdateStatus = { status: "checking", info: null };
+      sendUpdateStatus("update:status", lastUpdateStatus);
+      setTimeout(() => {
+        lastUpdateStatus = {
+          status: "available",
+          info: { version: "dev-1.0.1" },
+        };
+        sendUpdateStatus("update:status", lastUpdateStatus);
+      }, 600);
+    }
+    if (percent >= 100) {
+      lastUpdateStatus = {
+        status: "downloaded",
+        info: { version: "dev-1.0.1" },
+      };
+      sendUpdateStatus("update:status", lastUpdateStatus);
+      clearInterval(simulateTimer);
+      simulateTimer = null;
+      return;
+    }
+    percent = Math.min(100, percent + Math.round(5 + Math.random() * 15));
+    sendUpdateStatus("update:progress", {
+      percent,
+      transferred: percent,
+      total: 100,
+      bytesPerSecond: 5000000,
+    });
+  };
+  simulateTimer = setInterval(step, 400);
+  step();
+}
 
 function createWindow() {
   const isDark = nativeTheme.shouldUseDarkColors;
@@ -196,9 +334,17 @@ function getBasePath() {
 app.on("ready", async () => {
   createWindow();
 
+  // Register global shortcut to open update UI for testing
+  try {
+    globalShortcut.register("Control+Shift+U", () => openUpdateWindow());
+  } catch {}
+
+  setupAutoUpdater();
+
   if (app.isPackaged) {
     mainWindow.loadFile("build/index.html");
-    autoUpdater.checkForUpdatesAndNotify();
+    // Initial background check; full flow can be initiated from UI
+    autoUpdater.checkForUpdates().catch(() => {});
   } else {
     const kermesPosPath = path.join(__dirname, "build/index.html");
     //mainWindow.loadFile(kermesPosPath);
@@ -226,6 +372,59 @@ app.on("ready", async () => {
     console.log("Kurs name changed to:", newKursName);
     kursName = newKursName;
   });
+
+  // Update IPC
+  ipcMain.on("update:open", () => openUpdateWindow());
+  ipcMain.on("update:check", async () => {
+    if (!app.isPackaged) {
+      // In dev, simulate by default
+      openUpdateWindow();
+      simulateUpdateFlow();
+      return;
+    }
+    try {
+      await autoUpdater.checkForUpdates();
+    } catch (e) {
+      lastUpdateStatus = {
+        status: "error",
+        info: { message: e?.message || String(e) },
+      };
+      sendUpdateStatus("update:status", lastUpdateStatus);
+    }
+  });
+  ipcMain.on("update:download", async () => {
+    if (!app.isPackaged) {
+      simulateUpdateFlow();
+      return;
+    }
+    try {
+      await autoUpdater.downloadUpdate();
+    } catch (e) {
+      lastUpdateStatus = {
+        status: "error",
+        info: { message: e?.message || String(e) },
+      };
+      sendUpdateStatus("update:status", lastUpdateStatus);
+    }
+  });
+  ipcMain.on("update:install", () => {
+    if (!app.isPackaged) {
+      // Simulate install by closing window
+      lastUpdateStatus = { status: "idle", info: null };
+      if (updateWindow && !updateWindow.isDestroyed()) updateWindow.close();
+      return;
+    }
+    try {
+      autoUpdater.quitAndInstall(false, true);
+    } catch (e) {
+      lastUpdateStatus = {
+        status: "error",
+        info: { message: e?.message || String(e) },
+      };
+      sendUpdateStatus("update:status", lastUpdateStatus);
+    }
+  });
+  ipcMain.handle("app:is-dev", () => !app.isPackaged);
 
   ipcMain.on("print-cart", async (event, { cartData, selectedPrinter }) => {
     // Kill any previous print jobs before starting new ones
@@ -260,4 +459,10 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
+});
+
+app.on("will-quit", () => {
+  try {
+    globalShortcut.unregisterAll();
+  } catch {}
 });
