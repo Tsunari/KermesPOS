@@ -5,6 +5,17 @@ All notable changes to the Kermes project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 31-10-2025
+### Kermes POS
+#### Added
+- Added visibility toggle to product management page
+#### Changed
+- Tooltips for shortcuts in productManagementPage
+### Kermes Web
+#### Added
+- Todo and changelog
+
+
 ## [1.7.0] - 31-08-2025
 ### Kermes POS
 #### Added
