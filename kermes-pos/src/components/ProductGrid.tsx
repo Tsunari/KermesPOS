@@ -50,12 +50,12 @@ const SortableProductCard = ({ product, ...props }: SortableProductCardProps) =>
   };
 
   return (
-    <Box 
-      ref={setNodeRef} 
-      style={style} 
-      {...attributes} 
+    <Box
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
       {...listeners}
-      sx={{ 
+      sx={{
         width: '100%',
         position: 'relative'
       }}
@@ -136,21 +136,24 @@ const ProductGrid: React.FC<ProductGridProps> = ({
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over.id);
         const newItems = arrayMove(items, oldIndex, newIndex);
-        
+
         // Save order to localStorage
         const orderMap: { [key: string]: number } = {};
         newItems.forEach((item, index) => {
           orderMap[item.id] = index;
         });
         localStorage.setItem('product_order', JSON.stringify(orderMap));
-        
+
         return newItems;
       });
     }
   };
 
-  // Group products by category
+  // Group products by category, skip hidden products
   const groupedProducts = orderedProducts.reduce((groups, product) => {
+    if (product.hidden === true) {
+      return groups;
+    }
     const category = product.category || 'Other';
     if (!groups[category]) {
       groups[category] = [];
@@ -168,7 +171,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
     >
-      <Box sx={{ 
+      <Box sx={{
         p: 1,
         pr: 2,
         height: '100%',

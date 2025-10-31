@@ -15,6 +15,8 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import AddIcon from '@mui/icons-material/Add';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { useVariableContext } from '../context/VariableContext';
 import { Product } from '../types/index';
 import { productService } from '../services/productService';
@@ -38,6 +40,90 @@ const ProductManagementPage: React.FC = () => {
   });
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  // Bulk visibility toggle state
+  const [bulkActive, setBulkActive] = useState(false);
+  const [bulkTargetHidden, setBulkTargetHidden] = useState<boolean | null>(null);
+  const bulkVisitedRef = React.useRef<Set<string>>(new Set());
+  const bulkTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bulkPendingRef = React.useRef<{ id: string; targetHidden: boolean } | null>(null);
+  const HOLD_MS = 180; // small hold threshold to avoid accidental bulk
+
+  const applyVisibility = (id: string, hidden: boolean) => {
+    const prod = products.find(p => p.id === id);
+    if (!prod) return;
+    if (prod.hidden === hidden) return;
+    productService.updateProduct({ ...prod, hidden });
+    setProducts([...productService.getAllProducts()]);
+  };
+
+  const startBulkToggle = (id: string, targetHidden: boolean) => {
+    setBulkActive(true);
+    setBulkTargetHidden(targetHidden);
+    bulkVisitedRef.current = new Set();
+    // Toggle the first target immediately
+    applyVisibility(id, targetHidden);
+    bulkVisitedRef.current.add(id);
+  };
+
+  const enterBulkToggle = (id: string) => {
+    if (!bulkActive || bulkTargetHidden === null) return;
+    if (bulkVisitedRef.current.has(id)) return;
+    applyVisibility(id, bulkTargetHidden);
+    bulkVisitedRef.current.add(id);
+  };
+
+  const endBulkToggle = () => {
+    setBulkActive(false);
+    setBulkTargetHidden(null);
+    bulkVisitedRef.current.clear();
+    // clear any pending hold timer
+    if (bulkTimerRef.current) {
+      clearTimeout(bulkTimerRef.current);
+      bulkTimerRef.current = null;
+    }
+    bulkPendingRef.current = null;
+  };
+
+  React.useEffect(() => {
+    if (!bulkActive) return;
+    const onUp = () => endBulkToggle();
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('mouseleave', onUp);
+    return () => {
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('mouseleave', onUp);
+    };
+  }, [bulkActive]);
+
+  const onBulkMouseDown = (id: string, targetHidden: boolean) => {
+    // begin a pending bulk; will activate after HOLD_MS
+    bulkPendingRef.current = { id, targetHidden };
+    if (bulkTimerRef.current) {
+      clearTimeout(bulkTimerRef.current);
+    }
+    bulkTimerRef.current = setTimeout(() => {
+      // if still pending, start real bulk and apply first toggle
+      if (bulkPendingRef.current && bulkPendingRef.current.id === id) {
+        startBulkToggle(id, targetHidden);
+        bulkPendingRef.current = null;
+        bulkTimerRef.current = null;
+      }
+    }, HOLD_MS);
+  };
+
+  const onBulkMouseUp = (id: string) => {
+    // If bulk already active, end is handled globally on window mouseup; still clear timers
+    if (bulkTimerRef.current) {
+      clearTimeout(bulkTimerRef.current);
+      bulkTimerRef.current = null;
+    }
+    if (!bulkActive && bulkPendingRef.current && bulkPendingRef.current.id === id) {
+      // treat as normal single click toggle
+      applyVisibility(id, bulkPendingRef.current.targetHidden);
+    }
+    bulkPendingRef.current = null;
+  };
+
   const handleAddProduct = (cat: 'food' | 'drink' | 'dessert') => {
     const { name, price, description } = addRows[cat];
     if (name && price) {
@@ -48,6 +134,7 @@ const ProductManagementPage: React.FC = () => {
         category: cat,
         description,
         inStock: true,
+        hidden: false,
       });
       // Reload products from service to update context and UI
       setProducts(productService.getAllProducts());
@@ -211,6 +298,10 @@ const ProductManagementPage: React.FC = () => {
                     setDeleteId={setDeleteId}
                     handleFieldChange={handleFieldChange}
                     handleSaveEdit={handleSaveEdit}
+                    bulkActive={bulkActive}
+                    onBulkMouseDown={onBulkMouseDown}
+                    onBulkMouseUp={onBulkMouseUp}
+                    onBulkEnter={enterBulkToggle}
                   />
                 );
               }) : (
@@ -242,7 +333,11 @@ const ProductRow: React.FC<{
   setDeleteId: (id: string) => void;
   handleFieldChange?: (id: string, field: keyof EditableProduct, value: string) => void;
   handleSaveEdit?: (id: string) => void;
-}> = ({ prod, shiftDown, onDelete, setDeleteId, handleFieldChange, handleSaveEdit }) => {
+  bulkActive?: boolean;
+  onBulkMouseDown?: (id: string, targetHidden: boolean) => void;
+  onBulkMouseUp?: (id: string) => void;
+  onBulkEnter?: (id: string) => void;
+}> = ({ prod, shiftDown, onDelete, setDeleteId, handleFieldChange, handleSaveEdit, bulkActive, onBulkMouseDown, onBulkMouseUp, onBulkEnter }) => {
   const [hovered, setHovered] = React.useState(false);
   // Local draft for price to allow free typing and validate on blur/commit
   const [isEditingPrice, setIsEditingPrice] = React.useState(false);
@@ -266,8 +361,29 @@ const ProductRow: React.FC<{
     handleFieldChange(prod.id, 'price', finalValue);
     setPriceDraft(finalValue.replace(/\./g, ','));
   };
+  const { setProducts } = useVariableContext();
+
+  const toggleVisibility = () => {
+    const updated: Product = { ...prod, hidden: !prod.hidden };
+    productService.updateProduct(updated);
+    // Update context with fresh array to avoid stale refs
+    setProducts([...productService.getAllProducts()]);
+  };
+
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'background.default', borderRadius: 1, boxShadow: 0, p: 0.5, width: '100%' }}>
+    <Box sx={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 0.5,
+      bgcolor: 'background.default',
+      borderRadius: 1,
+      boxShadow: 0,
+      p: 0.5,
+      width: '100%',
+      opacity: prod.hidden ? 0.5 : 1,
+      filter: prod.hidden ? 'grayscale(80%)' : 'none',
+      transition: 'opacity 0.2s, filter 0.2s'
+    }}>
       <TextField
         value={prod.name}
         onChange={e => handleFieldChange && handleFieldChange(prod.id, 'name', e.target.value)}
@@ -341,6 +457,17 @@ const ProductRow: React.FC<{
         ) : (
           <DeleteIcon fontSize="small" />
         )}
+      </IconButton>
+      <IconButton
+        color={prod.hidden ? 'default' : 'primary'}
+        size="small"
+        onMouseDown={(e) => { e.preventDefault(); if (onBulkMouseDown) { onBulkMouseDown(prod.id, !prod.hidden); } else { toggleVisibility(); } }}
+        onMouseUp={() => { onBulkMouseUp && onBulkMouseUp(prod.id); }}
+        onMouseEnter={() => { if (bulkActive && onBulkEnter) onBulkEnter(prod.id); }}
+        sx={{ ml: 0.5, outline: bulkActive ? '2px solid rgba(25,118,210,0.4)' : 'none', outlineOffset: 2 }}
+        title={prod.hidden ? 'Show in grid' : 'Hide from grid'}
+      >
+        {prod.hidden ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
       </IconButton>
     </Box>
   );
