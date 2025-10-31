@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { 
-  List, 
+import {
+  List,
   Typography,
   Box,
   Divider,
@@ -225,8 +225,8 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
   const categoryOrder = ['food', 'drink', 'dessert', 'Other'];
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
+    <Box sx={{
+      display: 'flex',
       flexDirection: 'column',
       height: '100%',
       '&::-webkit-scrollbar': {
@@ -244,9 +244,9 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
         },
       },
     }}>
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
         alignItems: 'center',
         mb: 1
       }}>
@@ -277,7 +277,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
               horizontal: 'right',
             }}
           >
-            <Box sx={{ p: 2 }} onClick={handlePrintPreviewClose} style={{  }}>
+            <Box sx={{ p: 2 }} onClick={handlePrintPreviewClose} style={{}}>
               <ReceiptPreview items={cartItems} total={total} />
             </Box>
           </Popover>
@@ -292,9 +292,9 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
           </Tooltip>
           {devMode && (
             <Tooltip title={t('app.cart.printerSettings')}>
-              <IconButton 
-                color="primary" 
-                size="small" 
+              <IconButton
+                color="primary"
+                size="small"
                 onClick={handlePrinterSettingsOpen}
                 aria-label={t('app.cart.printerSettings')}
                 sx={{ padding: '5px' }}
@@ -304,9 +304,9 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
             </Tooltip>
           )}
           <Tooltip title={t('app.cart.clearCart')}>
-            <IconButton 
-              color="error" 
-              size="small" 
+            <IconButton
+              color="error"
+              size="small"
               onClick={handleClearCart}
               aria-label={t('app.cart.clearCart')}
               sx={{ padding: '5px' }}
@@ -324,8 +324,8 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
         </Box>
       </Box>
       <Divider />
-      
-      <Box sx={{ 
+
+      <Box sx={{
         height: 'calc(100% - 120px)',
         overflow: 'auto',
         mb: 2,
@@ -390,15 +390,15 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
           </List>
         )}
       </Box>
-      
-      <CartFooter 
+
+      <CartFooter
         total={total}
         onPrint={handlePrintCart}
         hasItems={cartItems.length > 0}
         isReceiptPrintingEnabled={isReceiptPrintingEnabled}
         onToggleReceiptPrinting={setIsReceiptPrintingEnabled}
       />
-      
+
       <Dialog
         open={printerSettingsOpen}
         onClose={handlePrinterSettingsClose}
@@ -407,8 +407,8 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
       >
         <DialogTitle>{t('printer.title')}</DialogTitle>
         <DialogContent>
-          <PrinterSettings 
-            onSave={handlePrinterSettingsSave} 
+          <PrinterSettings
+            onSave={handlePrinterSettingsSave}
             handlePrinterSettingsClose={handlePrinterSettingsClose} // Added missing prop
           />
         </DialogContent>
@@ -416,27 +416,27 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
           <Button onClick={handlePrinterSettingsClose}>{t('common.cancel')}</Button>
         </DialogActions>
       </Dialog>
-      
-      <Snackbar 
-        open={!!errorMessage} 
-        autoHideDuration={6000} 
+
+      <Snackbar
+        open={!!errorMessage}
+        autoHideDuration={6000}
         onClose={() => setErrorMessage(null)}
       >
         <Alert onClose={() => setErrorMessage(null)} severity="error" sx={{ width: '100%' }}>
           {errorMessage}
         </Alert>
       </Snackbar>
-      
-      <Snackbar 
-        open={!!successMessage} 
-        autoHideDuration={6000} 
+
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
         onClose={() => setSuccessMessage(null)}
       >
         <Alert onClose={() => setSuccessMessage(null)} severity="success" sx={{ width: '100%' }}>
           {successMessage}
         </Alert>
       </Snackbar>
-      
+
       <Dialog
         open={kursNameDialogOpen}
         onClose={handleKursNameDialogClose}
