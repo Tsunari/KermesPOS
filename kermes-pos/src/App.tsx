@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  IconButton, 
-  Box, 
-  Paper, 
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  IconButton,
+  Box,
+  Paper,
   Badge,
   SpeedDial,
   SpeedDialIcon,
@@ -44,6 +44,9 @@ import { VariableContextProvider, useVariableContext } from './context/VariableC
 import { useTheme } from '@mui/material/styles';
 import { Inventory } from '@mui/icons-material';
 import ProductManagementPage from './components/ProductManagementPage';
+import MenuDataBridge from './components/MenuDataBridge';
+import MenuSettings from './components/MenuSettings';
+import { MenuConfigProvider } from './context/MenuConfigContext';
 
 /**
  * The `AppContent` component serves as the main application layout and logic handler for the Kermes POS system.
@@ -200,7 +203,7 @@ function AppContent() {
     { icon: <AddIcon />, name: t("products.add"), onClick: handleAddProduct },
     {
       icon: isAppBarVisible ? <VisibilityOffIcon /> : <VisibilityIcon />,
-      name: isAppBarVisible ? t("common.hide") : t("common.show"),
+      name: isAppBarVisible ? t("common.hideAppBar") : t("common.showAppBar"),
       onClick: () => setIsAppBarVisible(!isAppBarVisible)
     },
     {
@@ -248,8 +251,8 @@ function AppContent() {
           }}
         >
           <Box sx={{ mb: 3, mt: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <a href="https://kermespos.web.app/" target="_blank" rel="noopener noreferrer">
-                <img
+            <a href="https://kermespos.web.app/" target="_blank" rel="noopener noreferrer">
+              <img
                 src={process.env.PUBLIC_URL + (theme.palette.mode === 'dark' ? '/Mintika_round-cropped.svg' : '/Mintika_round_b-cropped.svg')}
                 alt="Kermes POS Logo"
                 style={{
@@ -261,82 +264,82 @@ function AppContent() {
                   cursor: 'pointer',
                   background: theme.palette.mode === 'dark' ? '#fff' : '#000',
                 }}
-                />
-              </a>
-              <Typography
-                variant="caption"
-                component="div"
-                sx={{
-                  fontWeight: 700,
-                  letterSpacing: 1.5,
-                  color: theme.palette.text.secondary,
-                  textAlign: 'center',
-                  textTransform: 'uppercase',
-                  fontSize: 12,
-                  mt: 0.5,
-                  mb: 0.5,
-                }}
-              >
-                Kermes POS
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', width: '100%' }}>
-              <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
-                  <Badge
-                    badgeContent={totalQuantity}
-                    color="error"
-                    sx={{
-                      '& .MuiBadge-badge': {
-                        minWidth: 22,
-                        height: 22,
-                        px: 1.2,
-                        fontWeight: 700,
-                        fontSize: 13,
-                        borderRadius: 8,
-                        background: theme => theme.palette.mode === 'dark'
-                          ? 'rgba(255,255,255,0.18)'
-                          : 'rgba(0,0,0,0.10)',
-                        color: theme => theme.palette.mode === 'dark'
-                          ? theme.palette.primary.light
-                          : theme.palette.primary.dark,
-                        boxShadow: '0 2px 8px 0 rgba(31,38,135,0.10)',
-                        border: theme => `1.5px solid ${theme.palette.divider}`,
-                        backdropFilter: 'blur(6px)',
-                        transition: 'background 0.2s, color 0.2s',
-                        transform: 'translate(25px, -20px)',
-                      },
-                    }}
-                    overlap="circular"
-                  >
-                    <RestaurantMenuIcon />
-                  </Badge>
-                </IconButton>
-              </Link>
-              <Link to="/statistics" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
-                  <BarChartIcon />
-                </IconButton>
-              </Link>
-              <Link to="/products" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
-                  <Inventory />
-                </IconButton>
-              </Link>
-              <Link to="/settings" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
-                  <SettingsIcon />
-                </IconButton>
-              </Link>
-              <Link to="/import-export" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
-                  <ImportExportIcon />
-                </IconButton>
-              </Link>
-              <ThemeToggle />
-            </Box>
-          </Toolbar>
-        </AppBar>
+              />
+            </a>
+            <Typography
+              variant="caption"
+              component="div"
+              sx={{
+                fontWeight: 700,
+                letterSpacing: 1.5,
+                color: theme.palette.text.secondary,
+                textAlign: 'center',
+                textTransform: 'uppercase',
+                fontSize: 12,
+                mt: 0.5,
+                mb: 0.5,
+              }}
+            >
+              Kermes POS
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', width: '100%' }}>
+            <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
+              <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
+                <Badge
+                  badgeContent={totalQuantity}
+                  color="error"
+                  sx={{
+                    '& .MuiBadge-badge': {
+                      minWidth: 22,
+                      height: 22,
+                      px: 1.2,
+                      fontWeight: 700,
+                      fontSize: 13,
+                      borderRadius: 8,
+                      background: theme => theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.18)'
+                        : 'rgba(0,0,0,0.10)',
+                      color: theme => theme.palette.mode === 'dark'
+                        ? theme.palette.primary.light
+                        : theme.palette.primary.dark,
+                      boxShadow: '0 2px 8px 0 rgba(31,38,135,0.10)',
+                      border: theme => `1.5px solid ${theme.palette.divider}`,
+                      backdropFilter: 'blur(6px)',
+                      transition: 'background 0.2s, color 0.2s',
+                      transform: 'translate(25px, -20px)',
+                    },
+                  }}
+                  overlap="circular"
+                >
+                  <RestaurantMenuIcon />
+                </Badge>
+              </IconButton>
+            </Link>
+            <Link to="/statistics" style={{ color: 'inherit', textDecoration: 'none' }}>
+              <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
+                <BarChartIcon />
+              </IconButton>
+            </Link>
+            <Link to="/products" style={{ color: 'inherit', textDecoration: 'none' }}>
+              <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
+                <Inventory />
+              </IconButton>
+            </Link>
+            <Link to="/settings" style={{ color: 'inherit', textDecoration: 'none' }}>
+              <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
+                <SettingsIcon />
+              </IconButton>
+            </Link>
+            <Link to="/import-export" style={{ color: 'inherit', textDecoration: 'none' }}>
+              <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
+                <ImportExportIcon />
+              </IconButton>
+            </Link>
+            <ThemeToggle />
+          </Box>
+        </Toolbar>
+      </AppBar>
       {/* Main content with animated margin-left */}
       <Box component="main" sx={{
         flexGrow: 1,
@@ -348,9 +351,9 @@ function AppContent() {
         background: 'transparent',
       }}>
         {isProductsPage && (
-          <Paper 
-            elevation={3} 
-            sx={{ 
+          <Paper
+            elevation={3}
+            sx={{
               width: '300px',
               height: '100%',
               borderRadius: 0,
@@ -530,25 +533,29 @@ function AppContent() {
                 </Box>
               }
             />
-            <Route 
-              path="/statistics" 
-              element={<StatisticsPage products={products} devMode={devMode} />} 
+            <Route
+              path="/statistics"
+              element={<StatisticsPage products={products} devMode={devMode} />}
             />
-            <Route 
-              path="/import-export" 
-              element={<ImportExport devMode={devMode} />} 
+            <Route
+              path="/import-export"
+              element={<ImportExport devMode={devMode} />}
             />
-            <Route 
-              path="/settings" 
-              element={<SettingsPage devMode={devMode} setDevMode={setDevMode} />} 
+            <Route
+              path="/settings"
+              element={<SettingsPage devMode={devMode} setDevMode={setDevMode} />}
             />
-            <Route 
-              path="/settings/appearance" 
-              element={<AppearanceSettings />} 
+            <Route
+              path="/settings/menu"
+              element={<MenuSettings />}
             />
-            <Route 
-              path="/products" 
-              element={<ProductManagementPage/>}
+            <Route
+              path="/settings/appearance"
+              element={<AppearanceSettings />}
+            />
+            <Route
+              path="/products"
+              element={<ProductManagementPage />}
             />
           </Routes>
         </Box>
@@ -575,7 +582,10 @@ const App: React.FC = () => {
       <ThemeProvider>
         <LanguageProvider>
           <VariableContextProvider>
-            <AppContent />
+            <MenuConfigProvider>
+              <MenuDataBridge />
+              <AppContent />
+            </MenuConfigProvider>
           </VariableContextProvider>
         </LanguageProvider>
       </ThemeProvider>

@@ -1,20 +1,5 @@
 import React, { ChangeEvent } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  Divider,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Chip,
-  Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-} from '@mui/material';
+import { Box, Typography, Paper, Divider, List, ListItem, ListItemIcon, ListItemText, Chip, Button, Select, MenuItem, FormControl } from '@mui/material';
 import { Link } from 'react-router-dom';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SecurityIcon from '@mui/icons-material/Security';
@@ -24,11 +9,12 @@ import BackupIcon from '@mui/icons-material/Backup';
 import CodeIcon from '@mui/icons-material/Code';
 import TouchAppIcon from '@mui/icons-material/TouchApp';
 import SystemUpdateIcon from '@mui/icons-material/SystemUpdate';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import ModernSwitch from './ui/ModernSwitch';
-import { productService } from '../services/productService';
+// import { productService } from '../services/productService';
 import { useSettings } from '../context/SettingsContext';
 import { useLanguage } from '../context/LanguageContext';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 
 interface SettingsPageProps {
   devMode: boolean;
@@ -77,18 +63,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
     setAutoBackup,
     showDescription,
     setShowDescription,
-    showScrollbars,
-    setShowScrollbars,
   } = useSettings();
 
   const { language, setLanguage, t } = useLanguage();
 
-  const handleDefineDefault = () => {
-    if (window.confirm(t('settings.developer.defineDefaultDescription'))) {
-      const jsonString = productService.exportProducts();
-      alert(t('settings.developer.defineDefaultSuccess'));
-    }
-  };
+  // const handleDefineDefault = () => {
+  //   if (window.confirm(t('settings.developer.defineDefaultDescription'))) {
+  //   productService.exportProducts();
+  //     alert(t('settings.developer.defineDefaultSuccess'));
+  //   }
+  // };
 
   const renderSettingItem = (
     icon: React.ReactNode,
@@ -271,6 +255,35 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
             autoBackup,
             setAutoBackup
           )}
+
+          <Divider />
+
+          <ListItem>
+            <ListItemIcon>
+              <MenuBookIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {t('products.title')}
+                  <Chip
+                    label={t('common.active')}
+                    size="small"
+                    color="success"
+                    variant="outlined"
+                    sx={{ ml: 0 }}
+                  />
+                </Box>
+              }
+              secondary={t('settings.menu.description') || 'Customer-facing menu showing name and price only'}
+            />
+            <Button component="a" href="/customer-menu.html" target="_blank" rel="noopener" variant="outlined" color="primary" sx={{ minWidth: 0, padding: '5px', mr: 1 }}>
+              {t('common.show')}
+            </Button>
+            <Button component={Link} to="/settings/menu" variant="contained" color="primary" sx={{ minWidth: 0, padding: '5px' }}>
+              {t('common.configure')}
+            </Button>
+          </ListItem>
 
           <Divider />
 

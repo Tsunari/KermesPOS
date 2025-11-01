@@ -1,0 +1,17 @@
+.menu-toolbar{position:sticky;top:0;display:flex;justify-content:flex-end;gap:8px;padding:8px 16px;background:#fff;border-bottom:1px solid #e5e7eb;z-index:10}
+.menu-toolbar button{padding:6px 12px;border:1px solid #d1d5db;border-radius:8px;background:#f3f4f6;cursor:pointer}
+.menu-toolbar button:hover{background:#e5e7eb}
+.menu-container{--fontSize:16px;--columns:1;max-width:1200px;margin:0 auto;padding:24px;font-size:var(--fontSize)}
+.menu-header{text-align:center;margin-bottom:32px}
+.menu-category{margin:24px 0}
+.category-title{font-size:1.6em;margin:8px 0;border-bottom:1px solid #e5e7eb;padding-bottom:8px;text-align: center;}
+.menu-list{display:grid;grid-template-columns:repeat(var(--columns), 1fr);row-gap:16px;column-gap:50px}
+.menu-col{display:flex;flex-direction:column}
+.menu-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed #e5e7eb}
+.name{font-weight:600}
+.price{font-weight:700}
+
+@media print{
+	.no-print{display:none !important}
+	body{background:#fff}
+}
