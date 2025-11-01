@@ -165,6 +165,11 @@
   },
   "app": {
     "title": "Kermes POS",
+    "updates": {
+      "check": "Güncellemeleri Kontrol Et",
+      "checkDescription": "Yeni güncellemeleri kontrol edin ve en son sürümü yükleyin.",
+      "active": "Aktif güncelleme sistemi"
+    },
     "statistics": {
       "title": "İstatistikler",
       "description": "Satış performansınızı ve iş metriklerinizi gerçek zamanlı olarak takip edin",

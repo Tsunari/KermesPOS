@@ -23,6 +23,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 import BackupIcon from '@mui/icons-material/Backup';
 import CodeIcon from '@mui/icons-material/Code';
 import TouchAppIcon from '@mui/icons-material/TouchApp';
+import SystemUpdateIcon from '@mui/icons-material/SystemUpdate';
 import ModernSwitch from './ui/ModernSwitch';
 import { productService } from '../services/productService';
 import { useSettings } from '../context/SettingsContext';
@@ -102,7 +103,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
       <ListItemIcon>
         {icon}
       </ListItemIcon>
-      <ListItemText 
+      <ListItemText
         primary={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {primary}
@@ -144,7 +145,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
       <ListItemIcon>
         {icon}
       </ListItemIcon>
-      <ListItemText 
+      <ListItemText
         primary={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {primary}
@@ -170,12 +171,12 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
       <Typography variant="h4" gutterBottom>
         {t('settings.title')}
       </Typography>
-      
+
       <Paper sx={{ p: 3, mb: 3 }}>
         {/* <Typography variant="h6" gutterBottom>
           {t('settings.appearance.title')}
         </Typography> */}
-        
+
         <List>
 
           {renderSettingItem(
@@ -187,9 +188,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
             true,
             "/settings/appearance"
           )}
-          
+
           <Divider />
-          
+
           {renderSettingItem(
             <VisibilityIcon />,
             t('settings.showDescription'),
@@ -209,9 +210,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
             setUseDoubleClick,
             true
           )}
-          
+
           <Divider />
-          
+
           {renderFormItem(
             <LanguageIcon />,
             t('settings.language.title'),
@@ -229,7 +230,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
             </FormControl>,
             true
           )}
-          
+
           <Divider />
 
           {renderSettingItem(
@@ -242,7 +243,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
           )}
 
           <Divider />
-          
+
           {renderSettingItem(
             <NotificationsIcon />,
             t('settings.notifications.enable'),
@@ -250,9 +251,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
             notifications,
             setNotifications
           )}
-          
+
           <Divider />
-          
+
           {renderSettingItem(
             <SecurityIcon />,
             t('settings.security.enable'),
@@ -260,9 +261,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
             security,
             setSecurity
           )}
-          
+
           <Divider />
-          
+
           {renderSettingItem(
             <BackupIcon />,
             t('settings.backup.autoBackup'),
@@ -270,9 +271,40 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
             autoBackup,
             setAutoBackup
           )}
+
+          <Divider />
+
+          <ListItem>
+            <ListItemIcon>
+              <SystemUpdateIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {t('app.updates.check') || 'Check for Updates'}
+                  <Chip
+                    label={t('common.active')}
+                    size="small"
+                    color="success"
+                    variant="outlined"
+                    sx={{ ml: 0 }}
+                  />
+                </Box>
+              }
+              secondary={t('app.updates.checkDescription') || ''}
+            />
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => { try { (window as any).electronAPI?.update?.open?.(); } catch { } }}
+              sx={{ minWidth: 0, padding: '5px' }}
+            >
+              {t('app.updates.check') || 'Check'}
+            </Button>
+          </ListItem>
         </List>
       </Paper>
-      
+
       <Paper sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
           {t('settings.about.title')}
@@ -293,7 +325,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
           </Button>
         </Typography>
         <Typography variant="body2" color="text.secondary">
-            {t('settings.about.version')} {require('../../package.json').version || 'Problem with fetching version'}
+          {t('settings.about.version')} {require('../../package.json').version || 'Problem with fetching version'}
         </Typography>
       </Paper>
     </Box>

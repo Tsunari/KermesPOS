@@ -164,6 +164,11 @@
   },
   "app": {
     "title": "Kermes POS",
+    "updates": {
+      "check": "Check for Updates",
+      "checkDescription": "Check for new updates and install the latest version.",
+      "active": "Active update system"
+    },
     "statistics": {
       "title": "Statistics",
       "description": "Track your sales performance and business metrics in real-time",

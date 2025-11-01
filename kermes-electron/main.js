@@ -58,8 +58,8 @@ function openUpdateWindow() {
       contextIsolation: true,
     },
   });
-  const basePath = getBasePath();
-  const updateHtml = path.join(basePath, "assets", "update.html");
+  // Load update UI directly from the packaged ASAR (assets are safe in asar)
+  const updateHtml = path.join(__dirname, "assets", "update.html");
   updateWindow.loadFile(updateHtml).catch(() => {
     // As a fallback, load a minimal inline page
     updateWindow.loadURL(

@@ -35,7 +35,7 @@ import { Badge } from '@mui/icons-material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ReceiptPreview from './receipt/ReceiptPreview';
 import { useVariableContext } from '../../context/VariableContext';
-import SystemUpdateIcon from '@mui/icons-material/SystemUpdate';
+// import SystemUpdateIcon from '@mui/icons-material/SystemUpdate';
 
 interface CartProps {
   devMode?: boolean;
@@ -255,15 +255,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
           {t('sales.cart')}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Tooltip title={t('app.updates.check') || 'Check for Updates'}>
-            <IconButton
-              onClick={() => { try { (window as any).electronAPI?.update?.open?.(); } catch { } }}
-              color="primary"
-              sx={{ padding: '5px' }}
-            >
-              <SystemUpdateIcon />
-            </IconButton>
-          </Tooltip>
+          {/* Update button moved to SettingsPage */}
           <Tooltip title={t('app.cart.previewReceipt')}>
             <IconButton
               onClick={previewOpen ? handlePrintPreviewClose : handlePrintPreviewOpen}
