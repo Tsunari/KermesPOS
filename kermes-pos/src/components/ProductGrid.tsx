@@ -8,6 +8,7 @@ import ProductCard from './ProductCard';
 import { useSettings } from '../context/SettingsContext';
 import { getCategoryStyle } from '../utils/categoryUtils';
 import { useVariableContext } from '../context/VariableContext';
+import { productService } from '../services/productService';
 
 interface ProductGridProps {
   products: Product[];
@@ -77,45 +78,18 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   const { fixedGridMode, cardsPerRow, products } = useVariableContext(); // use context products
   const [orderedProducts, setOrderedProducts] = useState<Product[]>(products);
 
-  // Merge products with last saved order, keeping new products at the end
+  // Sort products by category and order within category
   useEffect(() => {
-    const storedOrder = localStorage.getItem('product_order');
-    if (storedOrder) {
-      try {
-        const orderMap = JSON.parse(storedOrder);
-        // Only keep products that still exist, and add new ones at the end
-        const ordered = [...products].sort((a, b) => {
-          const orderA = orderMap[a.id] ?? Number.MAX_SAFE_INTEGER;
-          const orderB = orderMap[b.id] ?? Number.MAX_SAFE_INTEGER;
-          return orderA - orderB;
-        });
-        setOrderedProducts(ordered);
-        // Update localStorage if new products were added
-        if (ordered.length !== Object.keys(orderMap).length) {
-          const newOrderMap: { [key: string]: number } = {};
-          ordered.forEach((item, idx) => {
-            newOrderMap[item.id] = idx;
-          });
-          localStorage.setItem('product_order', JSON.stringify(newOrderMap));
-        }
-      } catch (error) {
-        setOrderedProducts(products);
-        // Reset order if corrupted
-        const newOrderMap: { [key: string]: number } = {};
-        products.forEach((item, idx) => {
-          newOrderMap[item.id] = idx;
-        });
-        localStorage.setItem('product_order', JSON.stringify(newOrderMap));
-      }
-    } else {
-      setOrderedProducts(products);
-      // Save initial order
-      const newOrderMap: { [key: string]: number } = {};
-      products.forEach((item, idx) => {
-        newOrderMap[item.id] = idx;
-      });
-      localStorage.setItem('product_order', JSON.stringify(newOrderMap));
-    }
+    const sorted = [...products].sort((a, b) => {
+      // First sort by category order
+      const categoryOrder = { food: 0, drink: 1, dessert: 2 };
+      const catA = categoryOrder[a.category] ?? 999;
+      const catB = categoryOrder[b.category] ?? 999;
+      if (catA !== catB) return catA - catB;
+      // Then sort by order within category
+      return (a.order ?? 0) - (b.order ?? 0);
+    });
+    setOrderedProducts(sorted);
   }, [products]);
 
   const sensors = useSensors(
@@ -137,12 +111,14 @@ const ProductGrid: React.FC<ProductGridProps> = ({
         const newIndex = items.findIndex((item) => item.id === over.id);
         const newItems = arrayMove(items, oldIndex, newIndex);
 
-        // Save order to localStorage
-        const orderMap: { [key: string]: number } = {};
-        newItems.forEach((item, index) => {
-          orderMap[item.id] = index;
+        // Update order in productService for each product in the same category as the dragged product
+        const draggedProduct = newItems[newIndex];
+        const category = draggedProduct.category;
+        const categoryProducts = newItems.filter(p => p.category === category);
+        
+        categoryProducts.forEach((product, index) => {
+          productService.updateProductOrder(product.id, index);
         });
-        localStorage.setItem('product_order', JSON.stringify(orderMap));
 
         return newItems;
       });

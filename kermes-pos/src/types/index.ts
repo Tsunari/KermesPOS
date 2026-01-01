@@ -8,6 +8,8 @@ export interface Product {
   inStock: boolean;
   /** When true, product is hidden from the product grid */
   hidden?: boolean;
+  /** Order position within the category (0-based) */
+  order?: number;
 }
 
 export interface CartItem {

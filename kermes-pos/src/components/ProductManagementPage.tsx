@@ -26,6 +26,9 @@ import { useVariableContext } from '../context/VariableContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Product } from '../types/index';
 import { productService } from '../services/productService';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const categoryLabels: Record<string, string> = {
   food: 'Food',
@@ -36,6 +39,38 @@ const categoryLabels: Record<string, string> = {
 const emptyProduct = { id: '', name: '', price: '', category: 'food', description: '' };
 
 type EditableProduct = typeof emptyProduct & { id?: string };
+
+// Sortable product row component
+const SortableProductRow = ({ prod, ...props }: any) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: prod.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    cursor: 'grab',
+    touchAction: 'none',
+  };
+
+  return (
+    <Box
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      sx={{ width: '100%' }}
+    >
+      <ProductRow prod={prod} {...props} />
+    </Box>
+  );
+};
 
 const ProductManagementPage: React.FC = () => {
   const { t } = useLanguage();
@@ -54,6 +89,18 @@ const ProductManagementPage: React.FC = () => {
   const bulkTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const bulkPendingRef = React.useRef<{ id: string; targetHidden: boolean } | null>(null);
   const HOLD_MS = 180; // small hold threshold to avoid accidental bulk
+
+  // Sensors for drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const applyVisibility = (id: string, hidden: boolean) => {
     const prod = products.find(p => p.id === id);
@@ -154,6 +201,26 @@ const ProductManagementPage: React.FC = () => {
     setProducts(productService.getAllProducts());
   };
 
+  const handleDragEnd = (event: any, category: string) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const categoryProducts = products.filter(p => p.category === category);
+    const oldIndex = categoryProducts.findIndex((item) => item.id === active.id);
+    const newIndex = categoryProducts.findIndex((item) => item.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    // Update order for all affected products
+    const reordered = arrayMove(categoryProducts, oldIndex, newIndex);
+    reordered.forEach((product, index) => {
+      productService.updateProductOrder(product.id, index);
+    });
+
+    // Reload products from service to update context and UI
+    setProducts(productService.getAllProducts());
+  };
+
   const handleFieldChange = (id: string, field: keyof EditableProduct, value: string) => {
     // Update product in service and context
     const prod = products.find(p => p.id === id);
@@ -177,12 +244,17 @@ const ProductManagementPage: React.FC = () => {
     // No-op, as state is already updated
   };
 
-  // Group products by category
+  // Group products by category, sorted by order
   const grouped = products.reduce<Record<string, Product[]>>((acc, prod) => {
     acc[prod.category] = acc[prod.category] || [];
     acc[prod.category].push(prod);
     return acc;
   }, {});
+
+  // Sort each category by order field
+  Object.keys(grouped).forEach((cat) => {
+    grouped[cat].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  });
 
   // Track shift key globally for delete shortcut
   const [shiftDown, setShiftDown] = React.useState(false);
@@ -231,6 +303,11 @@ const ProductManagementPage: React.FC = () => {
             <Box component="ul" sx={{ pl: 2, m: 0, display: 'grid', gap: 0.9 }}>
               <li>
                 <Typography variant="body2">
+                  Reorder: Drag products to reorder within each category.
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="body2">
                   Visibility: Click to toggle. Hold ~0.2s and drag across icons to multi-toggle.
                 </Typography>
               </li>
@@ -255,114 +332,127 @@ const ProductManagementPage: React.FC = () => {
       </Box>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="flex-start" sx={{ width: '100%' }}>
         {(['food', 'drink', 'dessert'] as const).map((cat) => (
-          <Paper key={cat} sx={{
-            p: 0.5,
-            borderRadius: 2, // more pronounced, matches MUI default
-            boxShadow: 1,
-            flex: 1,
-            minWidth: 0,
-            bgcolor: 'background.paper',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 0.5,
-            height: '100%'
-          }}>
-            <Box sx={{
+          <DndContext
+            key={cat}
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={(event) => handleDragEnd(event, cat)}
+          >
+            <Paper sx={{
+              p: 0.5,
+              borderRadius: 2, // more pronounced, matches MUI default
+              boxShadow: 1,
+              flex: 1,
+              minWidth: 0,
+              bgcolor: 'background.paper',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              mb: 0.5,
-              px: 1,
-              pt: 1,
+              flexDirection: 'column',
+              gap: 0.5,
+              height: '100%'
             }}>
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  fontWeight: 700,
-                  fontSize: 16,
-                  letterSpacing: 0.2,
-                  color: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[200] : theme.palette.text.primary,
-                  transition: 'color 0.2s',
-                }}
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                mb: 0.5,
+                px: 1,
+                pt: 1,
+              }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: 16,
+                    letterSpacing: 0.2,
+                    color: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[200] : theme.palette.text.primary,
+                    transition: 'color 0.2s',
+                  }}
+                >
+                  {categoryLabels[cat]}
+                </Typography>
+              </Box>
+              {/* Add row at the top */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'background.default', borderRadius: 1, boxShadow: 0, p: 0.5, width: '100%', mb: 0.5 }}>
+                <TextField
+                  inputRef={el => { addProductRefs.current[cat] = el; }}
+                  value={addRows[cat].name}
+                  onChange={e => setAddRows(prev => ({ ...prev, [cat]: { ...prev[cat], name: e.target.value } }))}
+                  size="small"
+                  placeholder="Name"
+                  sx={{ minWidth: 60, flex: 2, '& .MuiInputBase-input': { fontSize: 13, py: 0.5 } }}
+                  InputProps={{ sx: { fontSize: 13, py: 0.5 } }}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddProduct(cat); setTimeout(() => addProductRefs.current[cat]?.focus(), 10); } }}
+                />
+                <TextField
+                  value={addRows[cat].price}
+                  onChange={e => {
+                    let v = e.target.value;
+                    // allow digits and comma/dot; show comma in UI
+                    v = v.replace(/[^\d.,]/g, '');
+                    v = v.replace(/\./g, ',');
+                    const idx = v.indexOf(',');
+                    if (idx !== -1) {
+                      v = v.slice(0, idx + 1) + v.slice(idx + 1).replace(/,/g, '');
+                    }
+                    setAddRows(prev => ({ ...prev, [cat]: { ...prev[cat], price: v } }));
+                  }}
+                  size="small"
+                  placeholder="€"
+                  type="text"
+                  inputMode="decimal"
+                  sx={{ minWidth: 40, flex: 1, '& .MuiInputBase-input': { fontSize: 13, py: 0.5, textAlign: 'left' } }}
+                  slotProps={{ input: { sx: { fontSize: 13, py: 0.5, textAlign: 'left' } } }}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddProduct(cat); setTimeout(() => addProductRefs.current[cat]?.focus(), 10); } }}
+                />
+                <TextField
+                  value={addRows[cat].description}
+                  onChange={e => setAddRows(prev => ({ ...prev, [cat]: { ...prev[cat], description: e.target.value } }))}
+                  size="small"
+                  placeholder="Desc"
+                  sx={{ minWidth: 60, flex: 3, '& .MuiInputBase-input': { fontSize: 13, py: 0.5 } }}
+                  InputProps={{ sx: { fontSize: 13, py: 0.5 } }}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddProduct(cat); setTimeout(() => addProductRefs.current[cat]?.focus(), 10); } }}
+                />
+                <IconButton color="primary" size="small" onClick={() => { handleAddProduct(cat); setTimeout(() => addProductRefs.current[cat]?.focus(), 10); }} disabled={!addRows[cat].name || !addRows[cat].price}>
+                  <AddIcon fontSize="small" />
+                </IconButton>
+              </Box>
+              {/* Table header row */}
+              <Box sx={{ display: 'flex', alignItems: 'center', px: 0.5, py: 0.5, borderRadius: 1, mb: 0.5 }}>
+                <Typography sx={{ flex: 2, fontWeight: 600, fontSize: 13, pl: 0.5 }}>Name</Typography>
+                <Typography sx={{ flex: 1, fontWeight: 600, fontSize: 13, pl: 0.5 }}>Price (€)</Typography>
+                <Typography sx={{ flex: 3, fontWeight: 600, fontSize: 13, pl: 0.5 }}>Description</Typography>
+                <Box sx={{ width: 32 }} />
+              </Box>
+              {/* Sortable context for this category */}
+              <SortableContext
+                items={grouped[cat]?.map(p => p.id) || []}
+                strategy={verticalListSortingStrategy}
               >
-                {categoryLabels[cat]}
-              </Typography>
-            </Box>
-            {/* Add row at the top */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'background.default', borderRadius: 1, boxShadow: 0, p: 0.5, width: '100%', mb: 0.5 }}>
-              <TextField
-                inputRef={el => { addProductRefs.current[cat] = el; }}
-                value={addRows[cat].name}
-                onChange={e => setAddRows(prev => ({ ...prev, [cat]: { ...prev[cat], name: e.target.value } }))}
-                size="small"
-                placeholder="Name"
-                sx={{ minWidth: 60, flex: 2, '& .MuiInputBase-input': { fontSize: 13, py: 0.5 } }}
-                InputProps={{ sx: { fontSize: 13, py: 0.5 } }}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddProduct(cat); setTimeout(() => addProductRefs.current[cat]?.focus(), 10); } }}
-              />
-              <TextField
-                value={addRows[cat].price}
-                onChange={e => {
-                  let v = e.target.value;
-                  // allow digits and comma/dot; show comma in UI
-                  v = v.replace(/[^\d.,]/g, '');
-                  v = v.replace(/\./g, ',');
-                  const idx = v.indexOf(',');
-                  if (idx !== -1) {
-                    v = v.slice(0, idx + 1) + v.slice(idx + 1).replace(/,/g, '');
-                  }
-                  setAddRows(prev => ({ ...prev, [cat]: { ...prev[cat], price: v } }));
-                }}
-                size="small"
-                placeholder="€"
-                type="text"
-                inputMode="decimal"
-                sx={{ minWidth: 40, flex: 1, '& .MuiInputBase-input': { fontSize: 13, py: 0.5, textAlign: 'left' } }}
-                slotProps={{ input: { sx: { fontSize: 13, py: 0.5, textAlign: 'left' } } }}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddProduct(cat); setTimeout(() => addProductRefs.current[cat]?.focus(), 10); } }}
-              />
-              <TextField
-                value={addRows[cat].description}
-                onChange={e => setAddRows(prev => ({ ...prev, [cat]: { ...prev[cat], description: e.target.value } }))}
-                size="small"
-                placeholder="Desc"
-                sx={{ minWidth: 60, flex: 3, '& .MuiInputBase-input': { fontSize: 13, py: 0.5 } }}
-                InputProps={{ sx: { fontSize: 13, py: 0.5 } }}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddProduct(cat); setTimeout(() => addProductRefs.current[cat]?.focus(), 10); } }}
-              />
-              <IconButton color="primary" size="small" onClick={() => { handleAddProduct(cat); setTimeout(() => addProductRefs.current[cat]?.focus(), 10); }} disabled={!addRows[cat].name || !addRows[cat].price}>
-                <AddIcon fontSize="small" />
-              </IconButton>
-            </Box>
-            {/* Table header row */}
-            <Box sx={{ display: 'flex', alignItems: 'center', px: 0.5, py: 0.5, borderRadius: 1, mb: 0.5 }}>
-              <Typography sx={{ flex: 2, fontWeight: 600, fontSize: 13, pl: 0.5 }}>Name</Typography>
-              <Typography sx={{ flex: 1, fontWeight: 600, fontSize: 13, pl: 0.5 }}>Price (€)</Typography>
-              <Typography sx={{ flex: 3, fontWeight: 600, fontSize: 13, pl: 0.5 }}>Description</Typography>
-              <Box sx={{ width: 32 }} />
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, width: '100%' }}>
-              {grouped[cat]?.length ? grouped[cat].map((prod) => {
-                return (
-                  <ProductRow
-                    key={prod.id}
-                    prod={prod}
-                    shiftDown={shiftDown}
-                    onDelete={handleDeleteProduct}
-                    setDeleteId={setDeleteId}
-                    handleFieldChange={handleFieldChange}
-                    handleSaveEdit={handleSaveEdit}
-                    bulkActive={bulkActive}
-                    onBulkMouseDown={onBulkMouseDown}
-                    onBulkMouseUp={onBulkMouseUp}
-                    onBulkEnter={enterBulkToggle}
-                  />
-                );
-              }) : (
-                <Typography color="text.secondary" sx={{ fontSize: 12, px: 1 }}>No products.</Typography>
-              )}
-            </Box>
-          </Paper>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, width: '100%' }}>
+                  {grouped[cat]?.length ? grouped[cat].map((prod) => {
+                    return (
+                      <SortableProductRow
+                        key={prod.id}
+                        prod={prod}
+                        shiftDown={shiftDown}
+                        onDelete={handleDeleteProduct}
+                        setDeleteId={setDeleteId}
+                        handleFieldChange={handleFieldChange}
+                        handleSaveEdit={handleSaveEdit}
+                        bulkActive={bulkActive}
+                        onBulkMouseDown={onBulkMouseDown}
+                        onBulkMouseUp={onBulkMouseUp}
+                        onBulkEnter={enterBulkToggle}
+                      />
+                    );
+                  }) : (
+                    <Typography color="text.secondary" sx={{ fontSize: 12, px: 1 }}>No products.</Typography>
+                  )}
+                </Box>
+              </SortableContext>
+            </Paper>
+          </DndContext>
         ))}
       </Stack>
       {/* Delete Confirmation Dialog */}
