@@ -43,7 +43,8 @@
     "nativePrintResult": "Native yazdırma sonucu:",
     "nativePrintError": "Native yazdırma hatası:",
     "failedToPrint": "Native yazıcı ile yazdırma başarısız oldu",
-    "reset": "Sıfırla"
+    "reset": "Sıfırla",
+    "create": "Oluştur"
   },
   "settings": {
     "title": "Ayarlar",
@@ -96,6 +97,9 @@
       "title": "Hakkında",
       "description": "Kermes POS, ürünleri yönetmek, satışları işlemek ve raporlar oluşturmak için bir kasa sistemi.",
       "version": "Sürüm"
+    },
+    "menu": {
+      "description": "Açıklama"
     }
   },
   "products": {
@@ -280,6 +284,23 @@
       "tooltipVisibilityHide": "Izgaradan gizle",
       "tooltipVisibilityMulti": "Toplu değiştirmek için basılı tutup sürükleyin"
     },
+    "sessions": {
+      "title": "Oturumlar",
+      "description": "Oturumları yönet ve satışları etkinliklere göre takip et",
+      "newSession": "Yeni Oturum",
+      "noSessions": "Oturum yok",
+      "createFirst": "İlkini oluştur",
+      "createSession": "Oturum oluştur",
+      "pause": "Duraklat",
+      "complete": "Tamamla",
+      "resume": "Sürdür",
+      "delete": "Sil",
+      "sessionName": "Oturum Adı",
+      "dateRange": "Tarih Aralığı",
+      "startDate": "Başlangıç Tarihi",
+      "endDate": "Bitiş Tarihi",
+      "clearDates": "Tarihleri Temizle"
+    },
     "devMode": {
       "enableToUse": "Bu özelliği kullanmak için Geliştirici Modunu etkinleştirin",
       "enableInSettings": "Bu özelliği kullanmak için Ayarlar'dan Geliştirici Modunu etkinleştirin"
@@ -314,6 +335,16 @@
     "changeCalculator": {
       "givenAmount": "Verilen miktar",
       "change": "Para Üstü"
-    }
-  }
+    },
+  "Error loading sessions. Check browser console.": "Oturumlar yüklenirken hata oluştu. Tarayıcı konsolunu kontrol edin.",
+  "Error creating session. Check browser console.": "Oturum oluşturulurken hata oluştu. Tarayıcı konsolunu kontrol edin.",
+  "Error completing session. Check console.": "Oturumu tamamlarken hata oluştu. Konsolu kontrol edin.",
+  "Error pausing session. Check console.": "Oturumu duraklatırken hata oluştu. Konsolu kontrol edin.",
+  "Error resuming session. Check console.": "Oturumu sürdürürken hata oluştu. Konsolu kontrol edin.",
+  "Error deleting session. Check console.": "Oturum silinirken hata oluştu. Konsolu kontrol edin.",
+  "Cannot edit completed sessions.": "Tamamlanmış oturumlar düzenlenemez.",
+  "Error clearing dates. Check console.": "Tarihleri temizlerken hata oluştu. Konsolu kontrol edin.",
+  "Updated session! Moved ${unlinkedCount} transaction(s) from other sessions.": "Oturum güncellendi! Diğer oturumlardan ${unlinkedCount} işlem taşındı.",
+  "Error saving session. Check console.": "Oturum kaydedilirken hata oluştu. Konsolu kontrol edin."
+} 
 }

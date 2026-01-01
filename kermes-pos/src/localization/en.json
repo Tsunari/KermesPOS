@@ -43,7 +43,8 @@
     "nativePrintResult": "Native print result:",
     "nativePrintError": "Error with native print:",
     "failedToPrint": "Failed to print using native printer",
-    "reset": "Reset"
+    "reset": "Reset",
+    "create": "Create"
   },
   "settings": {
     "title": "Settings",
@@ -96,6 +97,9 @@
       "title": "About",
       "description": "Kermes POS is a point-of-sale system designed for managing products, processing sales, and generating reports.",
       "version": "Version"
+    },
+    "menu": {
+      "description": "Description"
     }
   },
   "products": {
@@ -313,6 +317,38 @@
     "changeCalculator": {
       "givenAmount": "Given Amount",
       "change": "Change"
+    },
+    "categories": {
+      "food": "Food",
+      "drink": "Drink",
+      "dessert": "Dessert"
+    },
+    "sessions": {
+      "title": "Title",
+      "description": "Description",
+      "newSession": "New Session",
+      "noSessions": "No Sessions",
+      "createFirst": "Create First",
+      "createSession": "Create Session",
+      "pause": "Pause",
+      "complete": "Complete",
+      "resume": "Resume",
+      "delete": "Delete",
+      "sessionName": "Session Name",
+      "dateRange": "Date Range",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "clearDates": "Clear Dates"
     }
-  }
+  },
+  "Error loading sessions. Check browser console.": "Error loading sessions. Check browser console.",
+  "Error creating session. Check browser console.": "Error creating session. Check browser console.",
+  "Error completing session. Check console.": "Error completing session. Check console.",
+  "Error pausing session. Check console.": "Error pausing session. Check console.",
+  "Error resuming session. Check console.": "Error resuming session. Check console.",
+  "Error deleting session. Check console.": "Error deleting session. Check console.",
+  "Cannot edit completed sessions.": "Cannot edit completed sessions.",
+  "Error clearing dates. Check console.": "Error clearing dates. Check console.",
+  "Updated session! Moved ${unlinkedCount} transaction(s) from other sessions.": "Updated session! Moved ${unlinkedCount} transaction(s) from other sessions.",
+  "Error saving session. Check console.": "Error saving session. Check console."
 }

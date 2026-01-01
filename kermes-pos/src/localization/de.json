@@ -43,7 +43,8 @@
     "nativePrintResult": "Native-Druck-Ergebnis:",
     "nativePrintError": "Fehler beim nativen Druck:",
     "failedToPrint": "Fehler beim Drucken mit dem nativen Drucker",
-    "reset": "Zurücksetzen"
+    "reset": "Zurücksetzen",
+    "create": "Erstellen"
   },
   "settings": {
     "title": "Einstellungen",
@@ -96,6 +97,9 @@
       "title": "Über",
       "description": "Kermes POS ist ein Kassensystem zur Verwaltung von Produkten, Verarbeitung von Verkäufen und Erstellung von Berichten.",
       "version": "Version"
+    },
+    "menu": {
+      "description": "Beschreibung"
     }
   },
   "products": {
@@ -280,6 +284,23 @@
       "tooltipVisibilityHide": "Im Raster ausblenden",
       "tooltipVisibilityMulti": "Halten und ziehen zum Mehrfach-Umschalten"
     },
+    "sessions": {
+      "title": "Sitzungen",
+      "description": "Sitzungen verwalten und Verkäufe pro Event verfolgen",
+      "newSession": "Neue Sitzung",
+      "noSessions": "Keine Sitzungen",
+      "createFirst": "Zuerst erstellen",
+      "createSession": "Sitzung erstellen",
+      "pause": "Pause",
+      "complete": "Abschließen",
+      "resume": "Fortsetzen",
+      "delete": "Löschen",
+      "sessionName": "Sitzungsname",
+      "dateRange": "Datumsbereich",
+      "startDate": "Startdatum",
+      "endDate": "Enddatum",
+      "clearDates": "Daten löschen"
+    },
     "devMode": {
       "enableToUse": "Aktivieren Sie den Entwicklermodus, um diese Funktion zu nutzen",
       "enableInSettings": "Aktivieren Sie den Entwicklermodus in den Einstellungen, um diese Funktion zu nutzen"
@@ -314,6 +335,16 @@
     "changeCalculator": {
       "givenAmount": "Erhalten",
       "change": "Rückgeld"
-    }
-  }
+    },
+  "Error loading sessions. Check browser console.": "Fehler beim Laden der Sitzungen. Prüfen Sie die Browser-Konsole.",
+  "Error creating session. Check browser console.": "Fehler beim Erstellen der Sitzung. Prüfen Sie die Browser-Konsole.",
+  "Error completing session. Check console.": "Fehler beim Abschließen der Sitzung. Konsole prüfen.",
+  "Error pausing session. Check console.": "Fehler beim Pausieren der Sitzung. Konsole prüfen.",
+  "Error resuming session. Check console.": "Fehler beim Fortsetzen der Sitzung. Konsole prüfen.",
+  "Error deleting session. Check console.": "Fehler beim Löschen der Sitzung. Konsole prüfen.",
+  "Cannot edit completed sessions.": "Abgeschlossene Sitzungen können nicht bearbeitet werden.",
+  "Error clearing dates. Check console.": "Fehler beim Löschen der Daten. Konsole prüfen.",
+  "Updated session! Moved ${unlinkedCount} transaction(s) from other sessions.": "Sitzung aktualisiert! ${unlinkedCount} Transaktion(en) von anderen Sitzungen verschoben.",
+  "Error saving session. Check console.": "Fehler beim Speichern der Sitzung. Konsole prüfen."
+}
 }
