@@ -12,6 +12,7 @@ import colorLogger from "./util/colorLogger.js";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import pkg from "electron-updater";
+import log from "electron-log";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -94,6 +95,16 @@ function setupAutoUpdater() {
     autoUpdater.allowPrerelease = false; // Only stable releases
     autoUpdater.allowDowngrade = false; // Prevent downgrading
     
+    // Enable detailed logging for debugging
+    autoUpdater.logger = log;
+    log.transports.file.level = 'debug';
+    log.transports.console.level = 'debug';
+    colorLogger.info(`[AutoUpdater] Debug logging enabled. Log file: ${log.transports.file.file}`);
+    colorLogger.info(`[AutoUpdater] Current app version: v${app.getVersion()}`);
+    colorLogger.info(`[AutoUpdater] Is packaged: ${app.isPackaged}`);
+    colorLogger.info(`[AutoUpdater] Allow prerelease: ${autoUpdater.allowPrerelease}`);
+    colorLogger.info(`[AutoUpdater] Allow downgrade: ${autoUpdater.allowDowngrade}`);
+    
     // Set update check interval (every 4 hours)
     autoUpdater.checkForUpdatesAndNotify();
     setInterval(() => {
@@ -106,7 +117,8 @@ function setupAutoUpdater() {
       isUpdateCheckInProgress = true;
       lastUpdateStatus = { status: "checking", info: null };
       sendUpdateStatus("update:status", lastUpdateStatus);
-      colorLogger.info("[AutoUpdater] Checking for updates...");
+      const currentVer = app.getVersion();
+      colorLogger.info(`[AutoUpdater] Checking for updates (current: v${currentVer})...`);
     });
 
     autoUpdater.on("update-available", (info) => {
@@ -122,7 +134,9 @@ function setupAutoUpdater() {
         }
       };
       sendUpdateStatus("update:status", lastUpdateStatus);
-      colorLogger.success(`[AutoUpdater] Update available: ${info.version}`);
+      const currentVer = app.getVersion();
+      colorLogger.success(`[AutoUpdater] Update available! Current: v${currentVer} → Available: v${info.version}`);
+      colorLogger.info(`[AutoUpdater] Release notes: ${info.releaseNotes}`);
       
       // Show notification to user
       if (mainWindow && !mainWindow.isDestroyed()) {
@@ -135,12 +149,14 @@ function setupAutoUpdater() {
 
     autoUpdater.on("update-not-available", (info) => {
       isUpdateCheckInProgress = false;
+      const currentVer = app.getVersion();
       lastUpdateStatus = { 
         status: "not-available", 
-        info: { version: app.getVersion() }
+        info: { version: currentVer }
       };
       sendUpdateStatus("update:status", lastUpdateStatus);
-      colorLogger.info("[AutoUpdater] No updates available");
+      colorLogger.info(`[AutoUpdater] No updates available. Current version v${currentVer} is up to date.`);
+      colorLogger.info(`[AutoUpdater] Release check info:`, JSON.stringify(info, null, 2));
     });
 
     autoUpdater.on("error", (err) => {
@@ -151,7 +167,8 @@ function setupAutoUpdater() {
         info: { message: errorMessage },
       };
       sendUpdateStatus("update:status", lastUpdateStatus);
-      colorLogger.error("[AutoUpdater] Error:", errorMessage);
+      colorLogger.error(`[AutoUpdater] Error checking for updates:`, errorMessage);
+      colorLogger.error(`[AutoUpdater] Full error:`, err);
     });
 
     autoUpdater.on("download-progress", (progressObj) => {

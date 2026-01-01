@@ -49,7 +49,7 @@
     if (add === undefined) {
       el.classList.toggle(className);
     } else {
-      el.classList[add ? 'remove' : 'add'](className);
+      el.classList[add ? 'add' : 'remove'](className);
     }
   }
 
@@ -293,6 +293,27 @@
 
   // Set initial state
   setState({ status: 'idle' });
+
+  // Wrap setState in logging to debug visibility issues
+  const _originalSetState = setState;
+  setState = function(state) {
+    console.log('[Update UI] setState called with status:', state?.status);
+    console.log('[Update UI] BEFORE setState - visibility:', {
+      statusSection: !statusSection.classList.contains('hidden'),
+      updateDetails: !updateDetails.classList.contains('hidden'),
+      releaseNotesSection: !releaseNotesSection.classList.contains('hidden'),
+      progressSection: !progressSection.classList.contains('hidden'),
+      errorSection: !errorSection.classList.contains('hidden')
+    });
+    _originalSetState(state);
+    console.log('[Update UI] AFTER setState - visibility:', {
+      statusSection: !statusSection.classList.contains('hidden'),
+      updateDetails: !updateDetails.classList.contains('hidden'),
+      releaseNotesSection: !releaseNotesSection.classList.contains('hidden'),
+      progressSection: !progressSection.classList.contains('hidden'),
+      errorSection: !errorSection.classList.contains('hidden')
+    });
+  };
 
   console.log('[Update UI] Initialized successfully');
 })();
