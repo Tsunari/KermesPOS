@@ -277,12 +277,14 @@ class CartTransactionService {
      * @param endDate - End of the date range (inclusive)
      * @param productId - Optional: Filter by specific product ID
      * @param products - Array of all products for reference
+     * @param sessionIds - Optional: Limit to transactions belonging to these sessions
      */
     async getProductStatsByDateRange(
         startDate: Date,
         endDate: Date,
         products: Product[],
-        productId?: string
+        productId?: string,
+        sessionIds?: string[]
     ): Promise<DateRangeStats> {
         if (!this.db) await this.initDB();
 
@@ -306,13 +308,17 @@ class CartTransactionService {
                     return txDate >= startTime && txDate <= endTime;
                 });
 
+                const sessionFilteredTransactions = Array.isArray(sessionIds) && sessionIds.length > 0
+                    ? filteredTransactions.filter((tx: CartTransaction) => tx.session_id && sessionIds.includes(tx.session_id))
+                    : filteredTransactions;
+
                 // Calculate product stats
                 const productStatsMap = new Map<string, ProductStats>();
                 let totalRevenue = 0;
                 let totalItems = 0;
-                const transactionCount = filteredTransactions.length;
+                const transactionCount = sessionFilteredTransactions.length;
 
-                filteredTransactions.forEach((tx: CartTransaction) => {
+                sessionFilteredTransactions.forEach((tx: CartTransaction) => {
                     totalRevenue += tx.total_amount;
                     
                     try {

@@ -237,7 +237,11 @@
       "allCategories": "Tüm Kategoriler",
       "totalProducts": "Toplam Ürün",
       "totalQuantity": "Toplam Miktar",
-      "loading": "İstatistikler yükleniyor..."
+      "loading": "İstatistikler yükleniyor...",
+      "sessionFilter": "Oturumlara göre filtrele",
+      "allSessions": "Tüm oturumlar",
+      "sessionFilterHint": "İstatistikleri filtrelemek için oturum seçin",
+      "noSessions": "Oturum bulunamadı"
     },
     "cart": {
       "total": "Toplam",

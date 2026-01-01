@@ -237,7 +237,11 @@
       "allCategories": "Alle Kategorien",
       "totalProducts": "Gesamtprodukte",
       "totalQuantity": "Gesamtmenge",
-      "loading": "Statistiken werden geladen..."
+      "loading": "Statistiken werden geladen...",
+      "sessionFilter": "Nach Sessions filtern",
+      "allSessions": "Alle Sessions",
+      "sessionFilterHint": "Sessions wählen, um Statistiken zu filtern",
+      "noSessions": "Keine Sessions vorhanden"
     },
     "cart": {
       "total": "Gesamt",

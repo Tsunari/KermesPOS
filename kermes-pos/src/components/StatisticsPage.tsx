@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Paper, ToggleButton, ToggleButtonGroup, IconButton, Dialog, DialogTitle, DialogContent, Tooltip, Button, Stack, DialogActions, TextField, Accordion, AccordionSummary, AccordionDetails, List, ListItem, ListItemText, ListItemIcon, Divider } from '@mui/material';
+import { Autocomplete, Box, Typography, Paper, ToggleButton, ToggleButtonGroup, IconButton, Dialog, DialogTitle, DialogContent, Tooltip, Button, Stack, DialogActions, TextField, Accordion, AccordionSummary, AccordionDetails, List, ListItem, ListItemText, ListItemIcon, Divider, Chip } from '@mui/material';
 import GridViewIcon from '@mui/icons-material/GridView';
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
@@ -9,7 +9,9 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import LocalBarIcon from '@mui/icons-material/LocalBar';
 import { useLanguage } from '../context/LanguageContext';
 import { Product } from '../types/index';
+import { Session } from '../types/session';
 import { cartTransactionService, ProductStats, DateRangeStats } from '../services/cartTransactionService';
+import { sessionService } from '../services/sessionService';
 import { generateSummaryPDF } from '../services/summary';
 import { exampleTransactions } from '../services/exampleTransactions';
 import { useVariableContext } from '../context/VariableContext';
@@ -74,6 +76,8 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
   const [editItems, setEditItems] = useState<any[]>([]);
   const [editAddProductId, setEditAddProductId] = useState<number | null>(null);
   const [editAddProductQty, setEditAddProductQty] = useState<number>(1);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [selectedSessionIds, setSelectedSessionIds] = useState<string[]>([]);
 
   // Product Analytics state
   const [timeRange, setTimeRange] = useState<TimeRange>(() => {
@@ -180,6 +184,33 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
     loadData();
   }, [loadData]);
 
+  // Load available sessions once for analytics filtering
+  useEffect(() => {
+    const loadSessions = async () => {
+      try {
+        const loadedSessions = await sessionService.getAllSessions();
+        const sorted = [...loadedSessions].sort((a, b) => {
+          const aTime = new Date(a.createdAt || a.startDate || 0).getTime();
+          const bTime = new Date(b.createdAt || b.startDate || 0).getTime();
+          return bTime - aTime;
+        });
+        setSessions(sorted);
+
+        // Default filter: active session, if present and no selection yet
+        if (selectedSessionIds.length === 0) {
+          const activeSession = sorted.find(session => session.status === 'active');
+          if (activeSession) {
+            setSelectedSessionIds([activeSession.id]);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading sessions:', error);
+      }
+    };
+
+    loadSessions();
+  }, []);
+
   // Load date range stats when time range changes
   useEffect(() => {
     const loadDateRangeStats = async () => {
@@ -187,7 +218,9 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
         const stats = await cartTransactionService.getProductStatsByDateRange(
           timeRange.startDate,
           timeRange.endDate,
-          products
+          products,
+          undefined,
+          selectedSessionIds
         );
         setDateRangeStats(stats);
 
@@ -199,7 +232,9 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
         const prevStats = await cartTransactionService.getProductStatsByDateRange(
           prevStartDate,
           prevEndDate,
-          products
+          products,
+          undefined,
+          selectedSessionIds
         );
         setPreviousPeriodStats(prevStats.productStats);
       } catch (error) {
@@ -208,7 +243,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
     };
 
     loadDateRangeStats();
-  }, [timeRange, products]);
+  }, [timeRange, products, selectedSessionIds]);
 
   const todayStats = dailyStats[0] || { total_revenue: 0, total_items: 0, transaction_count: 0 };
   const yesterdayStats = dailyStats[1] || { total_revenue: 0, total_items: 0 };
@@ -393,7 +428,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
       <Box sx={{ mt: 6, mb: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            {t('app.statistics.productAnalytics') || '🔍 Product Analytics'}
+            {t('app.statistics.productAnalytics') || 'Product Analytics'}
           </Typography>
           <Button
             variant="outlined"
@@ -407,7 +442,48 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
         </Box>
 
         <Paper sx={{ p: 3, mb: 3 }}>
-          <TimeRangePicker value={timeRange} onChange={setTimeRange} />
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
+            <Box sx={{ flex: 2, display: 'flex', alignItems: 'center' }}>
+              <TimeRangePicker value={timeRange} onChange={setTimeRange} />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              {/* <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                {t('app.statistics.sessionFilterHint') || 'Pick sessions to filter stats'}
+              </Typography> */}
+              <Autocomplete
+                multiple
+                options={sessions}
+                getOptionLabel={(option) => option.name || option.id}
+                size="small"
+                sx={{ minWidth: 240, mt: 3.5 }}
+                value={sessions.filter(session => selectedSessionIds.includes(session.id))}
+                onChange={(_, value) => setSelectedSessionIds(value.map(session => session.id))}
+                filterSelectedOptions
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => (
+                    <Chip
+                      {...getTagProps({ index })}
+                      key={option.id}
+                      label={option.name || option.id}
+                      size="small"
+                    />
+                  ))
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label={t('app.statistics.sessionFilter') || 'Filter by sessions'}
+                    placeholder={
+                      selectedSessionIds.length
+                        ? undefined
+                        : t('app.statistics.allSessions') || 'All sessions'
+                    }
+                  />
+                )}
+                noOptionsText={t('app.statistics.noSessions') || 'No sessions available'}
+              />
+            </Box>
+          </Stack>
         </Paper>
 
         {dateRangeStats && (
