@@ -23,14 +23,20 @@ let pythonPrintProcesses = [];
 let kursName = "Münih Fatih Kermes";
 let updateWindow = null;
 let lastUpdateStatus = { status: "idle", info: null };
+let updateInfo = null;
+let isUpdateCheckInProgress = false;
 
 function sendUpdateStatus(channel, payload) {
   // Send to update window if open
   if (updateWindow && !updateWindow.isDestroyed()) {
     updateWindow.webContents.send(channel, payload);
   }
+  // Send to main window for notification badges/toasts
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send(channel, payload);
+  }
   // Also log for visibility
-  console.log(`[update] ${channel}:`, payload);
+  colorLogger.info(`[update] ${channel}:`, payload);
 }
 
 function openUpdateWindow() {
@@ -43,13 +49,15 @@ function openUpdateWindow() {
     ? path.join(__dirname, "assets", "Logo-dark-m.ico")
     : path.join(__dirname, "assets", "Logo-light-m.ico");
   updateWindow = new BrowserWindow({
-    width: 460,
-    height: 520,
+    width: 600,
+    height: 680,
+    minWidth: 500,
+    minHeight: 500,
     title: "Updates",
     icon: iconPath,
     parent: mainWindow,
     modal: false,
-    resizable: false,
+    resizable: true,
     minimizable: false,
     maximizable: false,
     autoHideMenuBar: true,
@@ -80,38 +88,108 @@ function openUpdateWindow() {
 
 function setupAutoUpdater() {
   try {
-    autoUpdater.autoDownload = false;
-    autoUpdater.autoInstallOnAppQuit = false;
+    // Configure auto-updater for GitHub releases
+    autoUpdater.autoDownload = false; // Manual download for better UX
+    autoUpdater.autoInstallOnAppQuit = true; // Auto-install when user quits
+    autoUpdater.allowPrerelease = false; // Only stable releases
+    autoUpdater.allowDowngrade = false; // Prevent downgrading
+    
+    // Set update check interval (every 4 hours)
+    autoUpdater.checkForUpdatesAndNotify();
+    setInterval(() => {
+      if (!isUpdateCheckInProgress && app.isPackaged) {
+        autoUpdater.checkForUpdatesAndNotify();
+      }
+    }, 4 * 60 * 60 * 1000);
 
     autoUpdater.on("checking-for-update", () => {
+      isUpdateCheckInProgress = true;
       lastUpdateStatus = { status: "checking", info: null };
       sendUpdateStatus("update:status", lastUpdateStatus);
+      colorLogger.info("[AutoUpdater] Checking for updates...");
     });
+
     autoUpdater.on("update-available", (info) => {
-      lastUpdateStatus = { status: "available", info };
-      sendUpdateStatus("update:status", lastUpdateStatus);
-    });
-    autoUpdater.on("update-not-available", (info) => {
-      lastUpdateStatus = { status: "not-available", info };
-      sendUpdateStatus("update:status", lastUpdateStatus);
-    });
-    autoUpdater.on("error", (err) => {
-      lastUpdateStatus = {
-        status: "error",
-        info: { message: err?.message || String(err) },
+      isUpdateCheckInProgress = false;
+      updateInfo = info;
+      lastUpdateStatus = { 
+        status: "available", 
+        info: {
+          version: info.version,
+          releaseDate: info.releaseDate,
+          releaseName: info.releaseName,
+          releaseNotes: info.releaseNotes
+        }
       };
       sendUpdateStatus("update:status", lastUpdateStatus);
+      colorLogger.success(`[AutoUpdater] Update available: ${info.version}`);
+      
+      // Show notification to user
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("update:notification", {
+          type: "available",
+          version: info.version
+        });
+      }
     });
+
+    autoUpdater.on("update-not-available", (info) => {
+      isUpdateCheckInProgress = false;
+      lastUpdateStatus = { 
+        status: "not-available", 
+        info: { version: app.getVersion() }
+      };
+      sendUpdateStatus("update:status", lastUpdateStatus);
+      colorLogger.info("[AutoUpdater] No updates available");
+    });
+
+    autoUpdater.on("error", (err) => {
+      isUpdateCheckInProgress = false;
+      const errorMessage = err?.message || String(err);
+      lastUpdateStatus = {
+        status: "error",
+        info: { message: errorMessage },
+      };
+      sendUpdateStatus("update:status", lastUpdateStatus);
+      colorLogger.error("[AutoUpdater] Error:", errorMessage);
+    });
+
     autoUpdater.on("download-progress", (progressObj) => {
       lastUpdateStatus = { status: "downloading", info: progressObj };
-      sendUpdateStatus("update:progress", progressObj);
+      sendUpdateStatus("update:progress", {
+        percent: progressObj.percent,
+        transferred: progressObj.transferred,
+        total: progressObj.total,
+        bytesPerSecond: progressObj.bytesPerSecond
+      });
+      
+      // Log progress every 10%
+      if (Math.floor(progressObj.percent) % 10 === 0) {
+        colorLogger.info(`[AutoUpdater] Download progress: ${Math.round(progressObj.percent)}%`);
+      }
     });
+
     autoUpdater.on("update-downloaded", (info) => {
-      lastUpdateStatus = { status: "downloaded", info };
+      lastUpdateStatus = { 
+        status: "downloaded", 
+        info: {
+          version: info.version,
+          releaseDate: info.releaseDate
+        }
+      };
       sendUpdateStatus("update:status", lastUpdateStatus);
+      colorLogger.success(`[AutoUpdater] Update downloaded: ${info.version}`);
+      
+      // Notify user that update is ready
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("update:notification", {
+          type: "downloaded",
+          version: info.version
+        });
+      }
     });
   } catch (e) {
-    console.warn("autoUpdater setup failed:", e);
+    colorLogger.warn("[AutoUpdater] Setup failed:", e);
   }
 }
 
@@ -343,8 +421,22 @@ app.on("ready", async () => {
 
   if (app.isPackaged) {
     mainWindow.loadFile("build/index.html");
-    // Initial background check; full flow can be initiated from UI
-    autoUpdater.checkForUpdates().catch(() => {});
+    
+    // Perform initial update check on startup (silent, non-intrusive)
+    colorLogger.info('[Update] Performing initial startup check for updates...');
+    setTimeout(() => {
+      autoUpdater.checkForUpdates()
+        .then((result) => {
+          if (result?.updateInfo) {
+            colorLogger.success('[Update] Update check completed:', result.updateInfo.version);
+          } else {
+            colorLogger.info('[Update] App is up to date');
+          }
+        })
+        .catch((error) => {
+          colorLogger.warn('[Update] Initial check failed (non-critical):', error.message);
+        });
+    }, 5000); // Wait 5 seconds after app launch to avoid slowing down startup
   } else {
     const kermesPosPath = path.join(__dirname, "build/index.html");
     //mainWindow.loadFile(kermesPosPath);
@@ -425,6 +517,7 @@ app.on("ready", async () => {
     }
   });
   ipcMain.handle("app:is-dev", () => !app.isPackaged);
+  ipcMain.handle("app:get-version", () => app.getVersion());
 
   ipcMain.on("print-cart", async (event, { cartData, selectedPrinter }) => {
     // Kill any previous print jobs before starting new ones

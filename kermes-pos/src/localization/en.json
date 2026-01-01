@@ -169,7 +169,10 @@
     "updates": {
       "check": "Check for Updates",
       "checkDescription": "Check for new updates and install the latest version.",
-      "active": "Active update system"
+      "active": "Active update system",
+      "available": "Available",
+      "download": "Update",
+      "newVersionAvailable": "A new version is available for download."
     },
     "statistics": {
       "title": "Statistics",

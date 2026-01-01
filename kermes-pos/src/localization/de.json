@@ -170,7 +170,10 @@
     "updates": {
       "check": "Nach Updates suchen",
       "checkDescription": "Nach neuen Updates suchen und die neueste Version installieren.",
-      "active": "Aktives Update-System"
+      "active": "Aktives Update-System",
+      "available": "Verfügbar",
+      "download": "Aktualisieren",
+      "newVersionAvailable": "Eine neue Version ist zum Download verfügbar."
     },
     "statistics": {
       "title": "Statistiken",

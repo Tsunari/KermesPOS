@@ -3,34 +3,127 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>App Updates</title>
+    <title>Software Updates</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     <link rel="stylesheet" href="update.css" />
   </head>
   <body>
-    <div class="container">
-      <h1 class="title">Kermes POS — Updates</h1>
-      <p id="status" class="status">Idle</p>
+    <div class="window-container">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-content">
+          <div class="header-title-section">
+            <h1 class="header-title">Updates</h1>
+            <p class="header-subtitle">Keep your software up to date</p>
+          </div>
+          <div class="version-badge">
+            <span class="version-label">Current version</span>
+            <span class="version-number" id="currentVersion">Loading...</span>
+          </div>
+        </div>
+      </header>
 
-      <div id="details" class="details hidden"></div>
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Status Section -->
+        <div class="status-section" id="statusSection">
+          <div class="status-card">
+            <div class="status-icon-wrapper" id="statusIconWrapper">
+              <div class="spinner" id="spinner">
+                <svg viewBox="0 0 50 50">
+                  <circle cx="25" cy="25" r="20" fill="none" stroke-width="2"></circle>
+                </svg>
+              </div>
+              <div class="status-icon hidden" id="statusIcon"></div>
+            </div>
+            <p class="status-message" id="statusMessage">Checking for updates...</p>
+          </div>
+        </div>
 
-      <div class="progress-wrapper hidden" id="progressWrapper">
-        <div class="progress-bar" id="progressBar"></div>
-        <div class="progress-text" id="progressText">0%</div>
-      </div>
+        <!-- Update Details -->
+        <div class="update-details hidden" id="updateDetails">
+          <div class="details-card">
+            <div class="details-header">
+              <div class="details-version-info">
+                <span class="label">New Version</span>
+                <h2 class="version-title" id="newVersion">v1.0.0</h2>
+              </div>
+              <span class="update-badge">Available</span>
+            </div>
+            <div class="details-meta">
+              <span class="meta-item">
+                <span class="material-icons">calendar_today</span>
+                <span id="releaseDate">Recently</span>
+              </span>
+            </div>
+          </div>
+        </div>
 
-      <div class="actions">
-        <button id="btnCheck" class="btn primary">Check for Updates</button>
-        <button id="btnDownload" class="btn" disabled>Download</button>
-        <button id="btnInstall" class="btn success" disabled>
-          Install & Restart
+        <!-- Release Notes -->
+        <div class="release-notes-section hidden" id="releaseNotesSection">
+          <div class="release-notes-header">
+            <span class="material-icons">description</span>
+            <h3>What's New</h3>
+          </div>
+          <div class="release-notes-content" id="releaseNotesContent">
+            <p>No release notes available.</p>
+          </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="progress-section hidden" id="progressSection">
+          <div class="progress-info">
+            <span class="progress-label">Downloading update...</span>
+            <span class="progress-stats">
+              <span class="progress-percent" id="progressText">0%</span>
+              <span class="progress-speed" id="downloadSpeed"></span>
+            </span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+        </div>
+
+        <!-- Error Section -->
+        <div class="error-section hidden" id="errorSection">
+          <div class="error-card">
+            <div class="error-icon">
+              <span class="material-icons">error_outline</span>
+            </div>
+            <div class="error-content">
+              <h4 class="error-title">Update Check Failed</h4>
+              <p class="error-message" id="errorText"></p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Actions Footer -->
+      <footer class="footer">
+        <button class="btn btn-secondary" id="btnCheck">
+          <span class="material-icons">refresh</span>
+          <span>Check</span>
+        </button>
+        <button class="btn btn-primary" id="btnDownload" disabled>
+          <span class="material-icons">cloud_download</span>
+          <span>Download</span>
+        </button>
+        <button class="btn btn-success" id="btnInstall" disabled>
+          <span class="material-icons">restart_alt</span>
+          <span>Install & Restart</span>
+        </button>
+      </footer>
+
+      <!-- Dev Tools (hidden by default) -->
+      <div class="dev-tools hidden" id="devTools">
+        <button class="btn btn-secondary" id="btnSimulate">
+          <span class="material-icons">bug_report</span>
+          <span>Simulate (Dev)</span>
         </button>
       </div>
-
-      <div id="devRow" class="dev-row hidden">
-        <button id="btnOpenWindow" class="btn">Open Window</button>
-        <button id="btnSimulate" class="btn warn">Simulate Update (Dev)</button>
-      </div>
     </div>
+
     <script src="update.js"></script>
   </body>
 </html>

@@ -20,6 +20,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   cancelPrintRequest: () => ipcRenderer.send("cancel-print"),
   changeKursName: (kursName) => ipcRenderer.send("change-kurs-name", kursName),
   isDev: () => ipcRenderer.invoke("app:is-dev"),
+  getVersion: () => ipcRenderer.invoke("app:get-version"),
   update: {
     open: () => ipcRenderer.send("update:open"),
     check: () => ipcRenderer.send("update:check"),

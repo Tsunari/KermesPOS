@@ -1,5 +1,5 @@
-import React, { ChangeEvent } from 'react';
-import { Box, Typography, Paper, Divider, List, ListItem, ListItemIcon, ListItemText, Chip, Button, Select, MenuItem, FormControl } from '@mui/material';
+import React, { ChangeEvent, useState, useEffect } from 'react';
+import { Box, Typography, Paper, Divider, List, ListItem, ListItemIcon, ListItemText, Chip, Button, Select, MenuItem, FormControl, Badge } from '@mui/material';
 import { Link } from 'react-router-dom';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SecurityIcon from '@mui/icons-material/Security';
@@ -66,6 +66,36 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
   } = useSettings();
 
   const { language, setLanguage, t } = useLanguage();
+
+  // Update notification state
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [updateVersion, setUpdateVersion] = useState<string>('');
+
+  // Listen for update status from electron
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.electronAPI?.update?.onStatus) {
+      const unsubscribe = window.electronAPI.update.onStatus((payload: any) => {
+        if (payload?.status === 'available' && payload?.info?.version) {
+          setUpdateAvailable(true);
+          setUpdateVersion(payload.info.version);
+        } else if (payload?.status === 'not-available' || payload?.status === 'downloaded') {
+          setUpdateAvailable(false);
+        }
+      });
+
+      return () => {
+        if (unsubscribe) unsubscribe();
+      };
+    }
+  }, []);
+
+  const handleOpenUpdate = () => {
+    try {
+      window.electronAPI?.update?.open?.();
+    } catch (error) {
+      console.error('Failed to open update window:', error);
+    }
+  };
 
   // const handleDefineDefault = () => {
   //   if (window.confirm(t('settings.developer.defineDefaultDescription'))) {
@@ -289,30 +319,50 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
 
           <ListItem>
             <ListItemIcon>
-              <SystemUpdateIcon />
+              <Badge 
+                badgeContent={updateAvailable ? '!' : 0} 
+                color="error"
+                overlap="circular"
+              >
+                <SystemUpdateIcon />
+              </Badge>
             </ListItemIcon>
             <ListItemText
               primary={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   {t('app.updates.check') || 'Check for Updates'}
-                  <Chip
-                    label={t('common.active')}
-                    size="small"
-                    color="success"
-                    variant="outlined"
-                    sx={{ ml: 0 }}
-                  />
+                  {updateAvailable ? (
+                    <Chip
+                      label={`v${updateVersion} ${t('app.updates.available') || 'Available'}`}
+                      size="small"
+                      color="warning"
+                      variant="filled"
+                      sx={{ ml: 0, fontWeight: 600 }}
+                    />
+                  ) : (
+                    <Chip
+                      label={t('common.active')}
+                      size="small"
+                      color="success"
+                      variant="outlined"
+                      sx={{ ml: 0 }}
+                    />
+                  )}
                 </Box>
               }
-              secondary={t('app.updates.checkDescription') || ''}
+              secondary={
+                updateAvailable 
+                  ? t('app.updates.newVersionAvailable') || `A new version (${updateVersion}) is available for download.`
+                  : t('app.updates.checkDescription') || 'Check for and install software updates'
+              }
             />
             <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => { try { (window as any).electronAPI?.update?.open?.(); } catch { } }}
+              variant={updateAvailable ? "contained" : "outlined"}
+              color={updateAvailable ? "warning" : "primary"}
+              onClick={handleOpenUpdate}
               sx={{ minWidth: 0, padding: '5px' }}
             >
-              {t('app.updates.check') || 'Check'}
+              {updateAvailable ? t('app.updates.download') || 'Update' : t('app.updates.check') || 'Check'}
             </Button>
           </ListItem>
         </List>

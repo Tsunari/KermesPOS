@@ -170,7 +170,10 @@
     "updates": {
       "check": "Güncellemeleri Kontrol Et",
       "checkDescription": "Yeni güncellemeleri kontrol edin ve en son sürümü yükleyin.",
-      "active": "Aktif güncelleme sistemi"
+      "active": "Aktif güncelleme sistemi",
+      "available": "Mevcut",
+      "download": "Güncelle",
+      "newVersionAvailable": "Yeni bir sürüm indirmeye hazır."
     },
     "statistics": {
       "title": "İstatistikler",
