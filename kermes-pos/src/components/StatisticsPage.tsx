@@ -9,7 +9,7 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import LocalBarIcon from '@mui/icons-material/LocalBar';
 import { useLanguage } from '../context/LanguageContext';
 import { Product } from '../types/index';
-import { cartTransactionService } from '../services/cartTransactionService';
+import { cartTransactionService, ProductStats, DateRangeStats } from '../services/cartTransactionService';
 import { generateSummaryPDF } from '../services/summary';
 import { exampleTransactions } from '../services/exampleTransactions';
 import { useVariableContext } from '../context/VariableContext';
@@ -19,6 +19,8 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import EditIcon from '@mui/icons-material/Edit';
 import MenuItem from '@mui/material/MenuItem';
 import ListSubheader from '@mui/material/ListSubheader';
+import TimeRangePicker, { TimeRange } from './TimeRangePicker';
+import ProductStatsTable from './ProductStatsTable';
 
 interface StatisticsPageProps {
   products: Product[];
@@ -34,12 +36,6 @@ interface DailyStats {
 
 interface CategoryStats {
   categories: string;
-  count: number;
-  revenue: number;
-}
-
-interface ProductStats {
-  product: Product;
   count: number;
   revenue: number;
 }
@@ -78,6 +74,20 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
   const [editItems, setEditItems] = useState<any[]>([]);
   const [editAddProductId, setEditAddProductId] = useState<number | null>(null);
   const [editAddProductQty, setEditAddProductQty] = useState<number>(1);
+
+  // Product Analytics state
+  const [timeRange, setTimeRange] = useState<TimeRange>(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1);
+    return {
+      startDate: today,
+      endDate: endOfDay,
+      preset: 'today'
+    };
+  });
+  const [dateRangeStats, setDateRangeStats] = useState<DateRangeStats | null>(null);
+  const [previousPeriodStats, setPreviousPeriodStats] = useState<ProductStats[]>([]);
 
   // Move loadData outside useEffect so it can be called after deletion
   const loadData = React.useCallback(async () => {
@@ -155,6 +165,36 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
     loadData();
   }, [loadData]);
 
+  // Load date range stats when time range changes
+  useEffect(() => {
+    const loadDateRangeStats = async () => {
+      try {
+        const stats = await cartTransactionService.getProductStatsByDateRange(
+          timeRange.startDate,
+          timeRange.endDate,
+          products
+        );
+        setDateRangeStats(stats);
+
+        // Load previous period for comparison
+        const periodDuration = timeRange.endDate.getTime() - timeRange.startDate.getTime();
+        const prevStartDate = new Date(timeRange.startDate.getTime() - periodDuration);
+        const prevEndDate = new Date(timeRange.startDate.getTime() - 1);
+
+        const prevStats = await cartTransactionService.getProductStatsByDateRange(
+          prevStartDate,
+          prevEndDate,
+          products
+        );
+        setPreviousPeriodStats(prevStats.productStats);
+      } catch (error) {
+        console.error('Error loading date range stats:', error);
+      }
+    };
+
+    loadDateRangeStats();
+  }, [timeRange, products]);
+
   const todayStats = dailyStats[0] || { total_revenue: 0, total_items: 0, transaction_count: 0 };
   const yesterdayStats = dailyStats[1] || { total_revenue: 0, total_items: 0 };
   
@@ -169,6 +209,47 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
   const averageOrderValue = todayStats.transaction_count
     ? (todayStats.total_revenue / todayStats.transaction_count).toFixed(2)
     : '0.00';
+
+  // Export product analytics as CSV
+  const exportProductAnalytics = () => {
+    if (!dateRangeStats || !dateRangeStats.productStats.length) {
+      alert('No data to export');
+      return;
+    }
+
+    const header = ['Product', 'Category', 'Quantity Sold', 'Revenue (€)'];
+    const rows = dateRangeStats.productStats.map(stat => [
+      stat.product.name,
+      stat.product.category,
+      stat.count,
+      stat.revenue.toFixed(2)
+    ]);
+
+    // Add summary row
+    rows.push([]);
+    rows.push([
+      'TOTAL',
+      '',
+      dateRangeStats.totalItems,
+      dateRangeStats.totalRevenue.toFixed(2)
+    ]);
+
+    const csvContent = [header, ...rows]
+      .map(row => row.map(String).map(val => `"${val}"`).join(','))
+      .join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const startDate = timeRange.startDate.toISOString().split('T')[0];
+    const endDate = timeRange.endDate.toISOString().split('T')[0];
+    a.download = `product_analytics_${startDate}_to_${endDate}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   // Calculate all-time stats (sum over all used transactions)
   // const usedTransactions = devMode ? exampleTransactions : transactions;
@@ -291,6 +372,91 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
             )}
           </Box>
         </Paper>
+      </Box>
+
+      {/* Product Analytics Section */}
+      <Box sx={{ mt: 6, mb: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            {t('app.statistics.productAnalytics') || '🔍 Product Analytics'}
+          </Typography>
+          <Button
+            variant="outlined"
+            startIcon={<DownloadIcon />}
+            onClick={exportProductAnalytics}
+            disabled={!dateRangeStats || !dateRangeStats.productStats.length}
+            size="small"
+          >
+            {t('app.statistics.exportData') || 'Export Data'}
+          </Button>
+        </Box>
+
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <TimeRangePicker value={timeRange} onChange={setTimeRange} />
+        </Paper>
+
+        {dateRangeStats && (
+          <>
+            {/* Summary Cards */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2, mb: 3 }}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="caption" color="text.secondary">
+                  {t('app.statistics.transactions') || 'Transactions'}
+                </Typography>
+                <Typography variant="h4" color="primary" sx={{ fontWeight: 600 }}>
+                  {dateRangeStats.transactionCount}
+                </Typography>
+              </Paper>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="caption" color="text.secondary">
+                  {t('app.statistics.itemsSold') || 'Items Sold'}
+                </Typography>
+                <Typography variant="h4" color="primary" sx={{ fontWeight: 600 }}>
+                  {dateRangeStats.totalItems.toLocaleString('de-DE')}
+                </Typography>
+              </Paper>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="caption" color="text.secondary">
+                  {t('app.statistics.totalRevenue') || 'Total Revenue'}
+                </Typography>
+                <Typography variant="h4" color="success.main" sx={{ fontWeight: 600 }}>
+                  {dateRangeStats.totalRevenue.toLocaleString('de-DE', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  })}€
+                </Typography>
+              </Paper>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="caption" color="text.secondary">
+                  {t('app.statistics.averageOrder') || 'Avg. Order'}
+                </Typography>
+                <Typography variant="h4" color="primary" sx={{ fontWeight: 600 }}>
+                  {dateRangeStats.transactionCount > 0
+                    ? (dateRangeStats.totalRevenue / dateRangeStats.transactionCount).toLocaleString('de-DE', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })
+                    : '0.00'}€
+                </Typography>
+              </Paper>
+            </Box>
+
+            {/* Product Stats Table */}
+            <ProductStatsTable
+              productStats={dateRangeStats.productStats}
+              previousPeriodStats={previousPeriodStats}
+              showComparison={timeRange.preset !== 'custom'}
+            />
+          </>
+        )}
+
+        {!dateRangeStats && (
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
+            <Typography variant="body1" color="text.secondary">
+              {t('app.statistics.loading') || 'Loading statistics...'}
+            </Typography>
+          </Paper>
+        )}
       </Box>
 
       <Box sx={{ mt: 4 }}>

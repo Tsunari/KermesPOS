@@ -1,4 +1,4 @@
-import { CartItem } from '../types/index';
+import { CartItem, Product } from '../types/index';
 
 export interface CartTransaction {
     id: number;
@@ -19,6 +19,19 @@ interface DailyStats {
 interface CategoryStats {
     categories: string;
     count: number;
+}
+
+export interface ProductStats {
+    product: Product;
+    count: number;
+    revenue: number;
+}
+
+export interface DateRangeStats {
+    totalRevenue: number;
+    totalItems: number;
+    transactionCount: number;
+    productStats: ProductStats[];
 }
 
 class CartTransactionService {
@@ -233,6 +246,126 @@ class CartTransactionService {
                 putRequest.onerror = () => reject(putRequest.error);
             };
             getRequest.onerror = () => reject(getRequest.error);
+        });
+    }
+
+    /**
+     * Get product statistics for a specific date range
+     * @param startDate - Start of the date range (inclusive)
+     * @param endDate - End of the date range (inclusive)
+     * @param productId - Optional: Filter by specific product ID
+     * @param products - Array of all products for reference
+     */
+    async getProductStatsByDateRange(
+        startDate: Date,
+        endDate: Date,
+        products: Product[],
+        productId?: string
+    ): Promise<DateRangeStats> {
+        if (!this.db) await this.initDB();
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db!.transaction(this.storeName, 'readonly');
+            const store = transaction.objectStore(this.storeName);
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                const transactions = request.result;
+                
+                // Normalize dates to compare (start of day)
+                const startTime = new Date(startDate);
+                startTime.setHours(0, 0, 0, 0);
+                const endTime = new Date(endDate);
+                endTime.setHours(23, 59, 59, 999);
+
+                // Filter transactions by date range
+                const filteredTransactions = transactions.filter((tx: CartTransaction) => {
+                    const txDate = new Date(tx.transaction_date);
+                    return txDate >= startTime && txDate <= endTime;
+                });
+
+                // Calculate product stats
+                const productStatsMap = new Map<string, ProductStats>();
+                let totalRevenue = 0;
+                let totalItems = 0;
+                const transactionCount = filteredTransactions.length;
+
+                filteredTransactions.forEach((tx: CartTransaction) => {
+                    totalRevenue += tx.total_amount;
+                    
+                    try {
+                        const items = JSON.parse(tx.items_data) as CartItem[];
+                        items.forEach((item: CartItem) => {
+                            // If productId filter is specified, only include that product
+                            if (productId && item.product.id !== productId) {
+                                return;
+                            }
+
+                            const product = products.find(p => p.id === item.product.id);
+                            if (product) {
+                                totalItems += item.quantity;
+                                
+                                const existing = productStatsMap.get(product.id);
+                                if (existing) {
+                                    existing.count += item.quantity;
+                                    existing.revenue += item.quantity * product.price;
+                                } else {
+                                    productStatsMap.set(product.id, {
+                                        product,
+                                        count: item.quantity,
+                                        revenue: item.quantity * product.price
+                                    });
+                                }
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error parsing transaction items:', error);
+                    }
+                });
+
+                const productStats = Array.from(productStatsMap.values())
+                    .sort((a, b) => b.revenue - a.revenue);
+
+                resolve({
+                    totalRevenue,
+                    totalItems,
+                    transactionCount,
+                    productStats
+                });
+            };
+
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    /**
+     * Get transactions within a date range
+     */
+    async getTransactionsByDateRange(startDate: Date, endDate: Date): Promise<CartTransaction[]> {
+        if (!this.db) await this.initDB();
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db!.transaction(this.storeName, 'readonly');
+            const store = transaction.objectStore(this.storeName);
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                const transactions = request.result;
+                
+                const startTime = new Date(startDate);
+                startTime.setHours(0, 0, 0, 0);
+                const endTime = new Date(endDate);
+                endTime.setHours(23, 59, 59, 999);
+
+                const filtered = transactions.filter((tx: CartTransaction) => {
+                    const txDate = new Date(tx.transaction_date);
+                    return txDate >= startTime && txDate <= endTime;
+                });
+
+                resolve(filtered);
+            };
+
+            request.onerror = () => reject(request.error);
         });
     }
 }
