@@ -167,6 +167,7 @@ try {
         "bug" = "Fixed"
         "change" = "Changed"
         "chore" = "Changed"
+        "fix" = "Fixed"
     }
     $grouped = @{}
     $globalNotes = @()
@@ -178,7 +179,7 @@ try {
                 $globalNotes += "- $desc"
             }
         } else {
-            $typeTags = [regex]::Matches($line, "--(feat|bug|change|chore)") | ForEach-Object { $_.Groups[1].Value }
+            $typeTags = [regex]::Matches($line, "--(feat|fix|bug|change|chore)") | ForEach-Object { $_.Groups[1].Value }
             $dirTags = [regex]::Matches($line, "--(electron|pos|web)") | ForEach-Object { $_.Groups[1].Value }
             if ($typeTags.Count -gt 0 -and $dirTags.Count -gt 0) {
                 $desc = $line -replace "--(feat|bug|change|chore)", "" -replace "--(electron|pos|web)", "" -replace "^\s*-*\s*", "" -replace "\s+$", ""
@@ -192,6 +193,16 @@ try {
                             if (-not $grouped[$dirKey].ContainsKey($typeKey)) { $grouped[$dirKey][$typeKey] = @() }
                             $grouped[$dirKey][$typeKey] += "- $desc"
                         }
+                    }
+                }
+            }
+            elseif ($typeTags.Count -gt 0 -and $dirTags.Count -eq 0) {
+                # If a commit has a type tag but no dir tag, treat it as a global change
+                $desc = $line -replace "--(feat|fix|bug|change|chore)", "" -replace "^\s*-*\s*", "" -replace "\s+$", ""
+                if ($desc) {
+                    $desc = $desc.Substring(0,1).ToUpper() + $desc.Substring(1)
+                    foreach ($type in $typeTags) {
+                        $globalNotes += "- $desc"
                     }
                 }
             }
