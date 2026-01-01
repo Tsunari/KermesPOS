@@ -304,16 +304,19 @@ class CartTransactionService {
                             const product = products.find(p => p.id === item.product.id);
                             if (product) {
                                 totalItems += item.quantity;
+                                // Use the price from the transaction item (historical price), not the current product price
+                                const itemPrice = item.product.price || product.price;
+                                const itemRevenue = item.quantity * itemPrice;
                                 
                                 const existing = productStatsMap.get(product.id);
                                 if (existing) {
                                     existing.count += item.quantity;
-                                    existing.revenue += item.quantity * product.price;
+                                    existing.revenue += itemRevenue;
                                 } else {
                                     productStatsMap.set(product.id, {
                                         product,
                                         count: item.quantity,
-                                        revenue: item.quantity * product.price
+                                        revenue: itemRevenue
                                     });
                                 }
                             }

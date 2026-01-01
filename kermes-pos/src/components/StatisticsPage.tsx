@@ -130,15 +130,18 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
             if (item?.product?.id) {
               const product = products.find(p => p.id === item.product.id);
               if (product) {
+                // Use the price from the transaction item (historical price), not the current product price
+                const itemPrice = item.product.price || product.price;
+                const itemRevenue = (item.quantity || 0) * itemPrice;
                 const existing = productStats.get(product.id);
                 if (existing) {
                   existing.count += item.quantity || 0;
-                  existing.revenue += (item.quantity || 0) * product.price;
+                  existing.revenue += itemRevenue;
                 } else {
                   productStats.set(product.id, {
                     product,
                     count: item.quantity || 0,
-                    revenue: (item.quantity || 0) * product.price
+                    revenue: itemRevenue
                   });
                 }
               }
