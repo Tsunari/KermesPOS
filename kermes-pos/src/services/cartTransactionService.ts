@@ -21,10 +21,16 @@ interface CategoryStats {
     count: number;
 }
 
+export interface PricePoint {
+    price: number;
+    quantity: number;
+}
+
 export interface ProductStats {
     product: Product;
     count: number;
     revenue: number;
+    priceHistory?: PricePoint[]; // Track different prices this product was sold at
 }
 
 export interface DateRangeStats {
@@ -312,11 +318,23 @@ class CartTransactionService {
                                 if (existing) {
                                     existing.count += item.quantity;
                                     existing.revenue += itemRevenue;
+                                    
+                                    // Track price history
+                                    if (!existing.priceHistory) {
+                                        existing.priceHistory = [];
+                                    }
+                                    const existingPrice = existing.priceHistory.find(p => p.price === itemPrice);
+                                    if (existingPrice) {
+                                        existingPrice.quantity += item.quantity;
+                                    } else {
+                                        existing.priceHistory.push({ price: itemPrice, quantity: item.quantity });
+                                    }
                                 } else {
                                     productStatsMap.set(product.id, {
                                         product,
                                         count: item.quantity,
-                                        revenue: itemRevenue
+                                        revenue: itemRevenue,
+                                        priceHistory: [{ price: itemPrice, quantity: item.quantity }]
                                     });
                                 }
                             }

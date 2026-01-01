@@ -21,6 +21,7 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { useLanguage } from '../context/LanguageContext';
 import { ProductStats } from '../services/cartTransactionService';
+import PriceHistoryPopover from './PriceHistoryPopover';
 
 type SortField = 'name' | 'quantity' | 'revenue';
 type SortOrder = 'asc' | 'desc';
@@ -41,6 +42,8 @@ const ProductStatsTable: React.FC<ProductStatsTableProps> = ({
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [priceHistoryAnchor, setPriceHistoryAnchor] = useState<HTMLElement | null>(null);
+  const [selectedProductPriceHistory, setSelectedProductPriceHistory] = useState<any>(null);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -236,12 +239,47 @@ const ProductStatsTable: React.FC<ProductStatsTableProps> = ({
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {stat.revenue.toLocaleString('de-DE', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
-                        })}€
-                      </Typography>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'flex-end',
+                          gap: 1,
+                          cursor: stat.priceHistory && stat.priceHistory.length > 1 ? 'pointer' : 'default',
+                        }}
+                        onClick={(e) => {
+                          if (stat.priceHistory && stat.priceHistory.length > 1) {
+                            setPriceHistoryAnchor(e.currentTarget as HTMLElement);
+                            setSelectedProductPriceHistory(stat.priceHistory);
+                          }
+                        }}
+                      >
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {stat.revenue.toLocaleString('de-DE', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          })}€
+                        </Typography>
+                        {stat.priceHistory && stat.priceHistory.length > 1 && (
+                          <Chip
+                            label={`${stat.priceHistory.length} prices`}
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                              fontSize: '0.7rem',
+                              height: 20,
+                              borderColor: 'info.main',
+                              color: 'info.main',
+                              fontWeight: 600,
+                              '&:hover': {
+                                backgroundColor: 'info.light',
+                                color: 'info.dark',
+                                borderColor: 'info.dark',
+                              },
+                            }}
+                          />
+                        )}
+                      </Box>
                     </TableCell>
                     {showComparison && (
                       <TableCell align="center">
@@ -299,6 +337,17 @@ const ProductStatsTable: React.FC<ProductStatsTableProps> = ({
           </Box>
         </Box>
       )}
+
+      {/* Price History Popover */}
+      <PriceHistoryPopover
+        priceHistory={selectedProductPriceHistory}
+        anchorEl={priceHistoryAnchor}
+        open={!!priceHistoryAnchor}
+        onClose={() => {
+          setPriceHistoryAnchor(null);
+          setSelectedProductPriceHistory(null);
+        }}
+      />
     </Box>
   );
 };

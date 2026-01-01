@@ -137,11 +137,23 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                 if (existing) {
                   existing.count += item.quantity || 0;
                   existing.revenue += itemRevenue;
+                  
+                  // Track price history
+                  if (!existing.priceHistory) {
+                    existing.priceHistory = [];
+                  }
+                  const existingPrice = existing.priceHistory.find(p => p.price === itemPrice);
+                  if (existingPrice) {
+                    existingPrice.quantity += item.quantity || 0;
+                  } else {
+                    existing.priceHistory.push({ price: itemPrice, quantity: item.quantity || 0 });
+                  }
                 } else {
                   productStats.set(product.id, {
                     product,
                     count: item.quantity || 0,
-                    revenue: itemRevenue
+                    revenue: itemRevenue,
+                    priceHistory: [{ price: itemPrice, quantity: item.quantity || 0 }]
                   });
                 }
               }
