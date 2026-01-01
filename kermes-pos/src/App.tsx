@@ -23,6 +23,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import ViewComfyIcon from '@mui/icons-material/ViewComfy';
+import EventIcon from '@mui/icons-material/Event';
 import Cart from './components/cart/Cart';
 import ProductDialog from './components/ProductDialog';
 import ProductGrid from './components/ProductGrid';
@@ -40,6 +41,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import AppearanceSettings from './components/AppearanceSettings';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import StatisticsPage from './components/StatisticsPage';
+import SessionsPage from './components/SessionsPage';
 import { VariableContextProvider, useVariableContext } from './context/VariableContext';
 import { useTheme } from '@mui/material/styles';
 import { Inventory } from '@mui/icons-material';
@@ -321,6 +323,11 @@ function AppContent() {
                 <BarChartIcon />
               </IconButton>
             </Link>
+            <Link to="/sessions" style={{ color: 'inherit', textDecoration: 'none' }}>
+              <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
+                <EventIcon />
+              </IconButton>
+            </Link>
             <Link to="/products" style={{ color: 'inherit', textDecoration: 'none' }}>
               <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
                 <Inventory />
@@ -536,6 +543,10 @@ function AppContent() {
             <Route
               path="/statistics"
               element={<StatisticsPage products={products} devMode={devMode} />}
+            />
+            <Route
+              path="/sessions"
+              element={<SessionsPage />}
             />
             <Route
               path="/import-export"

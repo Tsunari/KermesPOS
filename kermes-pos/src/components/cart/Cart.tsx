@@ -31,6 +31,7 @@ import { useSettings } from '../../context/SettingsContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { getCategoryStyle } from '../../utils/categoryUtils';
 import { cartTransactionService } from '../../services/cartTransactionService';
+import { sessionService } from '../../services/sessionService';
 import { Badge } from '@mui/icons-material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ReceiptPreview from './receipt/ReceiptPreview';
@@ -114,8 +115,16 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
     };
 
     try {
-      // Save transaction to IndexedDB
-      await cartTransactionService.saveTransaction(cartItems, total, 'cash'); // or use a real payment method
+      // Get active session if one exists
+      const activeSession = await sessionService.getActiveSession();
+      
+      // Save transaction to IndexedDB, linked to active session
+      await cartTransactionService.saveTransaction(
+        cartItems, 
+        total, 
+        'cash', // or use a real payment method
+        activeSession?.id // Link to active session if exists
+      );
       setSuccessMessage(
         isReceiptPrintingEnabled
           ? t('sales.receiptPrinted')

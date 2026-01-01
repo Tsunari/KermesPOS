@@ -7,6 +7,7 @@ export interface CartTransaction {
     items_count: number;
     items_data: string;
     payment_method: string;
+    session_id?: string; // Link to session if one is active
 }
 
 interface DailyStats {
@@ -51,7 +52,8 @@ class CartTransactionService {
 
     private initDB(): Promise<void> {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open(this.dbName, 1);
+            // Use version 2 to match sessionService
+            const request = indexedDB.open(this.dbName, 2);
 
             request.onerror = () => {
                 console.error('Error opening database');
@@ -65,15 +67,24 @@ class CartTransactionService {
 
             request.onupgradeneeded = (event) => {
                 const db = (event.target as IDBOpenDBRequest).result;
+                
+                // Create transactions store if it doesn't exist
                 if (!db.objectStoreNames.contains(this.storeName)) {
                     const store = db.createObjectStore(this.storeName, { keyPath: 'id', autoIncrement: true });
                     store.createIndex('transaction_date', 'transaction_date', { unique: false });
+                }
+                
+                // Create sessions store if it doesn't exist (for sessionService)
+                if (!db.objectStoreNames.contains('sessions')) {
+                    const sessionsStore = db.createObjectStore('sessions', { keyPath: 'id' });
+                    sessionsStore.createIndex('status', 'status', { unique: false });
+                    sessionsStore.createIndex('startDate', 'startDate', { unique: false });
                 }
             };
         });
     }
 
-    async saveTransaction(cartItems: CartItem[], totalAmount: number, paymentMethod: string): Promise<void> {
+    async saveTransaction(cartItems: CartItem[], totalAmount: number, paymentMethod: string, sessionId?: string): Promise<void> {
         if (!this.db) await this.initDB();
 
         return new Promise((resolve, reject) => {
@@ -83,13 +94,18 @@ class CartTransactionService {
             const itemsData = JSON.stringify(cartItems);
             const itemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
             
-            const transactionData = {
+            const transactionData: any = {
                 transaction_date: new Date().toISOString(),
                 total_amount: totalAmount,
                 items_count: itemsCount,
                 items_data: itemsData,
                 payment_method: paymentMethod
             };
+            
+            // Link to active session if provided
+            if (sessionId) {
+                transactionData.session_id = sessionId;
+            }
 
             const request = store.add(transactionData);
 
@@ -387,6 +403,41 @@ class CartTransactionService {
             };
 
             request.onerror = () => reject(request.error);
+        });
+    }
+
+    async clearSessionIdFromTransactions(sessionId: string): Promise<number> {
+        if (!this.db) await this.initDB();
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db!.transaction(this.storeName, 'readwrite');
+            const store = transaction.objectStore(this.storeName);
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                const transactions = request.result as CartTransaction[];
+                let updatedCount = 0;
+
+                transactions.forEach((tx: CartTransaction) => {
+                    if (tx.session_id === sessionId) {
+                        // Remove the session_id from this transaction
+                        const updated = { ...tx, session_id: undefined };
+                        const updateRequest = store.put(updated);
+                        updateRequest.onerror = () => {
+                            console.error('Error clearing session_id from transaction', tx.id);
+                        };
+                        updatedCount++;
+                    }
+                });
+
+                transaction.oncomplete = () => {
+                    console.log(`CartTransactionService: Cleared session_id from ${updatedCount} transactions`);
+                    resolve(updatedCount);
+                };
+            };
+
+            request.onerror = () => reject(request.error);
+            transaction.onerror = () => reject(transaction.error);
         });
     }
 }
