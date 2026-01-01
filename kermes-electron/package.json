@@ -62,10 +62,19 @@
           "**/*"
         ]
       }
+      ,
+      {
+        "from": "assets",
+        "to": "assets",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "asarUnpack": [
       "python-3.13.3-embed-amd64/**",
-      "print_receipt_win.py"
+      "print_receipt_win.py",
+      "assets/**"
     ]
   }
 }
