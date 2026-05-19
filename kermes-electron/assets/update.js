@@ -266,6 +266,13 @@
         const speedMBps = progressInfo.bytesPerSecond
           ? progressInfo.bytesPerSecond / (1024 * 1024)
           : null;
+        // Ensure UI switches to downloading state so progress becomes visible
+        try {
+          setState({ status: 'downloading' });
+        } catch (e) {
+          // Fallback: explicitly show progress section
+          showProgress(true);
+        }
         setProgress(progressInfo.percent, speedMBps);
       }
     });
