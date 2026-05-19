@@ -51,9 +51,9 @@ function openUpdateWindow() {
     : path.join(__dirname, "assets", "Logo-light-m.ico");
   updateWindow = new BrowserWindow({
     width: 600,
-    height: 680,
+    height: 760,
     minWidth: 500,
-    minHeight: 500,
+    minHeight: 620,
     title: "Updates",
     icon: iconPath,
     parent: mainWindow,
