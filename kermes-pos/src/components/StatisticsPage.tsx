@@ -215,28 +215,40 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
   useEffect(() => {
     const loadDateRangeStats = async () => {
       try {
-        const stats = await cartTransactionService.getProductStatsByDateRange(
-          timeRange.startDate,
-          timeRange.endDate,
-          products,
-          undefined,
-          selectedSessionIds
-        );
-        setDateRangeStats(stats);
+        if (timeRange.preset === 'allTime') {
+          const stats = await cartTransactionService.getProductStatsByDateRange(
+            new Date(0),
+            new Date(),
+            products,
+            undefined,
+            selectedSessionIds
+          );
+          setDateRangeStats(stats);
+          setPreviousPeriodStats([]);
+        } else {
+          const stats = await cartTransactionService.getProductStatsByDateRange(
+            timeRange.startDate,
+            timeRange.endDate,
+            products,
+            undefined,
+            selectedSessionIds
+          );
+          setDateRangeStats(stats);
 
-        // Load previous period for comparison
-        const periodDuration = timeRange.endDate.getTime() - timeRange.startDate.getTime();
-        const prevStartDate = new Date(timeRange.startDate.getTime() - periodDuration);
-        const prevEndDate = new Date(timeRange.startDate.getTime() - 1);
+          // Load previous period for comparison
+          const periodDuration = timeRange.endDate.getTime() - timeRange.startDate.getTime();
+          const prevStartDate = new Date(timeRange.startDate.getTime() - periodDuration);
+          const prevEndDate = new Date(timeRange.startDate.getTime() - 1);
 
-        const prevStats = await cartTransactionService.getProductStatsByDateRange(
-          prevStartDate,
-          prevEndDate,
-          products,
-          undefined,
-          selectedSessionIds
-        );
-        setPreviousPeriodStats(prevStats.productStats);
+          const prevStats = await cartTransactionService.getProductStatsByDateRange(
+            prevStartDate,
+            prevEndDate,
+            products,
+            undefined,
+            selectedSessionIds
+          );
+          setPreviousPeriodStats(prevStats.productStats);
+        }
       } catch (error) {
         console.error('Error loading date range stats:', error);
       }
@@ -536,7 +548,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
             <ProductStatsTable
               productStats={dateRangeStats.productStats}
               previousPeriodStats={previousPeriodStats}
-              showComparison={timeRange.preset !== 'custom'}
+              showComparison={timeRange.preset !== 'custom' && timeRange.preset !== 'allTime'}
             />
           </>
         )}

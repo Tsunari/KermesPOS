@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, ToggleButton, ToggleButtonGroup, TextField, Typography } from '@mui/material';
 import { useLanguage } from '../context/LanguageContext';
 
-export type TimeRangePreset = 'today' | 'yesterday' | 'thisWeek' | 'lastWeek' | 'thisMonth' | 'lastMonth' | 'custom';
+export type TimeRangePreset = 'today' | 'yesterday' | 'thisWeek' | 'lastWeek' | 'thisMonth' | 'lastMonth' | 'thisYear' | 'lastYear' | 'allTime' | 'custom';
 
 export interface TimeRange {
   startDate: Date;
@@ -77,6 +77,27 @@ const getDateRange = (preset: TimeRangePreset): { startDate: Date; endDate: Date
       return {
         startDate: firstDayLastMonth,
         endDate: lastDayLastMonth
+      };
+    }
+    case 'thisYear': {
+      const firstDayThisYear = new Date(today.getFullYear(), 0, 1);
+      return {
+        startDate: firstDayThisYear,
+        endDate: new Date()
+      };
+    }
+    case 'lastYear': {
+      const firstDayLastYear = new Date(today.getFullYear() - 1, 0, 1);
+      const lastDayLastYear = new Date(today.getFullYear(), 0, 0, 23, 59, 59, 999);
+      return {
+        startDate: firstDayLastYear,
+        endDate: lastDayLastYear
+      };
+    }
+    case 'allTime': {
+      return {
+        startDate: new Date(0),
+        endDate: new Date()
       };
     }
     
@@ -168,6 +189,15 @@ const TimeRangePicker: React.FC<TimeRangePickerProps> = ({ value, onChange }) =>
           </ToggleButton>
           <ToggleButton value="lastMonth">
             {t('app.statistics.lastMonth') || 'Last Month'}
+          </ToggleButton>
+          <ToggleButton value="thisYear">
+            {t('app.statistics.thisYear') || 'This Year'}
+          </ToggleButton>
+          <ToggleButton value="lastYear">
+            {t('app.statistics.lastYear') || 'Last Year'}
+          </ToggleButton>
+          <ToggleButton value="allTime">
+            {t('app.statistics.allTime') || 'All Time'}
           </ToggleButton>
           <ToggleButton value="custom">
             {t('app.statistics.customRange') || 'Custom'}

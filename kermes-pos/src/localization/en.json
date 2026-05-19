@@ -244,7 +244,10 @@
       "sessionFilter": "Filter by sessions",
       "allSessions": "All sessions",
       "sessionFilterHint": "Pick sessions to filter stats",
-      "noSessions": "No sessions available"
+      "noSessions": "No sessions available",
+      "thisYear": "This Year",
+      "lastYear": "Last Year",
+      "allTime": "All Time"
     },
     "cart": {
       "total": "Total",
@@ -350,5 +353,51 @@
   "Cannot edit completed sessions.": "Cannot edit completed sessions.",
   "Error clearing dates. Check console.": "Error clearing dates. Check console.",
   "Updated session! Moved ${unlinkedCount} transaction(s) from other sessions.": "Updated session! Moved ${unlinkedCount} transaction(s) from other sessions.",
-  "Error saving session. Check console.": "Error saving session. Check console."
+  "Error saving session. Check console.": "Error saving session. Check console.",
+  "Error loading sessions": {
+    " Check browser console": {
+      "": ""
+    }
+  },
+  "Error creating session": {
+    " Check browser console": {
+      "": ""
+    }
+  },
+  "Error completing session": {
+    " Check console": {
+      "": ""
+    }
+  },
+  "Error pausing session": {
+    " Check console": {
+      "": ""
+    }
+  },
+  "Error resuming session": {
+    " Check console": {
+      "": ""
+    }
+  },
+  "Error deleting session": {
+    " Check console": {
+      "": ""
+    }
+  },
+  "Cannot edit completed sessions": {
+    "": ""
+  },
+  "Error clearing dates": {
+    " Check console": {
+      "": ""
+    }
+  },
+  "Updated session! Moved ${unlinkedCount} transaction(s) from other sessions": {
+    "": ""
+  },
+  "Error saving session": {
+    " Check console": {
+      "": ""
+    }
+  }
 }

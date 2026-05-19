@@ -245,7 +245,10 @@
       "sessionFilter": "Nach Sessions filtern",
       "allSessions": "Alle Sessions",
       "sessionFilterHint": "Sessions wählen, um Statistiken zu filtern",
-      "noSessions": "Keine Sessions vorhanden"
+      "noSessions": "Keine Sessions vorhanden",
+      "thisYear": "Dieses Jahr",
+      "lastYear": "Letztes Jahr",
+      "allTime": "Alle Zeit"
     },
     "cart": {
       "total": "Gesamt",
@@ -336,15 +339,66 @@
       "givenAmount": "Erhalten",
       "change": "Rückgeld"
     },
-  "Error loading sessions. Check browser console.": "Fehler beim Laden der Sitzungen. Prüfen Sie die Browser-Konsole.",
-  "Error creating session. Check browser console.": "Fehler beim Erstellen der Sitzung. Prüfen Sie die Browser-Konsole.",
-  "Error completing session. Check console.": "Fehler beim Abschließen der Sitzung. Konsole prüfen.",
-  "Error pausing session. Check console.": "Fehler beim Pausieren der Sitzung. Konsole prüfen.",
-  "Error resuming session. Check console.": "Fehler beim Fortsetzen der Sitzung. Konsole prüfen.",
-  "Error deleting session. Check console.": "Fehler beim Löschen der Sitzung. Konsole prüfen.",
-  "Cannot edit completed sessions.": "Abgeschlossene Sitzungen können nicht bearbeitet werden.",
-  "Error clearing dates. Check console.": "Fehler beim Löschen der Daten. Konsole prüfen.",
-  "Updated session! Moved ${unlinkedCount} transaction(s) from other sessions.": "Sitzung aktualisiert! ${unlinkedCount} Transaktion(en) von anderen Sitzungen verschoben.",
-  "Error saving session. Check console.": "Fehler beim Speichern der Sitzung. Konsole prüfen."
-}
+    "Error loading sessions. Check browser console.": "Fehler beim Laden der Sitzungen. Prüfen Sie die Browser-Konsole.",
+    "Error creating session. Check browser console.": "Fehler beim Erstellen der Sitzung. Prüfen Sie die Browser-Konsole.",
+    "Error completing session. Check console.": "Fehler beim Abschließen der Sitzung. Konsole prüfen.",
+    "Error pausing session. Check console.": "Fehler beim Pausieren der Sitzung. Konsole prüfen.",
+    "Error resuming session. Check console.": "Fehler beim Fortsetzen der Sitzung. Konsole prüfen.",
+    "Error deleting session. Check console.": "Fehler beim Löschen der Sitzung. Konsole prüfen.",
+    "Cannot edit completed sessions.": "Abgeschlossene Sitzungen können nicht bearbeitet werden.",
+    "Error clearing dates. Check console.": "Fehler beim Löschen der Daten. Konsole prüfen.",
+    "Updated session! Moved ${unlinkedCount} transaction(s) from other sessions.": "Sitzung aktualisiert! ${unlinkedCount} Transaktion(en) von anderen Sitzungen verschoben.",
+    "Error saving session. Check console.": "Fehler beim Speichern der Sitzung. Konsole prüfen.",
+    "categories": {
+      "food": "Essen",
+      "drink": "Trinken",
+      "dessert": "Nachtisch"
+    }
+  },
+  "Error loading sessions": {
+    " Check browser console": {
+      "": ""
+    }
+  },
+  "Error creating session": {
+    " Check browser console": {
+      "": ""
+    }
+  },
+  "Error completing session": {
+    " Check console": {
+      "": ""
+    }
+  },
+  "Error pausing session": {
+    " Check console": {
+      "": ""
+    }
+  },
+  "Error resuming session": {
+    " Check console": {
+      "": ""
+    }
+  },
+  "Error deleting session": {
+    " Check console": {
+      "": ""
+    }
+  },
+  "Cannot edit completed sessions": {
+    "": ""
+  },
+  "Error clearing dates": {
+    " Check console": {
+      "": ""
+    }
+  },
+  "Updated session! Moved ${unlinkedCount} transaction(s) from other sessions": {
+    "": ""
+  },
+  "Error saving session": {
+    " Check console": {
+      "": ""
+    }
+  }
 }
