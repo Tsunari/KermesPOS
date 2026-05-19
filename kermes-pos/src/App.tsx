@@ -49,6 +49,7 @@ import ProductManagementPage from './components/ProductManagementPage';
 import MenuDataBridge from './components/MenuDataBridge';
 import MenuSettings from './components/MenuSettings';
 import { MenuConfigProvider } from './context/MenuConfigContext';
+import UpdateNotifier from './components/UpdateNotifier';
 
 /**
  * The `AppContent` component serves as the main application layout and logic handler for the Kermes POS system.
@@ -217,6 +218,7 @@ function AppContent() {
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', position: 'relative', bgcolor: 'background.default' }}>
+      <UpdateNotifier />
       {/* Animated AppBar */}
       <AppBar
         position="fixed"
