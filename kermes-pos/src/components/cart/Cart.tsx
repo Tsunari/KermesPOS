@@ -37,6 +37,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import ReceiptPreview from './receipt/ReceiptPreview';
 import { useVariableContext } from '../../context/VariableContext';
 // import SystemUpdateIcon from '@mui/icons-material/SystemUpdate';
+import useHotkey from '../../hooks/useHotkey';
 
 interface CartProps {
   devMode?: boolean;
@@ -148,6 +149,27 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
     dispatch(clearCart());
     setIsPrinting(false);
   };
+
+  // Hotkey: trigger print/record with configured key (default: Space)
+  const [configuredHotkey, setConfiguredHotkey] = React.useState<string | null>(() => {
+    if (typeof window === 'undefined') return 'Space';
+    return localStorage.getItem('pos.printHotkey') || 'Space';
+  });
+
+  React.useEffect(() => {
+    const onChange = (e: any) => {
+      const v = e?.detail ?? localStorage.getItem('pos.printHotkey');
+      setConfiguredHotkey(v || 'Space');
+    };
+    window.addEventListener('hotkeyChanged', onChange as EventListener);
+    return () => window.removeEventListener('hotkeyChanged', onChange as EventListener);
+  }, []);
+
+  useHotkey(configuredHotkey, () => {
+    if (cartItems.length === 0) return;
+    if (isPrinting) return;
+    handlePrintCart();
+  });
 
   const handleCancelPrint = () => {
     // Always call the cancelPrintRequest, TypeScript will complain but it's available at runtime
@@ -408,6 +430,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
         hasItems={cartItems.length > 0}
         isReceiptPrintingEnabled={isReceiptPrintingEnabled}
         onToggleReceiptPrinting={setIsReceiptPrintingEnabled}
+        hotkey={configuredHotkey || 'Space'}
       />
 
       <Dialog

@@ -15,7 +15,6 @@ import ModernSwitch from './ui/ModernSwitch';
 // import { productService } from '../services/productService';
 import { useSettings } from '../context/SettingsContext';
 import { useLanguage } from '../context/LanguageContext';
-import { Console } from 'console';
 
 interface SettingsPageProps {
   devMode: boolean;
