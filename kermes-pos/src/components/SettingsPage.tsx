@@ -260,17 +260,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
           <Divider />
 
           {renderSettingItem(
-            <CodeIcon />,
-            t('settings.developer.showLogs'),
-            t('settings.developer.showLogsDescription'),
-            false,
-            () => {console.log('Logs enabled');},
-            true
-          )}
-
-          <Divider />
-
-          {renderSettingItem(
             <NotificationsIcon />,
             t('settings.notifications.enable'),
             t('settings.notifications.description'),
