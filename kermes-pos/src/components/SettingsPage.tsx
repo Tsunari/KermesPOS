@@ -15,6 +15,7 @@ import ModernSwitch from './ui/ModernSwitch';
 // import { productService } from '../services/productService';
 import { useSettings } from '../context/SettingsContext';
 import { useLanguage } from '../context/LanguageContext';
+import { Console } from 'console';
 
 interface SettingsPageProps {
   devMode: boolean;
@@ -253,6 +254,17 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
             t('settings.developer.devModeDescription'),
             devMode,
             setDevMode,
+            true
+          )}
+
+          <Divider />
+
+          {renderSettingItem(
+            <CodeIcon />,
+            t('settings.developer.showLogs'),
+            t('settings.developer.showLogsDescription'),
+            false,
+            () => {console.log('Logs enabled');},
             true
           )}
 
