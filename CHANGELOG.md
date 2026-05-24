@@ -5,6 +5,17 @@ All notable changes to the Kermes project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0] - 24-05-2026
+### Global
+- Refactoring and loading  --menu
+- New kermes from admin panel  --admin
+- Dynamic menu creation  --menu
+
+### Kermes POS
+#### Added
+- Syncing of sales   --admin
+
+
 ## [1.13.2] - 19-05-2026
 ### Kermes POS
 #### Changed

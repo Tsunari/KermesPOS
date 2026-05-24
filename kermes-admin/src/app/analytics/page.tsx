@@ -22,6 +22,12 @@ export default function Analytics() {
   const [syncedSessions, setSyncedSessions] = useState<SyncedSession[]>([]);
   const [liveSalesFeed, setLiveSalesFeed] = useState<LiveSale[]>([]);
   const [selectedKermesId, setSelectedKermesId] = useState("");
+
+  // Restore persisted selection after mount (SSR-safe)
+  useEffect(() => {
+    const saved = localStorage.getItem("analytics_selected_kermes");
+    if (saved) setSelectedKermesId(saved);
+  }, []);
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
   const [expandedTransactions, setExpandedTransactions] = useState<LiveSale[]>([]);
   const [txLoading, setTxLoading] = useState(false);
@@ -195,7 +201,13 @@ export default function Analytics() {
               <LocationOnIcon className="text-gray-400 !h-5 !w-5" />
               <select
                 value={selectedKermesId}
-                onChange={(e) => { setSelectedKermesId(e.target.value); setExpandedSessionId(null); }}
+                onChange={(e) => {
+                const id = e.target.value;
+                setSelectedKermesId(id);
+                setExpandedSessionId(null);
+                if (id) localStorage.setItem("analytics_selected_kermes", id);
+                else localStorage.removeItem("analytics_selected_kermes");
+              }}
                 className="bg-transparent border-none text-xs font-bold text-black dark:text-white focus:outline-none cursor-pointer"
               >
                 <option value="" className="dark:bg-neutral-950">Satış Noktası Seçin</option>
@@ -207,14 +219,40 @@ export default function Analytics() {
           </div>
 
           {!selectedKermesId ? (
-            <div className="text-center py-16 bg-gray-50 dark:bg-neutral-900 rounded-2xl border-2 border-dashed border-gray-200 dark:border-neutral-700">
-              <CloudQueueIcon className="mx-auto !h-12 !w-12 text-gray-300 dark:text-neutral-700 mb-3" />
-              <p className="text-gray-500 dark:text-gray-400 text-sm font-semibold">
-                Analizleri görüntülemek için sağ üstten bir satış noktası seçin.
-              </p>
-              {availableLocations.length === 0 && (
-                <p className="text-gray-400 dark:text-gray-500 text-xs mt-2">
-                  Henüz senkronize edilmiş oturum verisi bulunamadı.
+            <div className="text-center py-16 bg-gray-50 dark:bg-neutral-900 rounded-2xl border-2 border-dashed border-gray-200 dark:border-neutral-700 px-8">
+              <CloudQueueIcon className="mx-auto !h-12 !w-12 text-gray-300 dark:text-neutral-700 mb-4" />
+              {availableLocations.length === 0 ? (
+                <>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm font-bold mb-2">
+                    Henüz senkronize edilmiş oturum bulunamadı.
+                  </p>
+                  <p className="text-gray-400 dark:text-gray-500 text-xs mb-5">
+                    Analitik verisi POS uygulamasından bir oturum senkronize edildiğinde burada görünür.
+                  </p>
+                  <ol className="text-left inline-flex flex-col gap-2.5 text-xs text-gray-500 dark:text-gray-400">
+                    <li className="flex items-start gap-2">
+                      <span className="shrink-0 font-black text-indigo-500 dark:text-indigo-400">1.</span>
+                      <span><span className="font-semibold text-black dark:text-white">Hesap oluşturun</span> — Hesap Yönetimi sayfasında bir POS satış noktası hesabı ekleyin ve giriş bilgilerini kasa operatörüne iletin.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="shrink-0 font-black text-indigo-500 dark:text-indigo-400">2.</span>
+                      <span><span className="font-semibold text-black dark:text-white">POS&apos;ta giriş yapın</span> — Kasa operatörü POS uygulamasında Senkronizasyon ekranına gidip oluşturulan hesapla oturum açar.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="shrink-0 font-black text-indigo-500 dark:text-indigo-400">3.</span>
+                      <span><span className="font-semibold text-black dark:text-white">Oturumu senkronize edin</span> — Kermes bitiminde satış verileri buluta yüklenir; buradan otomatik olarak görünür hale gelir.</span>
+                    </li>
+                  </ol>
+                  <a
+                    href="/management"
+                    className="mt-6 inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition"
+                  >
+                    Hesap Yönetimine Git
+                  </a>
+                </>
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-semibold">
+                  Analizleri görüntülemek için sağ üstten bir satış noktası seçin.
                 </p>
               )}
             </div>
