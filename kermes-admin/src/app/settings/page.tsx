@@ -9,6 +9,7 @@ const SETTINGS_DOC = "settings/main";
 type KermesSettings = {
   active: boolean;
   activeKermesId: string;
+  showActiveKermesName?: boolean;
 };
 
 type KermesRecord = {
@@ -30,6 +31,7 @@ export default function SettingsPage() {
           setSettings({
             active: snap.data()?.active ?? true,
             activeKermesId: snap.data()?.activeKermesId ?? "",
+            showActiveKermesName: snap.data()?.showActiveKermesName ?? false,
           });
         }
         else setError("No settings found");

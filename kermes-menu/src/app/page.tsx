@@ -28,6 +28,7 @@ const SETTINGS_DOC = "settings/main";
 type KermesSettings = {
   active: boolean;
   activeKermesId: string;
+  showActiveKermesName?: boolean;
 };
 
 type KermesRecord = {
@@ -46,9 +47,10 @@ export default function Home() {
         setSettings({
           active: snap.data()?.active ?? false,
           activeKermesId: snap.data()?.activeKermesId ?? "",
+          showActiveKermesName: snap.data()?.showActiveKermesName ?? false,
         });
       } else {
-        setSettings({ active: false, activeKermesId: "" });
+        setSettings({ active: false, activeKermesId: "", showActiveKermesName: false });
       }
       setLoading(false);
     }, () => setLoading(false));
@@ -117,7 +119,7 @@ export default function Home() {
               <span className="block">Kermesimize</span>
               <span className="block">Hoşgeldiniz</span>
             </h1>
-            {activeKermes ? (
+            {activeKermes && settings.showActiveKermesName ? (
               <div className="mb-2 rounded-2xl bg-gray-100 px-4 py-2 text-center text-sm font-medium text-gray-700 shadow-sm">
                 Aktif kermes: {activeKermes.name}
               </div>

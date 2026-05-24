@@ -14,6 +14,7 @@ const SETTINGS_DOC = "settings/main";
 type KermesSettings = {
   active: boolean;
   activeKermesId: string;
+  showActiveKermesName?: boolean;
 };
 
 type KermesRecord = {
@@ -123,7 +124,7 @@ function stripLegacyContent(value: string) {
 export default function Dashboard() {
   const router = useRouter();
   const [isAuth, setIsAuth] = useState(false);
-  const [settings, setSettings] = useState<KermesSettings>({ active: true, activeKermesId: "" });
+  const [settings, setSettings] = useState<KermesSettings>({ active: true, activeKermesId: "", showActiveKermesName: false });
   const [kermeses, setKermeses] = useState<KermesRecord[]>([]);
   const [folderCatalog, setFolderCatalog] = useState<FolderCatalogEntry[]>([TEMPLATE_FOLDER]);
   const [selectedKermesId, setSelectedKermesId] = useState("");
@@ -153,6 +154,7 @@ export default function Dashboard() {
           setSettings({
             active: snap.data()?.active ?? true,
             activeKermesId: snap.data()?.activeKermesId ?? "",
+            showActiveKermesName: snap.data()?.showActiveKermesName ?? false,
           });
         setLoading(false);
       })
@@ -253,6 +255,12 @@ export default function Dashboard() {
 
   async function handleSwitchChange() {
     const nextSettings = { ...settings, active: !settings.active };
+    setSettings(nextSettings);
+    await setDoc(doc(db, SETTINGS_DOC), { ...nextSettings });
+  }
+
+  async function handleToggleKermesNameShow() {
+    const nextSettings = { ...settings, showActiveKermesName: !settings.showActiveKermesName };
     setSettings(nextSettings);
     await setDoc(doc(db, SETTINGS_DOC), { ...nextSettings });
   }
@@ -501,6 +509,19 @@ export default function Dashboard() {
                   type="checkbox"
                   checked={settings.active}
                   onChange={handleSwitchChange}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 dark:bg-neutral-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-blue-600 dark:peer-checked:bg-blue-500 transition-all"></div>
+                <div className="absolute left-1 top-1 bg-white dark:bg-neutral-900 w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"></div>
+              </label>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-black dark:text-white">Aktif kermes adını göster</span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.showActiveKermesName ?? false}
+                  onChange={handleToggleKermesNameShow}
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-gray-200 dark:bg-neutral-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-blue-600 dark:peer-checked:bg-blue-500 transition-all"></div>

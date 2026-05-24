@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, doc, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../../../firebaseInit";
 import QueryStatsIcon from "@mui/icons-material/QueryStats";
 import LocationOnIcon from "@mui/icons-material/LocationOn";

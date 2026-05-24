@@ -1,5 +1,20 @@
 # Kermes POS Development Roadmap
 
+## Things to Do
+
+- [x] Make folder selection work.
+- [x] Add support for JPEG, video, and other file formats. Everywhere (about page image selectable as well, remove the manual image paths).
+- [x] Make sure more files are supported on pages like the menu page; display them in rows like the sponsor section.
+- [x] Check whether folder detection can be handled without a runtime script.
+
+- [x] Add stats for kermes (sync with pos needed)
+  - [ ] Session disctinction between same user kermes
+  - [ ] refined guidance to session creations when trying to sync
+  - [ ] Reminder to sync at fixed (configurable) time/intervals
+  - [ ] Dashboard for analytics (maybe realtime sales)
+- UI to add new files to (new) kermes folder
+
+
 ----------------------------
 
 ## Version 2.0.0
@@ -7,12 +22,12 @@
 #### Major Features
 
 - [ ] User management and permissions
-  - [ ] Firebase Authentication
-  - [ ] User accounts
-  - [ ] Multi-store support
+  - [x] Firebase Authentication
+  - [x] User accounts
+  - [x] Multi-store support
   - [ ] Role-based access control
   - [ ] Talebe Yemek Auth
-- [ ] Cloud synchronization
+- [x] Cloud synchronization
 - [ ] Enhanced cart functionality
   - [ ] Multiple payment methods
 - [ ] Inventory management system
@@ -22,7 +37,7 @@
   - [ ] Sales trends and patterns
   - [ ] More statistics with graphs
 - [ ] Reporting system
-  - [ ] Advanced sales reports
+  - [x] Advanced sales reports
   - [ ] Inventory reports
   - [ ] Enhanced Export functionality
 - [ ] Migrate to Next.js React framwork from Create React App (CRA)
