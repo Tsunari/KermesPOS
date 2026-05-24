@@ -1,64 +1,22 @@
 "use client";
-import { useEffect, useState } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
 import CenteredImage from '../components/CenteredImage';
 import PageContainer from '../components/PageContainer';
-import { db } from '../../../firebaseInit';
-
-const SETTINGS_DOC = 'settings/main';
-
-type KermesSettings = {
-    active: boolean;
-    activeKermesId: string;
-};
-
-type KermesRecord = {
-    menuImage: string;
-    assetFolder: string;
-};
+import LoadingScreen from '../components/LoadingScreen';
+import { useActiveKermes } from '../hooks/useActiveKermes';
 
 export default function MenuPage() {
-    const [settings, setSettings] = useState<KermesSettings | null>(null);
-    const [menuImages, setMenuImages] = useState<string[]>(['/kermeses/template-basic/menu.svg']);
+    const { kermesData, loading } = useActiveKermes();
 
-    useEffect(() => {
-        const unsubscribe = onSnapshot(doc(db, SETTINGS_DOC), (snap) => {
-            if (snap.exists()) {
-                setSettings({
-                    active: snap.data()?.active ?? false,
-                    activeKermesId: snap.data()?.activeKermesId ?? '',
-                });
-            } else {
-                setSettings(null);
-            }
-        });
+    const rawImage = kermesData?.menuImage || '/kermeses/template-basic/menu.svg';
+    const menuImages = rawImage.split(/[\n,]+/).map((src) => src.trim()).filter(Boolean);
 
-        return () => unsubscribe();
-    }, []);
-
-    useEffect(() => {
-        if (!settings?.activeKermesId) {
-            setMenuImages(['/kermeses/template-basic/menu.svg']);
-            return;
-        }
-
-        const unsubscribe = onSnapshot(doc(db, 'kermeses', settings.activeKermesId), (snap) => {
-            if (snap.exists()) {
-                const data = snap.data() as Partial<KermesRecord>;
-                const rawImage = data.menuImage || '/kermeses/template-basic/menu.svg';
-                const images = rawImage
-                    .split(/[\n,]+/)
-                    .map((item) => item.trim())
-                    .filter(Boolean);
-                
-                setMenuImages(images.length > 0 ? images : ['/kermeses/template-basic/menu.svg']);
-            } else {
-                setMenuImages(['/kermeses/template-basic/menu.svg']);
-            }
-        });
-
-        return () => unsubscribe();
-    }, [settings?.activeKermesId]);
+    if (loading) {
+        return (
+            <PageContainer>
+                <LoadingScreen />
+            </PageContainer>
+        );
+    }
 
     return (
         <PageContainer>

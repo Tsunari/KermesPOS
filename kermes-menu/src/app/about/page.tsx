@@ -1,29 +1,14 @@
 "use client";
-import { useEffect, useState } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { ReactNode } from 'react';
 import PageContainer from '../components/PageContainer';
-// import Image from 'next/image';
 import CenteredImage from '../components/CenteredImage';
+import LoadingScreen from '../components/LoadingScreen';
 import DoneIcon from '@mui/icons-material/Done';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { db } from '../../../firebaseInit';
-
-const SETTINGS_DOC = 'settings/main';
-
-type KermesSettings = {
-  active: boolean;
-  activeKermesId: string;
-};
-
-type KermesRecord = {
-  assetFolder: string;
-  aboutTitle: string;
-  aboutMarkdown: string;
-  aboutImage: string;
-};
+import { useActiveKermes } from '../hooks/useActiveKermes';
 
 type MarkdownBlock =
   | { type: 'normal'; content: string }
@@ -129,54 +114,10 @@ function renderMarkdownBlocks(blocks: MarkdownBlock[]): ReactNode {
 
 export default function AboutPage() {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
-  const [settings, setSettings] = useState<KermesSettings | null>(null);
-  const [aboutContent, setAboutContent] = useState<KermesRecord | null>(null);
+  const { kermesData, loading } = useActiveKermes();
 
-  useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, SETTINGS_DOC), (snap) => {
-      if (snap.exists()) {
-        setSettings({
-          active: snap.data()?.active ?? false,
-          activeKermesId: snap.data()?.activeKermesId ?? '',
-        });
-      } else {
-        setSettings(null);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (!settings?.activeKermesId) {
-      setAboutContent(null);
-      return;
-    }
-
-    const unsubscribe = onSnapshot(doc(db, 'kermeses', settings.activeKermesId), (snap) => {
-      if (snap.exists()) {
-        const data = snap.data() as Record<string, unknown>;
-        setAboutContent({
-          assetFolder: typeof data.assetFolder === 'string' ? data.assetFolder : `/kermeses/${snap.id}`,
-          aboutTitle: typeof data.aboutTitle === 'string' ? data.aboutTitle : '',
-          aboutMarkdown:
-            typeof data.aboutMarkdown === 'string'
-              ? data.aboutMarkdown
-              : typeof data.aboutText === 'string'
-                ? data.aboutText
-                : '',
-          aboutImage: typeof data.aboutImage === 'string' ? data.aboutImage : '',
-        });
-      } else {
-        setAboutContent(null);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [settings?.activeKermesId]);
-
-  const aboutTitle = aboutContent?.aboutTitle || '🌟 Geleneksel Mıntıka Kermesimiz Başlıyor!';
-  const aboutMarkdown = aboutContent?.aboutMarkdown || `:::center
+  const aboutTitle = kermesData?.aboutTitle || 'Geleneksel Mıntıka Kermesimiz Başlıyor!';
+  const aboutMarkdown = kermesData?.aboutMarkdown || `:::center
 ### **Gönülleri Birleştiren Kermesimize Hoş Geldiniz!**
 :::
 
@@ -213,9 +154,18 @@ Gençlerimizin daha iyi imkanlarda yetişmesi için yapacağınız her yardım v
 ### 📢 Tüm Aileleri ve Gönül Dostlarını Bekliyoruz!
 Kardeşliğimizi pekiştirmek ve soframıza bereket katmak için ailenizle, dostlarınızla birlikte hepinizi bekliyoruz!
 :::`;
-  const rawAboutImage = aboutContent?.aboutImage || '/kermeses/template-basic/about.svg';
+
+  const rawAboutImage = kermesData?.aboutImage || '/kermeses/template-basic/about.svg';
   const aboutImages = rawAboutImage.split(/[\n,]+/).map((item) => item.trim()).filter(Boolean);
   const markdownBlocks = parseCenteredMarkdownBlocks(aboutMarkdown);
+
+  if (loading) {
+    return (
+      <PageContainer>
+        <LoadingScreen />
+      </PageContainer>
+    );
+  }
   
   return (
     <PageContainer>
@@ -238,19 +188,6 @@ Kardeşliğimizi pekiştirmek ve soframıza bereket katmak için ailenizle, dost
           />
         ))}
       </div>
-      {/* <div className="flex justify-center items-center w-full">
-        <div className="flex justify-center items-center w-full">
-            <Image
-                src="/Rosenheim-Üye.jpg"
-                alt="Menu"
-                width={600}
-                height={800}
-                className="rounded-2xl shadow-lg object-contain outline-2 outline-black"
-                style={{ maxWidth: '100%', height: 'auto', display: 'block' }}
-                priority
-            />
-        </div>
-      </div> */}
       <div className="bg-white/90 rounded-2xl shadow-lg p-6 border border-gray-200 mt-0 mb-5">
                 <div className="text-gray-700 text-base text-center space-y-6">
                     { [
@@ -274,7 +211,6 @@ Kardeşliğimizi pekiştirmek ve soframıza bereket katmak için ailenizle, dost
                                 className="p-1 rounded hover:bg-gray-200"
                                 onClick={() => {
                                     navigator.clipboard.writeText(item.value);
-                                    //setSnackbarOpen(true);
                                     setCopiedIdx(idx);
                                     setTimeout(() => setCopiedIdx(null), 5000);
                                 }}
@@ -292,7 +228,6 @@ Kardeşliğimizi pekiştirmek ve soframıza bereket katmak için ailenizle, dost
             </div>
             <div className="bg-white/90 rounded-2xl shadow-lg p-0 border border-gray-200 mt-0 mb-5">
                 <div className="text-gray-700 text-base text-center space-y-6">
-                    {/* <p>Veya hızlıca:</p> */}
                     <a
                       href="https://www.paypal.me/URVEmuenchen"
                       target="_blank"

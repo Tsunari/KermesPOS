@@ -1,69 +1,27 @@
 "use client";
-import { useEffect, useState } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { useState } from 'react';
 import PageContainer from '../components/PageContainer';
 import CenteredImage from '../components/CenteredImage';
+import LoadingScreen from '../components/LoadingScreen';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DoneIcon from '@mui/icons-material/Done';
-// import Snackbar from '../components/Snackbar';
-import { db } from '../../../firebaseInit';
-
-const SETTINGS_DOC = 'settings/main';
-
-type KermesSettings = {
-    active: boolean;
-    activeKermesId: string;
-};
-
-type KermesRecord = {
-    ikramImage: string;
-    assetFolder: string;
-};
+import { useActiveKermes } from '../hooks/useActiveKermes';
 
 export default function FestivalPage() {
-    // const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
-    const [settings, setSettings] = useState<KermesSettings | null>(null);
-    const [ikramImages, setIkramImages] = useState<string[]>(['/kermeses/template-basic/ikram.svg']);
+    const { kermesData, loading } = useActiveKermes();
 
-    useEffect(() => {
-        const unsubscribe = onSnapshot(doc(db, SETTINGS_DOC), (snap) => {
-            if (snap.exists()) {
-                setSettings({
-                    active: snap.data()?.active ?? false,
-                    activeKermesId: snap.data()?.activeKermesId ?? '',
-                });
-            } else {
-                setSettings(null);
-            }
-        });
+    const rawImage = kermesData?.ikramImage || '/kermeses/template-basic/ikram.svg';
+    const ikramImages = rawImage.split(/[\n,]+/).map((src) => src.trim()).filter(Boolean);
 
-        return () => unsubscribe();
-    }, []);
+    if (loading) {
+        return (
+            <PageContainer>
+                <LoadingScreen />
+            </PageContainer>
+        );
+    }
 
-    useEffect(() => {
-        if (!settings?.activeKermesId) {
-            setIkramImages(['/kermeses/template-basic/ikram.svg']);
-            return;
-        }
-
-        const unsubscribe = onSnapshot(doc(db, 'kermeses', settings.activeKermesId), (snap) => {
-            if (snap.exists()) {
-                const data = snap.data() as Partial<KermesRecord>;
-                const rawImage = data.ikramImage || '/kermeses/template-basic/ikram.svg';
-                const images = rawImage
-                    .split(/[\n,]+/)
-                    .map((item) => item.trim())
-                    .filter(Boolean);
-                
-                setIkramImages(images.length > 0 ? images : ['/kermeses/template-basic/ikram.svg']);
-            } else {
-                setIkramImages(['/kermeses/template-basic/ikram.svg']);
-            }
-        });
-
-        return () => unsubscribe();
-    }, [settings?.activeKermesId]);
     return (
         <PageContainer>
             <div className="flex flex-col gap-6 w-full items-center mt-5 mb-5">
@@ -99,7 +57,6 @@ export default function FestivalPage() {
                                 className="p-1 rounded hover:bg-gray-200"
                                 onClick={() => {
                                     navigator.clipboard.writeText(item.value);
-                                    //setSnackbarOpen(true);
                                     setCopiedIdx(idx);
                                     setTimeout(() => setCopiedIdx(null), 5000);
                                 }}
@@ -117,7 +74,6 @@ export default function FestivalPage() {
             </div>
             <div className="bg-white/90 rounded-2xl shadow-lg p-0 border border-gray-200 mt-0 mb-5">
                 <div className="text-gray-700 text-base text-center space-y-6">
-                    {/* <p>Veya hızlıca:</p> */}
                     <a
                       href="https://www.paypal.me/URVEmuenchen"
                       target="_blank"
@@ -135,7 +91,6 @@ export default function FestivalPage() {
                     </a>
                 </div>
             </div>    
-            {/* <Snackbar open={snackbarOpen} text="Copied" icon={<DoneIcon className="text-green-400" fontSize="small" />} onClose={() => setSnackbarOpen(false)} /> */}
         </PageContainer>
     );
 }

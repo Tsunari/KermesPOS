@@ -1,9 +1,9 @@
 "use client";
-import { useEffect, useState } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
 import PageContainer from '../components/PageContainer';
+import LoadingScreen from '../components/LoadingScreen';
 import Image from 'next/image';
-import { db } from '../../../firebaseInit';
+import { useActiveKermes } from '../hooks/useActiveKermes';
 
 const IMAGE_WIDTH = 275;
 const IMAGE_HEIGHT = 250;
@@ -14,62 +14,22 @@ const DEFAULT_SPONSOR_IMAGES = [
 	{ src: '/kermeses/template-basic/sponsor/03.svg', alt: 'Sponsor Alanı 3' },
 ];
 
-const SETTINGS_DOC = 'settings/main';
-
-type KermesSettings = {
-	active: boolean;
-	activeKermesId: string;
-};
-
-type KermesRecord = {
-	sponsorImages: string[];
-};
-
 export default function SponsorPage() {
-	const [settings, setSettings] = useState<KermesSettings | null>(null);
+	const { kermesData, loading } = useActiveKermes();
 	const [sponsorImages, setSponsorImages] = useState(DEFAULT_SPONSOR_IMAGES);
 	const [imgError, setImgError] = useState(Array(DEFAULT_SPONSOR_IMAGES.length).fill(false));
 
 	useEffect(() => {
-		const unsubscribe = onSnapshot(doc(db, SETTINGS_DOC), (snap) => {
-			if (snap.exists()) {
-				setSettings({
-					active: snap.data()?.active ?? false,
-					activeKermesId: snap.data()?.activeKermesId ?? '',
-				});
-			} else {
-				setSettings(null);
-			}
-		});
+		if (loading) return;
+		const nextImages = (kermesData?.sponsorImages ?? []).map((src) => ({
+			src,
+			alt: 'Sponsor Resimler',
+		}));
 
-		return () => unsubscribe();
-	}, []);
-
-	useEffect(() => {
-		if (!settings?.activeKermesId) {
-			setSponsorImages(DEFAULT_SPONSOR_IMAGES);
-			setImgError(Array(DEFAULT_SPONSOR_IMAGES.length).fill(false));
-			return;
-		}
-
-		const unsubscribe = onSnapshot(doc(db, 'kermeses', settings.activeKermesId), (snap) => {
-			if (snap.exists()) {
-				const data = snap.data() as Partial<KermesRecord>;
-				const nextImages = (data.sponsorImages ?? []).map((src) => ({
-					src,
-					alt: 'Sponsor Resimler',
-				}));
-
-				setSponsorImages(nextImages.length > 0 ? nextImages : DEFAULT_SPONSOR_IMAGES);
-				setImgError(Array((nextImages.length > 0 ? nextImages : DEFAULT_SPONSOR_IMAGES).length).fill(false));
-			} else {
-				setSponsorImages(DEFAULT_SPONSOR_IMAGES);
-				setImgError(Array(DEFAULT_SPONSOR_IMAGES.length).fill(false));
-			}
-		});
-
-		return () => unsubscribe();
-	}, [settings?.activeKermesId]);
+		const activeImages = nextImages.length > 0 ? nextImages : DEFAULT_SPONSOR_IMAGES;
+		setSponsorImages(activeImages);
+		setImgError(Array(activeImages.length).fill(false));
+	}, [kermesData, loading]);
 
 	const handleImgError = (idx: number) => {
 		setImgError(prev => {
@@ -79,13 +39,21 @@ export default function SponsorPage() {
 		});
 	};
 
+	if (loading) {
+		return (
+			<PageContainer>
+				<LoadingScreen />
+			</PageContainer>
+		);
+	}
+
 	return (
 		<PageContainer>
 			<div className="w-full grid grid-cols-1 gap-6 mt-8">
 				{sponsorImages.map((img, idx) => (
 					<div
 						key={img.src}
-						className={`flex items-center w-full ${idx % 2 === 0 ? 'justify-center' : 'justify-center'}`}
+						className={`flex items-center w-full justify-center`}
 					>
 						{!imgError[idx] ? (
 							<Image
