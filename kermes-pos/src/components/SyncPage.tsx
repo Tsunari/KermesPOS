@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -33,6 +34,7 @@ import { CartTransaction, cartTransactionService } from '../services/cartTransac
 import { firestoreSyncService, PlaceProfile } from '../services/firestoreSyncService';
 
 const SyncPage: React.FC = () => {
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const theme = useTheme();
 
@@ -79,7 +81,7 @@ const SyncPage: React.FC = () => {
       }
     } catch (err) {
       console.error("Failed to load local sessions:", err);
-      setError("Lokal oturumlar yüklenirken bir hata oluştu.");
+      setError(t('app.sync.error_loading_sessions') || "An error occurred while loading local sessions.");
     } finally {
       setLoading(false);
     }
@@ -140,13 +142,13 @@ const SyncPage: React.FC = () => {
     try {
       const placeProfile = await firestoreSyncService.loginPlace(email, password);
       setProfile(placeProfile);
-      setSuccess("Giriş işlemi başarılı!");
+      setSuccess(t('app.sync.login_success') || "Login successful!");
       
       // Load sessions after login
       await loadSessions();
     } catch (err: any) {
       console.error("Login failure:", err);
-      setError(err.message || "Giriş yapılamadı. E-posta veya şifreyi kontrol edin.");
+      setError(err.message || t('app.sync.login_failed') || "Login failed. Check your email and password.");
     } finally {
       setAuthLoading(false);
     }
@@ -164,7 +166,7 @@ const SyncPage: React.FC = () => {
       setUnsyncedCount(0);
       setSessionRevenue(0);
       setError(null);
-      setSuccess("Oturum kapatıldı.");
+      setSuccess(t('app.sync.logged_out') || "Logged out.");
     } catch (err) {
       console.error("Logout failure:", err);
     } finally {
@@ -182,7 +184,7 @@ const SyncPage: React.FC = () => {
     setError(null);
     setSuccess(null);
     setSyncProgress(0);
-    setSyncStepText("Senkronizasyon başlatılıyor...");
+    setSyncStepText(t('app.sync.sync_starting') || "Starting synchronization...");
 
     try {
       await firestoreSyncService.syncSession(
@@ -194,12 +196,15 @@ const SyncPage: React.FC = () => {
         }
       );
       
-      setSuccess(`"${session.name}" oturumu başarıyla senkronize edildi!`);
+      const successText = t('app.sync.sync_success') 
+        ? t('app.sync.sync_success').replace('{name}', session.name)
+        : `Session "${session.name}" successfully synchronized!`;
+      setSuccess(successText);
       // Reload sessions and stats
       await loadSessions();
     } catch (err: any) {
       console.error("Sync failure:", err);
-      setError(err.message || "Senkronizasyon sırasında bulut bağlantı hatası oluştu.");
+      setError(err.message || t('app.sync.sync_failed') || "A cloud connection error occurred during synchronization.");
     } finally {
       setIsSyncing(false);
     }
@@ -214,10 +219,10 @@ const SyncPage: React.FC = () => {
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}>
             <CloudQueueIcon sx={{ fontSize: 36, color: 'primary.main' }} />
-            {t('app.sync.title') || 'Bulut Senkronizasyonu'}
+            {t('app.sync.title') || 'Cloud Synchronization'}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {t('app.sync.description') || 'Lokal satış oturumu verilerinizi güvenli bir şekilde bulut yönetim paneline aktarın'}
+            {t('app.sync.description') || 'Securely transfer your local sales session data to the cloud administration panel'}
           </Typography>
         </Box>
       </Box>
@@ -239,10 +244,10 @@ const SyncPage: React.FC = () => {
               }}>
                 <LockOpenIcon sx={{ fontSize: 40, mb: 1 }} />
                 <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                  Satış Noktası Girişi
+                  {t('app.sync.login_title') || "Cashier / Place Login"}
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.8, mt: 0.5 }}>
-                  Senkronizasyon işlemini başlatmak için yetkili hesapla giriş yapın
+                  {t('app.sync.login_subtitle') || "Log in with an authorized account to start the synchronization process"}
                 </Typography>
               </Box>
               <CardContent sx={{ p: 4 }}>
@@ -250,7 +255,7 @@ const SyncPage: React.FC = () => {
                   <Stack spacing={3}>
                     <TextField
                       fullWidth
-                      label="E-posta"
+                      label={t('app.sync.email') || "Email"}
                       type="email"
                       variant="outlined"
                       value={email}
@@ -260,7 +265,7 @@ const SyncPage: React.FC = () => {
                     />
                     <TextField
                       fullWidth
-                      label="Şifre"
+                      label={t('app.sync.password') || "Password"}
                       type="password"
                       variant="outlined"
                       value={password}
@@ -276,7 +281,7 @@ const SyncPage: React.FC = () => {
                       disabled={authLoading}
                       sx={{ py: 1.5, borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
                     >
-                      {authLoading ? <CircularProgress size={24} color="inherit" /> : "Giriş Yap"}
+                      {authLoading ? <CircularProgress size={24} color="inherit" /> : (t('app.sync.login_btn') || "Login")}
                     </Button>
                   </Stack>
                 </form>
@@ -325,7 +330,7 @@ const SyncPage: React.FC = () => {
                   }} />
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Aktif Satış Noktası • {profile.email}
+                  {t('app.sync.active_place') || "Active POS Point"} • {profile.email}
                 </Typography>
               </Box>
             </Box>
@@ -338,7 +343,7 @@ const SyncPage: React.FC = () => {
               startIcon={<LogoutIcon />}
               sx={{ borderRadius: 2, textTransform: 'none' }}
             >
-              Oturumu Kapat
+              {t('app.sync.logout_btn') || "Logout"}
             </Button>
           </Paper>
 
@@ -347,7 +352,7 @@ const SyncPage: React.FC = () => {
             <CardContent sx={{ p: 4 }}>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CloudUploadIcon color="primary" />
-                Oturum Verilerini Senkronize Et
+                {t('app.sync.sync_data_title') || "Synchronize Session Data"}
               </Typography>
 
               {loading ? (
@@ -355,23 +360,65 @@ const SyncPage: React.FC = () => {
                   <CircularProgress />
                 </Box>
               ) : sessions.length === 0 ? (
-                <Alert severity="warning" sx={{ borderRadius: 2 }}>
-                  Senkronize edilecek herhangi bir lokal oturum kaydı bulunamadı. Lütfen önce POS ana ekranında bir oturum başlatıp satış yapın.
-                </Alert>
+                <Box sx={{
+                  p: 4,
+                  borderRadius: 3,
+                  border: `2px dashed ${theme.palette.divider}`,
+                  textAlign: 'center',
+                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
+                }}>
+                  <StorageIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                    {t('app.sync.no_session_found') || "No session found to synchronize"}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 420, mx: 'auto' }}>
+                    {t('app.sync.no_session_desc1') || "To transfer data to the cloud, you must first create a sales session."}{' '}
+                    {t('app.sync.no_session_desc2') || "Sessions group sales records for a kermes day."}
+                  </Typography>
+                  <Stack spacing={1.5} sx={{ textAlign: 'left', maxWidth: 380, mx: 'auto', mb: 4 }}>
+                    {[
+                      t('app.sync.step1') || "Go to the Sessions page.",
+                      t('app.sync.step2') || "Create a new session and enter its name.",
+                      t('app.sync.step3') || "Make sales — each transaction is saved to this session.",
+                      t('app.sync.step4') || "Come back here and start the synchronization.",
+                    ].map((step, i) => (
+                      <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                        <Box sx={{
+                          width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                          bgcolor: 'primary.main', color: 'primary.contrastText',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 11, fontWeight: 800, mt: 0.2,
+                        }}>
+                          {i + 1}
+                        </Box>
+                        <Typography variant="body2" color="text.secondary">{step}</Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={() => navigate('/sessions')}
+                    startIcon={<StorageIcon />}
+                    sx={{ borderRadius: 2.5, textTransform: 'none', fontWeight: 700, px: 4 }}
+                  >
+                    {t('app.sync.go_to_sessions') || "Go to Sessions Page"}
+                  </Button>
+                </Box>
               ) : (
                 <Stack spacing={4}>
                   <FormControl fullWidth variant="outlined">
-                    <InputLabel id="session-select-label">Senkronize Edilecek Oturum</InputLabel>
+                    <InputLabel id="session-select-label">{t('app.sync.session_to_sync') || "Session to Synchronize"}</InputLabel>
                     <Select
                       labelId="session-select-label"
                       value={selectedSessionId}
                       onChange={e => setSelectedSessionId(e.target.value as string)}
-                      label="Senkronize Edilecek Oturum"
+                      label={t('app.sync.session_to_sync') || "Session to Synchronize"}
                       disabled={isSyncing}
                     >
                       {sessions.map(s => (
                         <MenuItem key={s.id} value={s.id}>
-                          {s.name} ({s.status === 'active' ? 'Aktif' : s.status === 'paused' ? 'Duraklatıldı' : 'Tamamlandı'})
+                          {s.name} ({s.status === 'active' ? (t('common.active') || 'Active') : s.status === 'paused' ? (t('app.sync.status_paused') || 'Paused') : (t('app.sync.status_completed') || 'Completed')})
                         </MenuItem>
                       ))}
                     </Select>
@@ -381,25 +428,25 @@ const SyncPage: React.FC = () => {
                     <Box sx={{ p: 3, borderRadius: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', border: `1px solid ${theme.palette.divider}` }}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                         <StorageIcon fontSize="small" color="secondary" />
-                        Oturum İstatistikleri
+                        {t('app.sync.session_stats') || "Session Statistics"}
                       </Typography>
                       
                       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 2 }}>
                         <Box>
                           <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 2, textAlign: 'center', boxShadow: theme.shadows[1] }}>
-                            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase' }}>Toplam Satış Adedi</Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase' }}>{t('app.sync.total_sales_count') || "Total Sales Count"}</Typography>
                             <Typography variant="h5" sx={{ fontWeight: 700, mt: 0.5 }}>{sessionTransactions.length}</Typography>
                           </Box>
                         </Box>
                         <Box>
                           <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 2, textAlign: 'center', boxShadow: theme.shadows[1] }}>
-                            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase' }}>Toplam Tutar</Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase' }}>{t('app.sync.total_revenue') || "Total Revenue"}</Typography>
                             <Typography variant="h5" sx={{ fontWeight: 700, mt: 0.5, color: 'primary.main' }}>€{sessionRevenue.toFixed(2)}</Typography>
                           </Box>
                         </Box>
                         <Box>
                           <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 2, textAlign: 'center', boxShadow: theme.shadows[1] }}>
-                            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase' }}>Senkronize Edilmeyen</Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase' }}>{t('app.sync.unsynced') || "Unsynced"}</Typography>
                             <Typography variant="h5" sx={{ fontWeight: 700, mt: 0.5, color: unsyncedCount > 0 ? 'warning.main' : 'success.main' }}>
                               {unsyncedCount}
                             </Typography>
@@ -411,7 +458,7 @@ const SyncPage: React.FC = () => {
                         <Box sx={{ mt: 3, display: 'flex', alignItems: 'center', gap: 1, color: 'success.main' }}>
                           <CloudDoneIcon />
                           <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                            Bu oturumdaki tüm işlem verileri zaten bulut veritabanıyla tam uyumlu ve güncel.
+                            {t('app.sync.all_synced_success') || "All transaction data in this session is already fully synchronized and up to date with the cloud database."}
                           </Typography>
                         </Box>
                       )}
@@ -447,8 +494,8 @@ const SyncPage: React.FC = () => {
                         sx={{ py: 2, borderRadius: 2.5, textTransform: 'none', fontWeight: 700, fontSize: 16 }}
                       >
                         {unsyncedCount > 0 
-                          ? `Bulut Senkronizasyonunu Başlat (${unsyncedCount} Yeni İşlem)` 
-                          : "Bulut Verilerini Yeniden Senkronize Et"}
+                          ? (t('app.sync.start_sync_with_count') ? t('app.sync.start_sync_with_count').replace('{count}', String(unsyncedCount)) : `Start Cloud Synchronization (${unsyncedCount} New Transactions)`)
+                          : (t('app.sync.resync') || "Resynchronize Cloud Data")}
                       </Button>
                     )}
                   </Box>

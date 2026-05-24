@@ -22,6 +22,7 @@ export default function Analytics() {
   const [syncedSessions, setSyncedSessions] = useState<SyncedSession[]>([]);
   const [liveSalesFeed, setLiveSalesFeed] = useState<LiveSale[]>([]);
   const [selectedKermesId, setSelectedKermesId] = useState("");
+  const [selectedAnalyticsSessionId, setSelectedAnalyticsSessionId] = useState<string>("all");
 
   // Restore persisted selection after mount (SSR-safe)
   useEffect(() => {
@@ -56,14 +57,19 @@ export default function Analytics() {
   // Live Sales Feed subscription (capped at 10)
   useEffect(() => {
     if (!selectedKermesId) { setLiveSalesFeed([]); return; }
-    const q = query(collection(db, "sales"), where("kermesId", "==", selectedKermesId));
+    let q;
+    if (selectedAnalyticsSessionId === "all") {
+      q = query(collection(db, "sales"), where("kermesId", "==", selectedKermesId));
+    } else {
+      q = query(collection(db, "sales"), where("sessionId", "==", selectedAnalyticsSessionId));
+    }
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const sales = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as LiveSale));
       sales.sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime());
       setLiveSalesFeed(sales.slice(0, 10));
     });
     return () => unsubscribe();
-  }, [selectedKermesId]);
+  }, [selectedKermesId, selectedAnalyticsSessionId]);
 
   // Lazy-load transaction details with browser-side cache
   useEffect(() => {
@@ -107,6 +113,13 @@ export default function Analytics() {
     [syncedSessions, selectedKermesId]
   );
 
+  const sessionsForAnalytics = useMemo(() => {
+    if (selectedAnalyticsSessionId === "all") {
+      return filteredSessions;
+    }
+    return filteredSessions.filter(s => s.id === selectedAnalyticsSessionId);
+  }, [filteredSessions, selectedAnalyticsSessionId]);
+
   // Compile aggregates from session summaries (1 read per session, not per transaction)
   const aggregates = useMemo(() => {
     let revenue = 0, orders = 0, items = 0;
@@ -115,7 +128,7 @@ export default function Analytics() {
     const hourly: Record<string, { orders: number; revenue: number }> = {};
     const products: Record<string, { id: string; name: string; count: number; revenue: number }> = {};
 
-    filteredSessions.forEach(s => {
+    sessionsForAnalytics.forEach(s => {
       revenue += s.totalRevenue || 0;
       orders += s.totalOrders || 0;
       items += s.itemsCount || 0;
@@ -156,7 +169,7 @@ export default function Analytics() {
 
     const sortedProducts = Object.values(products).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
     return { revenue, orders, items, categories, payments, hourly, products: sortedProducts };
-  }, [filteredSessions]);
+  }, [sessionsForAnalytics]);
 
   function handleLogout() {
     sessionStorage.removeItem("isAdmin");
@@ -196,25 +209,50 @@ export default function Analytics() {
               </div>
             </div>
 
-            {/* Location selector — derived from synced sessions, not CMS kermeses */}
-            <div className="flex items-center gap-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 px-4 py-2 rounded-xl">
-              <LocationOnIcon className="text-gray-400 !h-5 !w-5" />
-              <select
-                value={selectedKermesId}
-                onChange={(e) => {
-                const id = e.target.value;
-                setSelectedKermesId(id);
-                setExpandedSessionId(null);
-                if (id) localStorage.setItem("analytics_selected_kermes", id);
-                else localStorage.removeItem("analytics_selected_kermes");
-              }}
-                className="bg-transparent border-none text-xs font-bold text-black dark:text-white focus:outline-none cursor-pointer"
-              >
-                <option value="" className="dark:bg-neutral-950">Satış Noktası Seçin</option>
-                {availableLocations.map(opt => (
-                  <option key={opt.id} value={opt.id} className="dark:bg-neutral-950">{opt.name}</option>
-                ))}
-              </select>
+            {/* Location & Session Selectors */}
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Location selector — derived from synced sessions, not CMS kermeses */}
+              <div className="flex items-center gap-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 px-4 py-2 rounded-xl">
+                <LocationOnIcon className="text-gray-400 !h-5 !w-5" />
+                <select
+                  value={selectedKermesId}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setSelectedKermesId(id);
+                    setSelectedAnalyticsSessionId("all");
+                    setExpandedSessionId(null);
+                    if (id) localStorage.setItem("analytics_selected_kermes", id);
+                    else localStorage.removeItem("analytics_selected_kermes");
+                  }}
+                  className="bg-transparent border-none text-xs font-bold text-black dark:text-white focus:outline-none cursor-pointer"
+                >
+                  <option value="" className="dark:bg-neutral-950">Satış Noktası Seçin</option>
+                  {availableLocations.map(opt => (
+                    <option key={opt.id} value={opt.id} className="dark:bg-neutral-950">{opt.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Session selector */}
+              {selectedKermesId && (
+                <div className="flex items-center gap-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 px-4 py-2 rounded-xl animate-fade-in">
+                  <CloudQueueIcon className="text-gray-400 !h-5 !w-5" />
+                  <select
+                    value={selectedAnalyticsSessionId}
+                    onChange={(e) => {
+                      setSelectedAnalyticsSessionId(e.target.value);
+                    }}
+                    className="bg-transparent border-none text-xs font-bold text-black dark:text-white focus:outline-none cursor-pointer"
+                  >
+                    <option value="all" className="dark:bg-neutral-950">Tüm Oturumlar (Toplu)</option>
+                    {filteredSessions.map(session => (
+                      <option key={session.id} value={session.id} className="dark:bg-neutral-950">
+                        {session.name} ({new Date(session.syncedAt).toLocaleDateString("de-DE")})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
 
