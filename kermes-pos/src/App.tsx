@@ -42,6 +42,8 @@ import AppearanceSettings from './components/AppearanceSettings';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import StatisticsPage from './components/StatisticsPage';
 import SessionsPage from './components/SessionsPage';
+import SyncPage from './components/SyncPage';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { VariableContextProvider, useVariableContext } from './context/VariableContext';
 import { useTheme } from '@mui/material/styles';
 import { Inventory } from '@mui/icons-material';
@@ -330,6 +332,11 @@ function AppContent() {
                 <EventIcon />
               </IconButton>
             </Link>
+            <Link to="/sync" style={{ color: 'inherit', textDecoration: 'none' }}>
+              <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
+                <CloudUploadIcon />
+              </IconButton>
+            </Link>
             <Link to="/products" style={{ color: 'inherit', textDecoration: 'none' }}>
               <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
                 <Inventory />
@@ -549,6 +556,10 @@ function AppContent() {
             <Route
               path="/sessions"
               element={<SessionsPage />}
+            />
+            <Route
+              path="/sync"
+              element={<SyncPage />}
             />
             <Route
               path="/import-export"

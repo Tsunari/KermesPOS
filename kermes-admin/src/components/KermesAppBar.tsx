@@ -3,19 +3,27 @@ import Drawer from "@mui/material/Drawer";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import HomeIcon from "@mui/icons-material/Home";
+import QueryStatsIcon from "@mui/icons-material/QueryStats";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useRouter, usePathname } from "next/navigation";
+
+const NAV_ITEMS = [
+  { href: "/dashboard",  label: "Ana Sayfa",        Icon: HomeIcon },
+  { href: "/analytics",  label: "Satış Analitiği",  Icon: QueryStatsIcon },
+  { href: "/management", label: "Hesap Yönetimi",   Icon: ManageAccountsIcon },
+  { href: "/profile",    label: "Profil",            Icon: AccountCircleIcon },
+];
 
 export default function KermesAppBar({ onLogout }: { onLogout: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
 
   const handleNav = (target: string) => {
-    if (pathname !== target) {
-      router.push(target);
-    }
+    if (pathname !== target) router.push(target);
   };
 
   return (
@@ -28,30 +36,27 @@ export default function KermesAppBar({ onLogout }: { onLogout: () => void }) {
       }}
     >
       <List className="flex flex-col gap-4 items-center">
+        {NAV_ITEMS.map(({ href, label, Icon }) => (
+          <ListItem key={href} disablePadding>
+            <Tooltip title={label} placement="right">
+              <IconButton
+                aria-label={label}
+                size="large"
+                onClick={() => handleNav(href)}
+                color={pathname === href ? "primary" : "default"}
+              >
+                <Icon className="text-gray-600 dark:text-gray-300" fontSize="inherit" />
+              </IconButton>
+            </Tooltip>
+          </ListItem>
+        ))}
+
         <ListItem disablePadding>
-          <IconButton
-            aria-label="Dashboard"
-            size="large"
-            onClick={() => handleNav("/dashboard")}
-            color={pathname === "/dashboard" ? "primary" : "default"}
-          >
-            <HomeIcon className="text-gray-600 dark:text-gray-300" fontSize="inherit" />
-          </IconButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <IconButton
-            aria-label="Profile"
-            size="large"
-            onClick={() => handleNav("/profile")}
-            color={pathname === "/profile" ? "primary" : "default"}
-          >
-            <AccountCircleIcon className="text-gray-600 dark:text-gray-300" fontSize="inherit" />
-          </IconButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <IconButton onClick={onLogout} aria-label="Logout" size="large">
-            <LogoutIcon className="text-gray-600 dark:text-gray-300" fontSize="inherit" />
-          </IconButton>
+          <Tooltip title="Çıkış" placement="right">
+            <IconButton onClick={onLogout} aria-label="Çıkış" size="large">
+              <LogoutIcon className="text-gray-600 dark:text-gray-300" fontSize="inherit" />
+            </IconButton>
+          </Tooltip>
         </ListItem>
       </List>
     </Drawer>

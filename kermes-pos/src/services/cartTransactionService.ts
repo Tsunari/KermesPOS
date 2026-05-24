@@ -8,6 +8,8 @@ export interface CartTransaction {
     items_data: string;
     payment_method: string;
     session_id?: string; // Link to session if one is active
+    synced?: boolean;
+    kermes_id?: string;
 }
 
 interface DailyStats {
@@ -94,13 +96,19 @@ class CartTransactionService {
             const itemsData = JSON.stringify(cartItems);
             const itemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
             
+            const kermesId = localStorage.getItem('pos.kermesId') || undefined;
             const transactionData: any = {
                 transaction_date: new Date().toISOString(),
                 total_amount: totalAmount,
                 items_count: itemsCount,
                 items_data: itemsData,
-                payment_method: paymentMethod
+                payment_method: paymentMethod,
+                synced: false
             };
+            
+            if (kermesId) {
+                transactionData.kermes_id = kermesId;
+            }
             
             // Link to active session if provided
             if (sessionId) {

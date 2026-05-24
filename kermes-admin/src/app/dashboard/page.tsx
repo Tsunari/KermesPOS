@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, doc, onSnapshot, setDoc } from "firebase/firestore";
+import { collection, doc, onSnapshot, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../../../firebaseInit";
 import SettingsIcon from "@mui/icons-material/Settings";
-import { getDoc } from "firebase/firestore";
+import QueryStatsIcon from "@mui/icons-material/QueryStats";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import KermesLoading from "../../components/KermesLoading";
 import KermesAppBar from "../../components/KermesAppBar";
 
@@ -105,15 +106,9 @@ function parseImageList(value: string) {
 }
 
 function uniqueKermesId(baseId: string, existingIds: string[]) {
-  if (!existingIds.includes(baseId)) {
-    return baseId;
-  }
-
+  if (!existingIds.includes(baseId)) return baseId;
   let counter = 2;
-  while (existingIds.includes(`${baseId}-${counter}`)) {
-    counter += 1;
-  }
-
+  while (existingIds.includes(`${baseId}-${counter}`)) counter += 1;
   return `${baseId}-${counter}`;
 }
 
@@ -141,6 +136,7 @@ export default function Dashboard() {
   const [message, setMessage] = useState("");
   const [showAllFiles, setShowAllFiles] = useState<Record<string, boolean>>({});
 
+  // Auth check
   useEffect(() => {
     if (sessionStorage.getItem("isAdmin") === "true") {
       setIsAuth(true);
@@ -149,6 +145,7 @@ export default function Dashboard() {
     }
   }, [router]);
 
+  // Initial settings fetch
   useEffect(() => {
     getDoc(doc(db, SETTINGS_DOC))
       .then((snap) => {
@@ -162,11 +159,11 @@ export default function Dashboard() {
       .catch(() => setLoading(false));
   }, []);
 
+  // Kermeses subscription
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "kermeses"), (snapshot) => {
       const records = snapshot.docs.map((entry) => {
         const data = entry.data() as Partial<KermesRecord>;
-
         return {
           id: entry.id,
           name: data.name ?? entry.id,
@@ -180,18 +177,16 @@ export default function Dashboard() {
           sponsorImages: Array.isArray(data.sponsorImages) ? data.sponsorImages : [],
         };
       });
-
       setKermeses(records);
     });
-
     return () => unsubscribe();
   }, []);
 
+  // Folder catalog subscription
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "kermesFolders"), (snapshot) => {
       const records = snapshot.docs.map((entry) => {
         const data = entry.data() as Partial<FolderCatalogEntry>;
-
         return {
           id: entry.id,
           label: data.label ?? entry.id,
@@ -201,16 +196,12 @@ export default function Dashboard() {
         };
       });
 
-      // Filter out template-basic for custom list sorting
       const customFolders = records.filter((item) => item.id !== TEMPLATE_FOLDER.id);
-      
-      // Sort custom folders alphabetically by ID (latest ones appear at the end)
       customFolders.sort((a, b) => a.id.localeCompare(b.id));
 
       const catalog = [...customFolders, TEMPLATE_FOLDER];
       setFolderCatalog(catalog);
 
-      // Default the selected folder in the kermes creation flow to the latest custom folder
       if (customFolders.length > 0) {
         const latestFolder = customFolders[customFolders.length - 1];
         setSelectedFolderId(latestFolder.id);
@@ -222,7 +213,6 @@ export default function Dashboard() {
         setNewKermesSponsorImages([...TEMPLATE_FOLDER.sponsorImages]);
       }
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -239,10 +229,7 @@ export default function Dashboard() {
   }, [draft, kermeses, selectedKermesId]);
 
   const editFlowFolder = useMemo(() => {
-    if (!selectedRecord) {
-      return TEMPLATE_FOLDER;
-    }
-
+    if (!selectedRecord) return TEMPLATE_FOLDER;
     return folderCatalog.find((entry) => entry.assetFolder === selectedRecord.assetFolder) ?? TEMPLATE_FOLDER;
   }, [folderCatalog, selectedRecord]);
 
@@ -258,44 +245,23 @@ export default function Dashboard() {
 
   useEffect(() => {
     const nextSelectedId = selectedKermesId || settings.activeKermesId || kermeses[0]?.id || "";
-
-    if (!nextSelectedId) {
-      setDraft(null);
-      return;
-    }
-
-    if (nextSelectedId !== selectedKermesId) {
-      setSelectedKermesId(nextSelectedId);
-      return;
-    }
-
+    if (!nextSelectedId) { setDraft(null); return; }
+    if (nextSelectedId !== selectedKermesId) { setSelectedKermesId(nextSelectedId); return; }
     const nextDraft = kermeses.find((item) => item.id === nextSelectedId) ?? null;
     setDraft(nextDraft);
   }, [kermeses, selectedKermesId, settings.activeKermesId]);
 
   async function handleSwitchChange() {
-    const nextSettings = {
-      ...settings,
-      active: !settings.active,
-    };
-
+    const nextSettings = { ...settings, active: !settings.active };
     setSettings(nextSettings);
-    await setDoc(doc(db, SETTINGS_DOC), {
-      ...nextSettings,
-    });
+    await setDoc(doc(db, SETTINGS_DOC), { ...nextSettings });
   }
 
   async function handleActivateKermes(kermesId: string) {
     setSaving(true);
     setMessage("");
-
     try {
-      const nextSettings = {
-        ...settings,
-        active: true,
-        activeKermesId: kermesId,
-      };
-
+      const nextSettings = { ...settings, active: true, activeKermesId: kermesId };
       setSettings(nextSettings);
       await setDoc(doc(db, SETTINGS_DOC), nextSettings);
       setSelectedKermesId(kermesId);
@@ -307,15 +273,10 @@ export default function Dashboard() {
 
   async function handleCreateKermes() {
     const baseId = slugifyKermesId(newKermesName);
-
-    if (!baseId) {
-      setMessage("Kermes adı gerekli.");
-      return;
-    }
+    if (!baseId) { setMessage("Kermes adı gerekli."); return; }
 
     setSaving(true);
     setMessage("");
-
     try {
       const existingIds = kermeses.map((item) => item.id);
       const kermesId = uniqueKermesId(baseId, existingIds);
@@ -323,7 +284,6 @@ export default function Dashboard() {
       const assetFolder = selectedFolder.assetFolder || `/kermeses/${kermesId}`;
       const availableImages = selectedFolder.availableImages || [];
 
-      // Smart file name matcher to support JPG, PNG, MP4, etc. dynamically
       const findAssetFiles = (prefix: string) => {
         const matches = availableImages.filter((img: string) => {
           const filename = img.split('/').pop()?.toLowerCase() || '';
@@ -351,11 +311,7 @@ export default function Dashboard() {
       };
 
       await setDoc(doc(db, "kermeses", kermesId), newRecord);
-      await setDoc(doc(db, SETTINGS_DOC), {
-        ...settings,
-        active: true,
-        activeKermesId: kermesId,
-      });
+      await setDoc(doc(db, SETTINGS_DOC), { ...settings, active: true, activeKermesId: kermesId });
 
       setSettings((prev) => ({ ...prev, active: true, activeKermesId: kermesId }));
       setNewKermesName("");
@@ -370,14 +326,9 @@ export default function Dashboard() {
   }
 
   async function handleSaveSelectedKermes() {
-    if (!selectedRecord) {
-      setMessage("Düzenlenecek kermes seçin.");
-      return;
-    }
-
+    if (!selectedRecord) { setMessage("Düzenlenecek kermes seçin."); return; }
     setSaving(true);
     setMessage("");
-
     try {
       await setDoc(doc(db, "kermeses", selectedRecord.id), selectedRecord);
       setMessage("Kermes içeriği kaydedildi.");
@@ -387,50 +338,39 @@ export default function Dashboard() {
   }
 
   function updateSelectedRecord(field: keyof KermesRecord, value: string) {
-    if (!selectedRecord) {
-      return;
-    }
-
+    if (!selectedRecord) return;
     const nextDraft: KermesRecord = {
       ...selectedRecord,
       [field]: field === "sponsorImages" ? parseImageList(value) : value,
     } as KermesRecord;
-
-      setDraft(nextDraft);
+    setDraft(nextDraft);
   }
 
   const renderFileSelector = (field: "festivalImage" | "menuImage" | "ikramImage" | "aboutImage") => {
     if (!selectedRecord) return null;
-
     const currentValue = (draft?.[field] ?? selectedRecord[field] ?? "") as string;
     const selectedList = currentValue.split(',').map(s => s.trim()).filter(Boolean);
-    
     const folderImages = editFlowFolder.availableImages || [];
     const allOptions = Array.from(new Set([...folderImages, ...selectedList]));
-    
     if (allOptions.length === 0) return null;
 
     const isShowingAll = showAllFiles[field] ?? false;
     const prefix = field.replace("Image", "").toLowerCase();
-    
-    const displayOptions = isShowingAll 
-      ? allOptions 
+    const displayOptions = isShowingAll
+      ? allOptions
       : allOptions.filter((imagePath) => {
           const filename = imagePath.split('/').pop()?.toLowerCase() || '';
           return (
-            selectedList.includes(imagePath) || 
-            filename.includes(prefix) || 
+            selectedList.includes(imagePath) ||
+            filename.includes(prefix) ||
             (prefix === "about" && filename.includes("hakkimizda"))
           );
         });
 
     const toggleFile = (imagePath: string) => {
-      let nextList;
-      if (selectedList.includes(imagePath)) {
-        nextList = selectedList.filter(s => s !== imagePath);
-      } else {
-        nextList = [...selectedList, imagePath];
-      }
+      const nextList = selectedList.includes(imagePath)
+        ? selectedList.filter(s => s !== imagePath)
+        : [...selectedList, imagePath];
       updateSelectedRecord(field, nextList.join(", "));
     };
 
@@ -449,21 +389,9 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-1 flex-wrap gap-1">
           <p className="text-[10px] uppercase font-semibold text-gray-400">Klasördeki dosyalar (Çoklu Seçim):</p>
           <div className="flex items-center gap-2 pr-1">
-            <button
-              type="button"
-              onClick={selectAllVisible}
-              className="text-[9px] text-green-600 hover:underline font-semibold"
-            >
-              Hepsini seç
-            </button>
+            <button type="button" onClick={selectAllVisible} className="text-[9px] text-green-600 hover:underline font-semibold">Hepsini seç</button>
             <span className="text-[9px] text-gray-300">|</span>
-            <button
-              type="button"
-              onClick={deselectAllVisible}
-              className="text-[9px] text-red-500 hover:underline font-semibold"
-            >
-              Temizle
-            </button>
+            <button type="button" onClick={deselectAllVisible} className="text-[9px] text-red-500 hover:underline font-semibold">Temizle</button>
             <span className="text-[9px] text-gray-300">|</span>
             <button
               type="button"
@@ -479,17 +407,10 @@ export default function Dashboard() {
             const isSelected = selectedList.includes(imagePath);
             const isMissing = !folderImages.includes(imagePath);
             const filename = imagePath.split('/').pop() || '';
-
             return (
               <label key={imagePath} className={`flex items-center gap-2 text-xs cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800 p-1 rounded ${isMissing ? 'text-red-500 font-semibold' : 'text-black dark:text-white'}`}>
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => toggleFile(imagePath)}
-                />
-                <span className="font-mono break-all">
-                  {filename} {isMissing ? "(dosya bulunamadı)" : ""}
-                </span>
+                <input type="checkbox" checked={isSelected} onChange={() => toggleFile(imagePath)} />
+                <span className="font-mono break-all">{filename} {isMissing ? "(dosya bulunamadı)" : ""}</span>
               </label>
             );
           })}
@@ -499,19 +420,12 @@ export default function Dashboard() {
   };
 
   function toggleSponsorImage(imagePath: string) {
-    if (!selectedRecord) {
-      return;
-    }
-
+    if (!selectedRecord) return;
     const currentImages = draft?.sponsorImages ?? selectedRecord.sponsorImages;
     const nextImages = currentImages.includes(imagePath)
       ? currentImages.filter((item) => item !== imagePath)
       : [...currentImages, imagePath];
-
-    setDraft({
-      ...selectedRecord,
-      sponsorImages: nextImages,
-    });
+    setDraft({ ...selectedRecord, sponsorImages: nextImages });
   }
 
   function toggleCreateSponsorImage(imagePath: string) {
@@ -533,25 +447,55 @@ export default function Dashboard() {
       <KermesAppBar onLogout={handleLogout} />
       {/* Main Content */}
       <div className="flex-1 p-8 flex flex-col items-center gap-8 bg-gray-50 dark:bg-neutral-900 ml-20 md:ml-20">
-        <h1 className="text-3xl font-bold mb-6 text-black dark:text-white">
+        <h1 className="text-3xl font-bold mb-2 text-black dark:text-white self-start">
           Yönetim Paneli
         </h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+
+        {/* Quick Nav Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-6xl">
+          <a
+            href="/analytics"
+            className="group bg-white dark:bg-neutral-800 rounded-2xl shadow-md p-6 flex items-center gap-5 border border-transparent hover:border-blue-500/30 hover:shadow-lg transition-all"
+          >
+            <div className="p-4 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl group-hover:bg-blue-500/20 transition-all">
+              <QueryStatsIcon className="!h-8 !w-8" />
+            </div>
+            <div>
+              <h2 className="text-lg font-extrabold text-black dark:text-white">Satış Analitiği</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-snug">
+                Oturum bazlı satış verileri, gelir grafikleri ve ürün sıralamaları
+              </p>
+            </div>
+          </a>
+
+          <a
+            href="/management"
+            className="group bg-white dark:bg-neutral-800 rounded-2xl shadow-md p-6 flex items-center gap-5 border border-transparent hover:border-indigo-500/30 hover:shadow-lg transition-all"
+          >
+            <div className="p-4 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-2xl group-hover:bg-indigo-500/20 transition-all">
+              <ManageAccountsIcon className="!h-8 !w-8" />
+            </div>
+            <div>
+              <h2 className="text-lg font-extrabold text-black dark:text-white">Hesap Yönetimi</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-snug">
+                POS cihazlarına ait satış noktası hesaplarını oluşturun ve yönetin
+              </p>
+            </div>
+          </a>
+        </div>
+
+        {/* Config Cards Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full max-w-6xl">
+          {/* Settings Card */}
           <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-6 flex flex-col gap-4 relative">
             <h2 className="text-xl font-semibold mb-2 text-black dark:text-white flex items-center justify-between">
               Ayarlar
-              <a
-                href="/settings"
-                className="absolute top-6 right-6"
-                title="Ayarları görüntüle"
-              >
+              <a href="/settings" className="absolute top-6 right-6" title="Ayarları görüntüle">
                 <SettingsIcon className="!h-6 !w-6 mb-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition" />
               </a>
             </h2>
             <div className="flex items-center justify-between">
-              <span className="font-medium text-black dark:text-white">
-                Kermesmenu aktif
-              </span>
+              <span className="font-medium text-black dark:text-white">Kermesmenu aktif</span>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
@@ -565,7 +509,7 @@ export default function Dashboard() {
             </div>
             <div className="pt-2 border-t border-gray-200 dark:border-neutral-700 space-y-3">
               <label className="block text-sm font-medium text-black dark:text-white">
-                Aktif kermes
+                Aktif kermes (Şablon Seçimi)
               </label>
               <select
                 value={settings.activeKermesId}
@@ -581,6 +525,8 @@ export default function Dashboard() {
               </select>
             </div>
           </div>
+
+          {/* Create Kermes Card */}
           <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-6 flex flex-col gap-4 items-center justify-center">
             <h2 className="text-xl font-semibold mb-2 text-black dark:text-white self-start">
               Yeni kermes oluştur
@@ -633,7 +579,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="w-full max-w-4xl bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-6 flex flex-col gap-4">
+        {/* Folder Catalog */}
+        <div className="w-full max-w-6xl bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-6 flex flex-col gap-4">
           <h2 className="text-xl font-semibold text-black dark:text-white">Klasör kataloğu (otomatik)</h2>
           <p className="text-sm text-gray-600 dark:text-gray-300">
             Bu liste Firestore&apos;daki <span className="font-mono">kermesFolders</span> koleksiyonundan gelir.
@@ -658,19 +605,18 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="w-full max-w-4xl bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-6 flex flex-col gap-6">
+        {/* Kermes Content Editor */}
+        <div className="w-full max-w-6xl bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-6 flex flex-col gap-6">
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <h2 className="text-xl font-semibold text-black dark:text-white">
-              Kermes içerikleri
-            </h2>
+            <h2 className="text-xl font-semibold text-black dark:text-white">Kermes içerikleri</h2>
             {message ? <span className="text-sm text-blue-600 dark:text-blue-400">{message}</span> : null}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Kermes List */}
             <div className="space-y-3">
               {kermeses.map((item) => {
                 const isActive = settings.activeKermesId === item.id;
-
                 return (
                   <button
                     key={item.id}
@@ -691,6 +637,7 @@ export default function Dashboard() {
               })}
             </div>
 
+            {/* Kermes Editor */}
             <div className="rounded-xl border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-900 p-4 space-y-4">
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <h3 className="font-semibold text-black dark:text-white">Seçili kermes düzenle</h3>
@@ -794,52 +741,41 @@ export default function Dashboard() {
                     <textarea
                       value={draft?.aboutMarkdown ?? selectedRecord.aboutMarkdown}
                       onChange={(event) => updateSelectedRecord("aboutMarkdown", event.target.value)}
-                      placeholder={DEFAULT_ABOUT_MARKDOWN}
-                      rows={12}
-                      className="w-full rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-950 px-3 py-2 text-black dark:text-white font-mono text-sm leading-relaxed"
+                      rows={8}
+                      className="w-full rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-950 px-3 py-2 text-black dark:text-white font-mono text-xs"
                     />
-                    <span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">
-                      Basit Markdown yazabilirsiniz. Ornek: **kalin**, *italik*, - madde, [link](https://...)
-                      <span className="block font-mono mt-1">Ortalamak icin: :::center ... :::</span>
-                    </span>
                   </div>
-                  <label className="block text-sm text-black dark:text-white">
-                    Sponsor görselleri
-                    <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-950 p-3">
-                      {editFlowSponsorChoices.map((imagePath) => {
-                        const isSelected = (draft?.sponsorImages ?? selectedRecord.sponsorImages).includes(imagePath);
-
-                        return (
-                          <label key={imagePath} className="flex items-center gap-2 text-xs text-black dark:text-white">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => toggleSponsorImage(imagePath)}
-                            />
-                            <span className="font-mono break-all">{imagePath}</span>
-                          </label>
-                        );
-                      })}
+                  <div className="space-y-2">
+                    <label className="text-sm text-black dark:text-white font-medium block">Sponsor görselleri</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {editFlowSponsorChoices.map((imagePath) => (
+                        <label key={imagePath} className="flex items-center gap-2 text-xs text-black dark:text-white">
+                          <input
+                            type="checkbox"
+                            checked={(draft?.sponsorImages ?? selectedRecord.sponsorImages).includes(imagePath)}
+                            onChange={() => toggleSponsorImage(imagePath)}
+                          />
+                          <span className="font-mono break-all">{imagePath}</span>
+                        </label>
+                      ))}
                     </div>
-                  </label>
-
+                  </div>
                   <button
                     type="button"
                     onClick={handleSaveSelectedKermes}
                     disabled={saving}
                     className="w-full rounded-lg bg-blue-600 text-white font-semibold py-2 disabled:opacity-60"
                   >
-                    {saving ? "Kaydediliyor..." : "Seçili kermesi kaydet"}
+                    {saving ? "Kaydediliyor..." : "Kaydet"}
                   </button>
                 </div>
               ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Düzenlemek için listeden bir kermes seçin.
-                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Soldan bir kermes seçin.</p>
               )}
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );
