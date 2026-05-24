@@ -25,23 +25,58 @@ const navCards = [
 
 const SETTINGS_DOC = "settings/main";
 
+type KermesSettings = {
+  active: boolean;
+  activeKermesId: string;
+};
+
+type KermesRecord = {
+  name: string;
+  assetFolder: string;
+};
+
 export default function Home() {
-  const [active, setActive] = useState<boolean | null>(null);
+  const [settings, setSettings] = useState<KermesSettings | null>(null);
+  const [activeKermes, setActiveKermes] = useState<KermesRecord | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, SETTINGS_DOC), (snap) => {
       if (snap.exists()) {
-        setActive(snap.data()?.active ?? null);
+        setSettings({
+          active: snap.data()?.active ?? false,
+          activeKermesId: snap.data()?.activeKermesId ?? "",
+        });
       } else {
-        setActive(null);
+        setSettings({ active: false, activeKermesId: "" });
       }
       setLoading(false);
     }, () => setLoading(false));
     return () => unsub();
   }, []);
 
-  if (loading || active === null) {
+  useEffect(() => {
+    if (!settings?.activeKermesId) {
+      setActiveKermes(null);
+      return;
+    }
+
+    const unsub = onSnapshot(doc(db, "kermeses", settings.activeKermesId), (snap) => {
+      if (snap.exists()) {
+        const data = snap.data() as Partial<KermesRecord>;
+        setActiveKermes({
+          name: data.name ?? snap.id,
+          assetFolder: data.assetFolder ?? `/kermeses/${snap.id}`,
+        });
+      } else {
+        setActiveKermes(null);
+      }
+    });
+
+    return () => unsub();
+  }, [settings?.activeKermesId]);
+
+  if (loading || settings === null) {
     return (
       <PageContainer>
         <div className="flex items-center justify-center min-h-screen bg-white">
@@ -63,7 +98,7 @@ export default function Home() {
   return (
     <PageContainer>
       <div className="flex flex-col items-center w-full px-2 py-8 gap-4">
-        {active ? (
+        {settings.active ? (
           <>
             {/* Hero SVG header */}
             <div className="w-full flex justify-center mb-4">
@@ -82,6 +117,11 @@ export default function Home() {
               <span className="block">Kermesimize</span>
               <span className="block">Hoşgeldiniz</span>
             </h1>
+            {activeKermes ? (
+              <div className="mb-2 rounded-2xl bg-gray-100 px-4 py-2 text-center text-sm font-medium text-gray-700 shadow-sm">
+                Aktif kermes: {activeKermes.name}
+              </div>
+            ) : null}
             <div className="w-full flex flex-col gap-4">
               {navCards.map(card => {
                 const Icon = card.icon;

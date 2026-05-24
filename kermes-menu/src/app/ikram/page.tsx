@@ -1,21 +1,81 @@
 "use client";
+import { useEffect, useState } from 'react';
+import { doc, onSnapshot } from 'firebase/firestore';
 import PageContainer from '../components/PageContainer';
 import CenteredImage from '../components/CenteredImage';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DoneIcon from '@mui/icons-material/Done';
 // import Snackbar from '../components/Snackbar';
-import { useState } from 'react';
+import { db } from '../../../firebaseInit';
+
+const SETTINGS_DOC = 'settings/main';
+
+type KermesSettings = {
+    active: boolean;
+    activeKermesId: string;
+};
+
+type KermesRecord = {
+    ikramImage: string;
+    assetFolder: string;
+};
 
 export default function FestivalPage() {
     // const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+    const [settings, setSettings] = useState<KermesSettings | null>(null);
+    const [ikramImages, setIkramImages] = useState<string[]>(['/kermeses/template-basic/ikram.svg']);
+
+    useEffect(() => {
+        const unsubscribe = onSnapshot(doc(db, SETTINGS_DOC), (snap) => {
+            if (snap.exists()) {
+                setSettings({
+                    active: snap.data()?.active ?? false,
+                    activeKermesId: snap.data()?.activeKermesId ?? '',
+                });
+            } else {
+                setSettings(null);
+            }
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
+        if (!settings?.activeKermesId) {
+            setIkramImages(['/kermeses/template-basic/ikram.svg']);
+            return;
+        }
+
+        const unsubscribe = onSnapshot(doc(db, 'kermeses', settings.activeKermesId), (snap) => {
+            if (snap.exists()) {
+                const data = snap.data() as Partial<KermesRecord>;
+                const rawImage = data.ikramImage || '/kermeses/template-basic/ikram.svg';
+                const images = rawImage
+                    .split(/[\n,]+/)
+                    .map((item) => item.trim())
+                    .filter(Boolean);
+                
+                setIkramImages(images.length > 0 ? images : ['/kermeses/template-basic/ikram.svg']);
+            } else {
+                setIkramImages(['/kermeses/template-basic/ikram.svg']);
+            }
+        });
+
+        return () => unsubscribe();
+    }, [settings?.activeKermesId]);
     return (
         <PageContainer>
-            <CenteredImage
-                src="/Ikram.jpg"
-                alt="Kermesimiz"
-                outerClassName='mt-5 mb-5'
-            />
+            <div className="flex flex-col gap-6 w-full items-center mt-5 mb-5">
+                {ikramImages.map((src, index) => (
+                    <CenteredImage
+                        key={index}
+                        src={src}
+                        alt={`İkram Görseli ${index + 1}`}
+                        priority={index === 0}
+                    />
+                ))}
+            </div>
             <div className="bg-white/90 rounded-2xl shadow-lg p-6 border border-gray-200 mt-5 mb-5">
                 <div className="text-gray-700 text-base text-center space-y-6">
                     { [

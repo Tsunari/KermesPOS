@@ -16,6 +16,8 @@ interface CenteredImageProps extends Omit<ImageProps, 'src' | 'alt'> {
   border?: boolean;
 }
 
+const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.ogg', '.mov'];
+
 export default function CenteredImage({
   src,
   alt,
@@ -33,19 +35,43 @@ export default function CenteredImage({
   const imgWidth = width ?? (imageProps as any).width ?? 600;
   const imgHeight = height ?? (imageProps as any).height ?? 800;
   const borderClass = border ? 'rounded-2xl shadow-lg outline-2 outline-black' : '';
+  
+  const isVideo = VIDEO_EXTENSIONS.some(ext => src?.toLowerCase().endsWith(ext));
+  const hasCustomSize = width !== undefined || height !== undefined;
+
   return (
     <div className={outerClassName}>
       <div className={innerClassName}>
-        <Image
-          src={src}
-          alt={alt}
-          width={imgWidth}
-          height={imgHeight}
-          className={`${borderClass} ${className}`.trim()}
-          style={{ maxWidth: '100%', height: 'auto', display: 'block', ...style }}
-          priority={priority}
-          {...imageProps}
-        />
+        {isVideo ? (
+          <video
+            src={src}
+            autoPlay
+            loop
+            muted
+            playsInline
+            controls
+            className={`${borderClass} ${className} w-full max-w-[600px] h-auto`}
+            style={{ ...style }}
+          />
+        ) : !hasCustomSize ? (
+          <img
+            src={src}
+            alt={alt}
+            className={`${borderClass} ${className} w-full max-w-[600px] h-auto object-contain`.trim()}
+            style={{ display: 'block', ...style }}
+          />
+        ) : (
+          <Image
+            src={src}
+            alt={alt}
+            width={imgWidth}
+            height={imgHeight}
+            className={`${borderClass} ${className}`.trim()}
+            style={{ maxWidth: '100%', height: 'auto', display: 'block', ...style }}
+            priority={priority}
+            {...imageProps}
+          />
+        )}
       </div>
     </div>
   );
