@@ -58,6 +58,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
     ) {
       return;
     }
+
+    // Immediately clear focus state to remove active focus/opacity outlines
+    event.currentTarget.blur();
     
     if (!useDoubleClick && localStockStatus) {
       if (onClick) {
@@ -68,7 +71,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
-  const handleDoubleClick = () => {
+  const handleDoubleClick = (event: React.MouseEvent<HTMLElement>) => {
+    event.currentTarget.blur();
     if (useDoubleClick && localStockStatus) {
       if (onClick) {
         onClick();
