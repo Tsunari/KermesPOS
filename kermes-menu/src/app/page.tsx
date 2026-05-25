@@ -117,10 +117,10 @@ export default function Home() {
 
   return (
     <PageContainer>
-      <div className="flex flex-col items-center w-full px-2 py-8 gap-4">
+      <div className="flex flex-col items-center w-full px-2 py-3 gap-3">
         {settings.active ? (
           <>
-            <div className="w-full flex justify-end mb-2">
+            <div className="w-full flex justify-end mb-1">
               <Link
                 href="/order?ticket=1"
                 className={`inline-flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-xl border transition ${
@@ -135,7 +135,7 @@ export default function Home() {
             </div>
 
             {/* Hero SVG header */}
-            <div className="w-full flex justify-center mb-4">
+            <div className="w-full flex justify-center mb-2">
               <a className="w-fit">
                 <Image
                   src="/Mintika_round_b-cropped.svg"
@@ -147,12 +147,12 @@ export default function Home() {
                 />
               </a>
             </div>
-            <h1 className="text-3xl font-extrabold text-black mb-6 text-center tracking-tight leading-tight">
+            <h1 className="text-3xl font-extrabold text-black mb-3 text-center tracking-tight leading-tight">
               <span className="block">Kermesimize</span>
               <span className="block">Hoşgeldiniz</span>
             </h1>
             {activeKermes && settings.showActiveKermesName ? (
-              <div className="mb-2 rounded-2xl bg-gray-100 px-4 py-2 text-center text-sm font-medium text-gray-700 shadow-sm">
+              <div className="mb-1 rounded-2xl bg-gray-100 px-4 py-2 text-center text-sm font-medium text-gray-700 shadow-sm">
                 Aktif kermes: {activeKermes.name}
               </div>
             ) : null}

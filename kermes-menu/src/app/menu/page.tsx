@@ -20,7 +20,7 @@ export default function MenuPage() {
 
     return (
         <PageContainer>
-            <div className="flex flex-col gap-6 w-full items-center">
+            <div className="flex flex-col gap-4 w-full items-center">
                 {menuImages.map((src, index) => (
                     <CenteredImage
                         key={index}

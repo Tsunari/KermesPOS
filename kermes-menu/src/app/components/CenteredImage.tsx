@@ -21,7 +21,7 @@ const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.ogg', '.mov'];
 export default function CenteredImage({
   src,
   alt,
-  outerClassName = 'flex justify-center items-center mt-15 w-full',
+  outerClassName = 'flex justify-center items-center mt-6 w-full',
   innerClassName = 'flex justify-center items-center w-full',
   className = '',
   style,

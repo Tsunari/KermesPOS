@@ -169,8 +169,8 @@ Kardeşliğimizi pekiştirmek ve soframıza bereket katmak için ailenizle, dost
   
   return (
     <PageContainer>
-      <h1 className="text-3xl font-extrabold text-black mb-3 mt-1 text-center tracking-tight">Hakkımızda</h1>
-      <div className="bg-white/90 rounded-2xl shadow-lg p-6 border border-gray-200 mt-8 mb-8">
+      <h1 className="text-3xl font-extrabold text-black mb-3 mt-0 text-center tracking-tight">Hakkımızda</h1>
+      <div className="bg-white/90 rounded-2xl shadow-lg p-5 border border-gray-200 mt-4 mb-5">
         <div className="text-gray-700 text-base text-center space-y-6">
           <p className="text-xl font-semibold">{aboutTitle}</p>
           <div className="space-y-4 text-left max-w-2xl mx-auto">
@@ -178,7 +178,7 @@ Kardeşliğimizi pekiştirmek ve soframıza bereket katmak için ailenizle, dost
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-6 items-center justify-center mb-5 w-full">
+      <div className="flex flex-col gap-4 items-center justify-center mb-5 w-full">
         {aboutImages.map((src, index) => (
           <CenteredImage
             key={index}
@@ -188,7 +188,7 @@ Kardeşliğimizi pekiştirmek ve soframıza bereket katmak için ailenizle, dost
           />
         ))}
       </div>
-      <div className="bg-white/90 rounded-2xl shadow-lg p-6 border border-gray-200 mt-0 mb-5">
+      <div className="bg-white/90 rounded-2xl shadow-lg p-5 border border-gray-200 mt-0 mb-4">
                 <div className="text-gray-700 text-base text-center space-y-6">
                     { [
                         {
@@ -226,7 +226,7 @@ Kardeşliğimizi pekiştirmek ve soframıza bereket katmak için ailenizle, dost
                     ))}
                 </div>
             </div>
-            <div className="bg-white/90 rounded-2xl shadow-lg p-0 border border-gray-200 mt-0 mb-5">
+              <div className="bg-white/90 rounded-2xl shadow-lg p-0 border border-gray-200 mt-0 mb-4">
                 <div className="text-gray-700 text-base text-center space-y-6">
                     <a
                       href="https://www.paypal.me/URVEmuenchen"
