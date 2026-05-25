@@ -5,6 +5,28 @@ All notable changes to the Kermes project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.0] - 25-05-2026
+### Global
+- Document custom commit slash command in AGENTS.md --chore
+
+### Kermes POS
+#### Added
+- Implement recentOrdersDockPosition state and settings in VariableContext
+- Integrate RecentOrdersPanel left and right dock positions and transitions in App
+- Add dynamic product card column subtraction offset by 3 and horizontal scrollbar fallback to ProductGrid
+- Render warning notice banner at the top of ProductGrid when past order editing is active
+- Intercept product card clicks in App to add directly to edit items when editing transaction is active
+- Create RecentOrdersPanel with quick reprint, session-free querying, pagination load more, and synced=false updates reset
+- Add translations for dockLeft, dockRight, loadMore, and editing warnings to localization files
+#### Changed
+- Light mode changes
+- Speeddial to dock
+- Calculator UI change
+- Ui changes
+#### Fixed
+- Fix opacity bug when using keybind --fix
+
+
 ## [1.16.0] - 25-05-2026
 ### Kermes POS
 #### Changed
