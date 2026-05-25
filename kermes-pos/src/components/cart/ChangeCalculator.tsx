@@ -142,31 +142,29 @@ const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({ total }) => {
         <Button
           ref={iconButtonRef}
           variant="contained"
-          color="primary"
           onClick={() => setOpen(o => !o)}
           sx={{
-            borderRadius: 3,
-            minWidth: 48,
-            minHeight: 48,
-            width: 48,
-            height: 48,
-            aspectRatio: '1 / 1',
+            borderRadius: '6px',
+            minWidth: 40,
+            minHeight: 40,
+            width: 40,
+            height: 40,
             p: 0,
-            background: open
-              ? 'linear-gradient(135deg, #1976d2 60%, #42a5f5 100%)'
-              : 'linear-gradient(135deg, #212121 60%, #1976d2 100%)',
-            color: open ? 'white' : 'primary.contrastText',
-            boxShadow: open ? 4 : 2,
-            border: 'none',
+            bgcolor: open ? 'primary.main' : 'transparent',
+            color: open ? 'primary.contrastText' : 'primary.main',
+            border: '1.5px solid',
+            borderColor: open ? 'primary.main' : 'divider',
             outline: 'none',
+            boxShadow: 'none',
             transition: 'all 0.2s',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             '&:hover': {
-              background: 'linear-gradient(135deg, #1565c0 60%, #42a5f5 100%)',
-              color: 'white',
-              boxShadow: 6,
+              bgcolor: open ? 'primary.dark' : 'action.hover',
+              borderColor: open ? 'primary.dark' : 'primary.main',
+              color: open ? 'primary.contrastText' : 'primary.main',
+              boxShadow: 'none',
             },
           }}
         >
