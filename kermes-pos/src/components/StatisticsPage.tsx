@@ -304,8 +304,15 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    const startDate = timeRange.startDate.toISOString().split('T')[0];
-    const endDate = timeRange.endDate.toISOString().split('T')[0];
+
+    const getLocalDateString = (d: Date) => {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    };
+    const startDate = getLocalDateString(timeRange.startDate);
+    const endDate = getLocalDateString(timeRange.endDate);
     a.download = `product_analytics_${startDate}_to_${endDate}.csv`;
     document.body.appendChild(a);
     a.click();

@@ -5,6 +5,7 @@ export type POSAccount = {
   kermesId: string;
   kermesName: string;
   createdAt: string;
+  status?: "active" | "suspended";
 };
 
 export type SyncedSession = {

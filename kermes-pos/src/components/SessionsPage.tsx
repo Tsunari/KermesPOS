@@ -34,6 +34,13 @@ import { Session } from '../types/session';
 import { sessionService } from '../services/sessionService';
 import { cartTransactionService } from '../services/cartTransactionService';
 
+const getLocalDateString = (d: Date = new Date()) => {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
 const SessionsPage: React.FC = () => {
   const { t } = useLanguage();
   const theme = useTheme();
@@ -52,7 +59,7 @@ const SessionsPage: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    startDate: new Date().toISOString().split('T')[0], // Today's date
+    startDate: getLocalDateString(), // Today's date
     endDate: '', // Optional
   });
   
@@ -135,7 +142,7 @@ const SessionsPage: React.FC = () => {
         }
       }
 
-      setFormData({ name: '', description: '', startDate: new Date().toISOString().split('T')[0], endDate: '' });
+      setFormData({ name: '', description: '', startDate: getLocalDateString(), endDate: '' });
       setIsCreateDialogOpen(false);
       // Update state: add new session and pause all others
       setSessions(prev => [
@@ -244,8 +251,8 @@ const SessionsPage: React.FC = () => {
       setEditFormData({
         name: session.name,
         description: session.description || '',
-        startDate: session.startDate.split('T')[0],
-        endDate: session.endDate ? session.endDate.split('T')[0] : '',
+        startDate: getLocalDateString(new Date(session.startDate)),
+        endDate: session.endDate ? getLocalDateString(new Date(session.endDate)) : '',
       });
       setIsEditDialogOpen(true);
       handleMenuClose();

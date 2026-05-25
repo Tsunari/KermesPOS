@@ -65,6 +65,11 @@ class FirestoreSyncService {
       throw new Error("Geçersiz hesap türü veya eksik kermes tanımlaması.");
     }
 
+    if (data.status === "suspended") {
+      await signOut(auth);
+      throw new Error("Bu satış noktası hesabı yönetici tarafından askıya alındı. Giriş yapılamaz.");
+    }
+
     const profile: PlaceProfile = {
       email: data.email || email,
       role: data.role,
@@ -97,6 +102,32 @@ class FirestoreSyncService {
 
     const { kermesId, kermesName } = profile;
     const sessionId = `${kermesId}_${session.id}`;
+
+    onProgress?.(5, "Hesap ve oturum yetkisi doğrulanıyor...");
+
+    // 0.1 Check POS account suspended status
+    const uid = auth.currentUser?.uid;
+    if (uid) {
+      const profileSnap = await getDoc(doc(db, "pos_accounts", uid));
+      if (profileSnap.exists()) {
+        const pData = profileSnap.data();
+        if (pData.status === "suspended") {
+          throw new Error("Bu satış noktası hesabı yönetici tarafından askıya alındı. Senkronizasyon yapılamaz.");
+        }
+      }
+    }
+
+    // 0.2 Check if the existing session is locked or completed
+    const sessionSnap = await getDoc(doc(db, "sessions", sessionId));
+    if (sessionSnap.exists()) {
+      const sData = sessionSnap.data();
+      if (sData.status === "locked") {
+        throw new Error("Bu oturum yönetici tarafından kilitlendi. Daha fazla senkronizasyon yapılamaz.");
+      }
+      if (sData.status === "completed") {
+        throw new Error("Bu oturum yönetici tarafından tamamlandı. Daha fazla senkronizasyon yapılamaz.");
+      }
+    }
 
     onProgress?.(10, "İşlem verileri çözümleniyor...");
 

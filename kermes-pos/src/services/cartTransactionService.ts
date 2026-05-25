@@ -147,8 +147,15 @@ class CartTransactionService {
                 const transactions = request.result;
                 const stats = new Map<string, DailyStats>();
 
+                const getLocalDateString = (d: Date) => {
+                    const yyyy = d.getFullYear();
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    return `${yyyy}-${mm}-${dd}`;
+                };
+
                 transactions.forEach((tx: CartTransaction) => {
-                    const date = new Date(tx.transaction_date).toISOString().split('T')[0];
+                    const date = getLocalDateString(new Date(tx.transaction_date));
                     if (!stats.has(date)) {
                         stats.set(date, {
                             date,

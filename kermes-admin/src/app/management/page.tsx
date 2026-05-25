@@ -9,6 +9,8 @@ import { getAuth, createUserWithEmailAndPassword, signOut } from "firebase/auth"
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import BlockIcon from "@mui/icons-material/Block";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import KermesLoading from "../../components/KermesLoading";
 import KermesAppBar from "../../components/KermesAppBar";
 import type { POSAccount } from "../../types/sync";
@@ -26,6 +28,45 @@ export default function Management() {
   const [posLoading, setPosLoading] = useState(false);
   const [posSuccess, setPosSuccess] = useState("");
   const [posError, setPosError] = useState("");
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "suspended">("all");
+
+  const filteredAccounts = posAccounts.filter((acc) => {
+    const matchesSearch =
+      acc.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      acc.kermesName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      acc.kermesId.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" && acc.status !== "suspended") ||
+      (statusFilter === "suspended" && acc.status === "suspended");
+
+    return matchesSearch && matchesStatus;
+  });
+
+  async function handleToggleStatus(uid: string, currentStatus?: string) {
+    const nextStatus = currentStatus === "suspended" ? "active" : "suspended";
+    const statusLabel = nextStatus === "active" ? "aktife" : "askıya";
+    
+    if (!window.confirm(`Bu hesabı ${statusLabel} almak istediğinize emin misiniz?`)) return;
+
+    setPosLoading(true);
+    setPosError("");
+    setPosSuccess("");
+
+    try {
+      const docRef = doc(db, "pos_accounts", uid);
+      await setDoc(docRef, { status: nextStatus }, { merge: true });
+      setPosSuccess(`Hesap başarıyla ${statusLabel} alındı.`);
+    } catch (err: unknown) {
+      console.error("Account toggle status failure:", err);
+      setPosError(err instanceof Error ? err.message : "Durum güncellenirken hata oluştu.");
+    } finally {
+      setPosLoading(false);
+    }
+  }
 
   // Auth check
   useEffect(() => {
@@ -75,6 +116,7 @@ export default function Management() {
         kermesId: normalisedId,
         kermesName: newKermesName.trim() || normalisedId,
         createdAt: new Date().toISOString(),
+        status: "active",
       });
 
       await signOut(tempAuth);
@@ -243,18 +285,40 @@ export default function Management() {
 
           {/* Accounts Table */}
           <div className="lg:col-span-3 bg-white dark:bg-neutral-800 rounded-2xl shadow-lg flex flex-col overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-700 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-black dark:text-white">Kayıtlı Hesaplar</h2>
-              <span className="text-xs font-bold bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full">
-                {posAccounts.length} hesap
-              </span>
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-700 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-black dark:text-white">Kayıtlı Hesaplar</h2>
+                <span className="text-xs font-bold bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full">
+                  {filteredAccounts.length} / {posAccounts.length} hesap
+                </span>
+              </div>
+              
+              {/* Search & Filter widgets */}
+              <div className="flex flex-col sm:flex-row gap-2 mt-1">
+                <input
+                  type="text"
+                  placeholder="Ara (E-posta, konum)..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex-1 text-xs rounded-lg border border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-900 px-3 py-2 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="text-xs rounded-lg border border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-900 px-3 py-2 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer"
+                >
+                  <option value="all">Tüm Durumlar</option>
+                  <option value="active">Sadece Aktifler</option>
+                  <option value="suspended">Sadece Askıdakiler</option>
+                </select>
+              </div>
             </div>
 
-            {posAccounts.length === 0 ? (
+            {filteredAccounts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center px-8">
                 <ManageAccountsIcon className="!h-12 !w-12 text-gray-200 dark:text-neutral-700 mb-3" />
                 <p className="text-sm text-gray-400 font-semibold">Kayıtlı POS hesabı bulunamadı</p>
-                <p className="text-xs text-gray-400 mt-1">Soldan yeni bir hesap oluşturun.</p>
+                <p className="text-xs text-gray-400 mt-1">Kriterlere uygun hesap yok veya henüz hesap oluşturulmadı.</p>
               </div>
             ) : (
               <div className="overflow-auto">
@@ -268,10 +332,21 @@ export default function Management() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-neutral-700">
-                    {posAccounts.map((acc) => (
+                    {filteredAccounts.map((acc) => (
                       <tr key={acc.id} className="hover:bg-gray-50 dark:hover:bg-neutral-900/40 transition">
                         <td className="px-6 py-4">
-                          <p className="text-sm font-semibold text-black dark:text-white">{acc.email}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-semibold text-black dark:text-white">{acc.email}</p>
+                            {acc.status === "suspended" ? (
+                              <span className="text-[9px] font-bold bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full uppercase">
+                                Askıda
+                              </span>
+                            ) : (
+                              <span className="text-[9px] font-bold bg-green-100 dark:bg-green-950/40 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full uppercase">
+                                Aktif
+                              </span>
+                            )}
+                          </div>
                           <p className="text-[9px] text-gray-400 font-mono mt-0.5 break-all">{acc.id}</p>
                         </td>
                         <td className="px-6 py-4">
@@ -283,7 +358,20 @@ export default function Management() {
                             {acc.createdAt ? new Date(acc.createdAt).toLocaleDateString("de-DE") : "—"}
                           </p>
                         </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="px-6 py-4 text-right flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStatus(acc.id, acc.status)}
+                            disabled={posLoading}
+                            className={`p-2 rounded-lg transition disabled:opacity-40 ${
+                              acc.status === "suspended" 
+                                ? "text-green-500 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30" 
+                                : "text-amber-500 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                            }`}
+                            title={acc.status === "suspended" ? "Hesabı Aktifleştir" : "Hesabı Askıya Al"}
+                          >
+                            {acc.status === "suspended" ? <CheckCircleIcon className="!h-4 !w-4" /> : <BlockIcon className="!h-4 !w-4" />}
+                          </button>
                           <button
                             type="button"
                             onClick={() => handleDelete(acc.id, acc.email)}

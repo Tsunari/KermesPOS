@@ -1,9 +1,13 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, deleteDoc, getDocs, setDoc } from "firebase/firestore";
 import { db } from "../../../firebaseInit";
 import QueryStatsIcon from "@mui/icons-material/QueryStats";
+import DeleteIcon from "@mui/icons-material/Delete";
+import LockIcon from "@mui/icons-material/Lock";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CloudQueueIcon from "@mui/icons-material/CloudQueue";
 import BarChartIcon from "@mui/icons-material/BarChart";
@@ -13,6 +17,13 @@ import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import KermesLoading from "../../components/KermesLoading";
 import KermesAppBar from "../../components/KermesAppBar";
 import type { SyncedSession, LiveSale } from "../../types/sync";
+
+const formatDateStr = (dateVal: any) => {
+  if (!dateVal) return "";
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("de-DE");
+};
 
 export default function Analytics() {
   const router = useRouter();
@@ -26,13 +37,50 @@ export default function Analytics() {
 
   // Restore persisted selection after mount (SSR-safe)
   useEffect(() => {
-    const saved = localStorage.getItem("analytics_selected_kermes");
-    if (saved) setSelectedKermesId(saved);
+    const savedKermes = localStorage.getItem("analytics_selected_kermes");
+    if (savedKermes) {
+      setSelectedKermesId(savedKermes);
+      const savedSession = localStorage.getItem("analytics_selected_session");
+      if (savedSession) setSelectedAnalyticsSessionId(savedSession);
+    }
   }, []);
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
   const [expandedTransactions, setExpandedTransactions] = useState<LiveSale[]>([]);
   const [txLoading, setTxLoading] = useState(false);
   const [transactionCache, setTransactionCache] = useState<Record<string, LiveSale[]>>({});
+
+  async function handleDeleteSession(sessionId: string, sessionName: string) {
+    if (!window.confirm(`"${sessionName}" oturumunu ve bu oturuma ait tüm satış kayıtlarını buluttan tamamen silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 1. Delete the session document
+      const docRef = doc(db, "sessions", sessionId);
+      await deleteDoc(docRef);
+
+      // 2. Query and delete all associated sales
+      const q = query(collection(db, "sales"), where("sessionId", "==", sessionId));
+      const querySnap = await getDocs(q);
+      
+      const deletePromises = querySnap.docs.map(d => deleteDoc(doc(db, "sales", d.id)));
+      await Promise.all(deletePromises);
+
+      alert("Oturum ve ilişkili tüm satış kayıtları buluttan başarıyla silindi.");
+      
+      // If the deleted session was the currently selected session in analytics, reset the selected session filter
+      if (selectedAnalyticsSessionId === sessionId) {
+        setSelectedAnalyticsSessionId("all");
+        localStorage.removeItem("analytics_selected_session");
+      }
+    } catch (err) {
+      console.error("Session delete failure:", err);
+      alert("Oturum silinirken bir hata oluştu.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   // Auth check
   useEffect(() => {
@@ -240,16 +288,27 @@ export default function Analytics() {
                   <select
                     value={selectedAnalyticsSessionId}
                     onChange={(e) => {
-                      setSelectedAnalyticsSessionId(e.target.value);
+                      const sessId = e.target.value;
+                      setSelectedAnalyticsSessionId(sessId);
+                      if (sessId !== "all") {
+                        localStorage.setItem("analytics_selected_session", sessId);
+                      } else {
+                        localStorage.removeItem("analytics_selected_session");
+                      }
                     }}
                     className="bg-transparent border-none text-xs font-bold text-black dark:text-white focus:outline-none cursor-pointer"
                   >
                     <option value="all" className="dark:bg-neutral-950">Tüm Oturumlar (Toplu)</option>
-                    {filteredSessions.map(session => (
-                      <option key={session.id} value={session.id} className="dark:bg-neutral-950">
-                        {session.name} ({new Date(session.syncedAt).toLocaleDateString("de-DE")})
-                      </option>
-                    ))}
+                    {filteredSessions.map(session => {
+                      const startStr = formatDateStr(session.startDate);
+                      const endStr = formatDateStr(session.endDate);
+                      const dateRangeStr = startStr ? ` (${startStr}${endStr ? ` - ${endStr}` : ""})` : "";
+                      return (
+                        <option key={session.id} value={session.id} className="dark:bg-neutral-950">
+                          {session.name}{dateRangeStr}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
               )}
@@ -396,39 +455,106 @@ export default function Analytics() {
                   </div>
                 </div>
 
-                {/* Hourly Chart */}
+                {/* Dynamic Timeline Chart */}
                 <div className="bg-gray-50 dark:bg-neutral-900/50 p-5 rounded-2xl border border-gray-200/50 dark:border-neutral-800 flex flex-col gap-5">
-                  <h3 className="text-xs font-extrabold text-gray-400 uppercase tracking-wider">Zaman Dilimine Göre Hasılat</h3>
-                  {Object.keys(aggregates.hourly).length === 0 ? (
-                    <div className="flex-1 flex items-center justify-center">
-                      <p className="text-xs text-gray-400 italic">Saatlik veri bulunamadı.</p>
+                  <div className="flex justify-between items-center flex-wrap gap-2">
+                    <h3 className="text-xs font-extrabold text-gray-400 uppercase tracking-wider">
+                      {selectedAnalyticsSessionId === "all" 
+                        ? "Oturum Bazlı Zaman Akışı (Günlük Trend)" 
+                        : "Saatlik Hasılat Akışı (Gün İçi Trend)"}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      {selectedAnalyticsSessionId !== "all" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedAnalyticsSessionId("all");
+                            localStorage.removeItem("analytics_selected_session");
+                          }}
+                          className="text-[10px] bg-gray-200 dark:bg-neutral-800 hover:bg-gray-300 dark:hover:bg-neutral-700 text-black dark:text-white px-2 py-0.5 rounded font-bold transition cursor-pointer"
+                        >
+                          ← Tüm Oturumlara Dön
+                        </button>
+                      )}
+                      <span className="text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded font-bold uppercase">
+                        {selectedAnalyticsSessionId === "all" ? "Günlük" : "Saatlik"}
+                      </span>
                     </div>
-                  ) : (
-                    <div className="flex-1 flex flex-col justify-end gap-3 min-h-[160px]">
-                      <div className="flex justify-between items-end h-40 px-2 gap-2">
-                        {(() => {
-                          const sortedHours = Object.keys(aggregates.hourly).sort();
-                          const maxRevenue = Math.max(...Object.values(aggregates.hourly).map(h => h.revenue), 1);
-                          return sortedHours.map(hour => {
-                            const val = aggregates.hourly[hour];
-                            const heightPercent = (val.revenue / maxRevenue) * 100;
-                            return (
-                              <div key={hour} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
-                                <div className="text-[8px] font-bold opacity-0 group-hover:opacity-100 transition-opacity bg-neutral-900 text-white rounded px-1 py-0.5 pointer-events-none mb-0.5">
-                                  €{val.revenue.toFixed(0)}
-                                </div>
-                                <div
-                                  className="w-full bg-blue-500 dark:bg-blue-600 rounded-t-sm hover:bg-blue-600 dark:hover:bg-blue-500 transition-all cursor-pointer"
-                                  style={{ height: `${Math.max(heightPercent, 5)}%` }}
-                                  title={`${hour} — €${val.revenue.toFixed(2)} (${val.orders} sipariş)`}
-                                />
-                                <span className="text-[8px] text-gray-400 font-semibold">{hour}</span>
-                              </div>
-                            );
-                          });
-                        })()}
+                  </div>
+
+                  {selectedAnalyticsSessionId === "all" ? (
+                    filteredSessions.length === 0 ? (
+                      <div className="flex-1 flex items-center justify-center min-h-[160px]">
+                        <p className="text-xs text-gray-400 italic">Zaman serisi verisi bulunamadı.</p>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="flex-1 flex flex-col justify-end gap-3 min-h-[160px]">
+                        <div className="flex justify-between items-end h-40 px-2 gap-2 overflow-x-auto scrollbar-thin">
+                          {(() => {
+                            const chronologicalSessions = [...filteredSessions].sort(
+                              (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+                            );
+                            const maxRevenue = Math.max(...chronologicalSessions.map(s => s.totalRevenue), 1);
+                            return chronologicalSessions.map(session => {
+                              const heightPercent = (session.totalRevenue / maxRevenue) * 100;
+                              const label = new Date(session.startDate).toLocaleDateString("de-DE", { 
+                                day: "2-digit", 
+                                month: "2-digit" 
+                              });
+                              return (
+                                <div key={session.id} className="flex-1 min-w-[32px] flex flex-col items-center gap-1.5 h-full justify-end group">
+                                  <div className="text-[8px] font-bold opacity-0 group-hover:opacity-100 transition-opacity bg-neutral-900 text-white rounded px-1.5 py-0.5 pointer-events-none mb-0.5 whitespace-nowrap z-10">
+                                    €{session.totalRevenue.toFixed(0)}
+                                  </div>
+                                  <div
+                                    onClick={() => {
+                                      setSelectedAnalyticsSessionId(session.id);
+                                      localStorage.setItem("analytics_selected_session", session.id);
+                                    }}
+                                    className="w-full bg-indigo-500 dark:bg-indigo-600 rounded-t-sm hover:bg-indigo-600 dark:hover:bg-indigo-500 transition-all cursor-pointer shadow-sm hover:scale-x-105"
+                                    style={{ height: `${Math.max(heightPercent, 5)}%` }}
+                                    title={`${session.name} — €${session.totalRevenue.toFixed(2)} (${session.totalOrders} sipariş)`}
+                                  />
+                                  <span className="text-[8px] text-gray-400 font-extrabold">{label}</span>
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    Object.keys(aggregates.hourly).length === 0 ? (
+                      <div className="flex-1 flex items-center justify-center min-h-[160px]">
+                        <p className="text-xs text-gray-400 italic">Saatlik veri bulunamadı.</p>
+                      </div>
+                    ) : (
+                      <div className="flex-1 flex flex-col justify-end gap-3 min-h-[160px]">
+                        <div className="flex justify-between items-end h-40 px-2 gap-2">
+                          {(() => {
+                            const sortedHours = Object.keys(aggregates.hourly).sort();
+                            const maxRevenue = Math.max(...Object.values(aggregates.hourly).map(h => h.revenue), 1);
+                            return sortedHours.map(hour => {
+                              const val = aggregates.hourly[hour];
+                              const heightPercent = (val.revenue / maxRevenue) * 100;
+                              return (
+                                <div key={hour} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
+                                  <div className="text-[8px] font-bold opacity-0 group-hover:opacity-100 transition-opacity bg-neutral-900 text-white rounded px-1 py-0.5 pointer-events-none mb-0.5 z-10">
+                                    €{val.revenue.toFixed(0)}
+                                  </div>
+                                  <div
+                                    className="w-full bg-blue-500 dark:bg-blue-600 rounded-t-sm hover:bg-blue-600 dark:hover:bg-blue-500 transition-all cursor-pointer shadow-sm"
+                                    style={{ height: `${Math.max(heightPercent, 5)}%` }}
+                                    title={`${hour} — €${val.revenue.toFixed(2)} (${val.orders} sipariş)`}
+                                  />
+                                  <span className="text-[8px] text-gray-400 font-semibold">{hour}</span>
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    )
                   )}
                 </div>
 
@@ -480,9 +606,14 @@ export default function Analytics() {
                                     ? "bg-gray-200 text-gray-700 dark:bg-neutral-800 dark:text-gray-300"
                                     : session.status === "active"
                                     ? "bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400"
+                                    : session.status === "locked"
+                                    ? "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400"
                                     : "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-400"
                                 }`}>
-                                  {session.status}
+                                  {session.status === "active" ? "Aktif" :
+                                   session.status === "paused" ? "Duraklatıldı" :
+                                   session.status === "completed" ? "Tamamlandı" :
+                                   session.status === "locked" ? "Kilitli" : session.status}
                                 </span>
                               </div>
                               <p className="text-[10px] text-gray-400 mt-1">
@@ -498,13 +629,71 @@ export default function Analytics() {
                                 <p className="text-[9px] text-gray-400 font-bold uppercase leading-none">Sipariş</p>
                                 <p className="text-sm font-black text-black dark:text-white mt-1">{session.totalOrders}</p>
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
-                                className="text-xs bg-white dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 hover:border-blue-500 hover:text-blue-500 text-black dark:text-white font-bold px-3 py-1.5 rounded-xl transition"
-                              >
-                                {isExpanded ? "Logları Gizle" : "Logları İncele"}
-                              </button>
+                              <div className="flex items-center gap-2">
+                                {/* Complete Button (visible only if NOT completed and NOT locked) */}
+                                {session.status !== "completed" && session.status !== "locked" && (
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      if (window.confirm(`"${session.name}" oturumunu kalıcı olarak tamamlamak istediğinize emin misiniz? Bu işlem geri alınamaz ve oturuma daha fazla veri yüklenemez.`)) {
+                                        try {
+                                          await setDoc(doc(db, "sessions", session.id), { status: "completed" }, { merge: true });
+                                        } catch (err) {
+                                          console.error("Session complete failed:", err);
+                                          alert("Oturum tamamlanamadı.");
+                                        }
+                                      }
+                                    }}
+                                    className="p-2 text-green-500 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-xl transition flex items-center justify-center"
+                                    title="Oturumu Tamamla (Kalıcı)"
+                                  >
+                                    <CheckCircleIcon className="!h-4 !w-4" />
+                                  </button>
+                                )}
+
+                                {/* Lock/Unlock Toggle Button (visible only if NOT completed) */}
+                                {session.status !== "completed" && (
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      const nextStatus = session.status === "locked" ? "active" : "locked";
+                                      const actionWord = nextStatus === "locked" ? "kilitlemek" : "kilit açmak";
+                                      if (window.confirm(`"${session.name}" oturumunu ${actionWord} istediğinize emin misiniz?`)) {
+                                        try {
+                                          await setDoc(doc(db, "sessions", session.id), { status: nextStatus }, { merge: true });
+                                        } catch (err) {
+                                          console.error("Session lock toggle failed:", err);
+                                          alert("Oturum durumu güncellenemedi.");
+                                        }
+                                      }
+                                    }}
+                                    className={`p-2 rounded-xl transition flex items-center justify-center ${
+                                      session.status === "locked"
+                                        ? "text-orange-500 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-950/30"
+                                        : "text-neutral-500 hover:text-neutral-700 hover:bg-gray-100 dark:hover:bg-neutral-800"
+                                    }`}
+                                    title={session.status === "locked" ? "Oturum Kilidini Aç" : "Oturumu Kilitle"}
+                                  >
+                                    {session.status === "locked" ? <LockOpenIcon className="!h-4 !w-4" /> : <LockIcon className="!h-4 !w-4" />}
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
+                                  className="text-xs bg-white dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 hover:border-blue-500 hover:text-blue-500 text-black dark:text-white font-bold px-3 py-1.5 rounded-xl transition"
+                                >
+                                  {isExpanded ? "Logları Gizle" : "Logları İncele"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteSession(session.id, session.name)}
+                                  className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition"
+                                  title="Oturumu ve tüm satış loglarını buluttan sil"
+                                >
+                                  <DeleteIcon className="!h-4 !w-4" />
+                                </button>
+                              </div>
                             </div>
                           </div>
 

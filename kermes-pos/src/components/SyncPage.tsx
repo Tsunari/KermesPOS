@@ -77,7 +77,14 @@ const SyncPage: React.FC = () => {
       const data = await sessionService.getAllSessions();
       setSessions(data);
       if (data.length > 0) {
-        setSelectedSessionId(data[0].id);
+        const savedSessionId = localStorage.getItem('pos.selectedSessionId');
+        const sessionExists = data.some(s => s.id === savedSessionId);
+        if (savedSessionId && sessionExists) {
+          setSelectedSessionId(savedSessionId);
+        } else {
+          setSelectedSessionId(data[0].id);
+          localStorage.setItem('pos.selectedSessionId', data[0].id);
+        }
       }
     } catch (err) {
       console.error("Failed to load local sessions:", err);
@@ -204,7 +211,25 @@ const SyncPage: React.FC = () => {
       await loadSessions();
     } catch (err: any) {
       console.error("Sync failure:", err);
-      setError(err.message || t('app.sync.sync_failed') || "A cloud connection error occurred during synchronization.");
+      const errMsg = err.message || t('app.sync.sync_failed') || "A cloud connection error occurred during synchronization.";
+      setError(errMsg);
+
+      // If the cloud session was completed, prompt the cashier if they want to sync local state
+      if (err.message && err.message.includes("tamamlandı")) {
+        const confirmMsg = t('app.sync.prompt_complete_local') || 
+          `This session is marked as COMPLETED on the cloud. Do you also want to update the local session status to Completed?`;
+        
+        if (window.confirm(confirmMsg)) {
+          try {
+            await sessionService.completeSession(session.id);
+            setSuccess(t('app.sync.local_complete_success') || `Local session status successfully updated to Completed!`);
+            await loadSessions();
+          } catch (localErr) {
+            console.error("Failed to complete local session:", localErr);
+            setError(t('app.sync.local_complete_error') || "Failed to update local session status.");
+          }
+        }
+      }
     } finally {
       setIsSyncing(false);
     }
@@ -412,7 +437,11 @@ const SyncPage: React.FC = () => {
                     <Select
                       labelId="session-select-label"
                       value={selectedSessionId}
-                      onChange={e => setSelectedSessionId(e.target.value as string)}
+                      onChange={e => {
+                        const newId = e.target.value as string;
+                        setSelectedSessionId(newId);
+                        localStorage.setItem('pos.selectedSessionId', newId);
+                      }}
                       label={t('app.sync.session_to_sync') || "Session to Synchronize"}
                       disabled={isSyncing}
                     >

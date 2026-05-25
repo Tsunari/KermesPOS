@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../firebaseInit";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { auth, db } from "../../firebaseInit";
 
 export default function Home() {
   const [email, setEmail] = useState("");
@@ -18,6 +19,19 @@ export default function Home() {
     setError("");
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      
+      // Check if this account is bound as a POS register (role check)
+      const q = query(collection(db, "pos_accounts"), where("email", "==", email.toLowerCase()));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        // POS Cashier account detected, deny access and sign out
+        await auth.signOut();
+        setError("Yetkisiz erişim. Satış noktası hesapları yönetim paneline giriş yapamaz.");
+        setLoading(false);
+        return;
+      }
+
       sessionStorage.setItem("isAdmin", "true");
       router.push("/dashboard");
     } catch (err) {
