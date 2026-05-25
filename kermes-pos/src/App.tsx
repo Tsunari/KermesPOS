@@ -23,14 +23,13 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
-import MenuIcon from '@mui/icons-material/Menu';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
-import ViewComfyIcon from '@mui/icons-material/ViewComfy';
 import EventIcon from '@mui/icons-material/Event';
 import ModernSwitch from './components/ui/ModernSwitch';
 import Cart from './components/cart/Cart';
+import RecentOrdersPanel from './components/cart/RecentOrdersPanel';
 import ProductDialog from './components/ProductDialog';
 import ProductGrid from './components/ProductGrid';
 import NumericKeypad from './components/cart/NumericKeypad';
@@ -106,7 +105,7 @@ import UpdateNotifier from './components/UpdateNotifier';
 function AppContent() {
   const { t } = useLanguage();
   const dispatch = useDispatch();
-  const { products, setProducts, fixedGridMode, setFixedGridMode, cardsPerRow, setCardsPerRow } = useVariableContext();
+  const { products, setProducts, fixedGridMode, setFixedGridMode, cardsPerRow, setCardsPerRow, recentOrdersOpen, recentOrdersDockPosition, editingTransaction } = useVariableContext();
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   const [devMode, setDevMode] = useState(false);
@@ -176,6 +175,10 @@ function AppContent() {
 
   // TODO Make this more efficient
   const handleProductClick = (product: Product) => {
+    if (editingTransaction) {
+      window.dispatchEvent(new CustomEvent('addProductToEditOrder', { detail: product }));
+      return;
+    }
     if (selectedQuantity > 0) {
       if (separateAdditionEnabled) {
         // Create separate cart items even with quantity selection
@@ -421,14 +424,47 @@ function AppContent() {
               </Box>
             </Paper>
 
+            {/* Slide-out Recent Orders Panel (Left Position) */}
+            {recentOrdersDockPosition === 'left' && (
+              <Paper
+                elevation={0}
+                sx={{
+                  width: recentOrdersOpen ? '320px' : '0px',
+                  minWidth: recentOrdersOpen ? '320px' : '0px',
+                  height: 'calc(100vh - 24px)',
+                  borderRadius: 3,
+                  mt: 1.5,
+                  mb: 1.5,
+                  ml: recentOrdersOpen ? 0.75 : 0,
+                  mr: recentOrdersOpen ? 0.75 : 0,
+                  border: recentOrdersOpen ? `1.5px solid ${theme.palette.divider}` : 'none',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  bgcolor: 'background.paper',
+                  boxShadow: recentOrdersOpen
+                    ? (theme.palette.mode === 'dark'
+                      ? '0 8px 32px 0 rgba(0,0,0,0.55)'
+                      : '0 4px 24px 0 rgba(0,0,0,0.11)')
+                    : 'none',
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  opacity: recentOrdersOpen ? 1 : 0,
+                }}
+              >
+                {recentOrdersOpen && <RecentOrdersPanel />}
+              </Paper>
+            )}
+
             <Paper
               elevation={0}
               sx={{
                 flex: 1,
                 height: 'calc(100vh - 24px)',
                 borderRadius: 3,
-                m: 1.5,
+                mt: 1.5,
+                mb: 1.5,
                 ml: 0.75,
+                mr: (recentOrdersOpen && recentOrdersDockPosition === 'right') ? 0.75 : 1.5,
                 border: `1.5px solid ${theme.palette.divider}`,
                 overflow: 'hidden',
                 display: 'flex',
@@ -439,6 +475,7 @@ function AppContent() {
                   : '0 4px 24px 0 rgba(0,0,0,0.11)',
                 p: 1.5,
                 position: 'relative',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
               <Routes>
@@ -636,6 +673,37 @@ function AppContent() {
                 />
               </Routes>
             </Paper>
+
+            {/* Slide-out Recent Orders Panel (Right Position) */}
+            {recentOrdersDockPosition === 'right' && (
+              <Paper
+                elevation={0}
+                sx={{
+                  width: recentOrdersOpen ? '320px' : '0px',
+                  minWidth: recentOrdersOpen ? '320px' : '0px',
+                  height: 'calc(100vh - 24px)',
+                  borderRadius: 3,
+                  mt: 1.5,
+                  mb: 1.5,
+                  ml: recentOrdersOpen ? 0.75 : 0,
+                  mr: recentOrdersOpen ? 1.5 : 0,
+                  border: recentOrdersOpen ? `1.5px solid ${theme.palette.divider}` : 'none',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  bgcolor: 'background.paper',
+                  boxShadow: recentOrdersOpen
+                    ? (theme.palette.mode === 'dark'
+                      ? '0 8px 32px 0 rgba(0,0,0,0.55)'
+                      : '0 4px 24px 0 rgba(0,0,0,0.11)')
+                    : 'none',
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  opacity: recentOrdersOpen ? 1 : 0,
+                }}
+              >
+                {recentOrdersOpen && <RecentOrdersPanel />}
+              </Paper>
+            )}
           </Box>
         ) : (
           // Other Screens (Statistics, Settings, Sessions, etc.): Single large floating card

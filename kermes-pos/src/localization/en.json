@@ -273,7 +273,21 @@
       "printReceiptToggleHint": "Toggle to control whether a receipt is printed",
       "paymentMethod": "Payment",
       "paymentCash": "Cash",
-      "paymentCard": "Card"
+      "paymentCard": "Card",
+      "recentOrders": "Recent Orders",
+      "editOrder": "Edit Order",
+      "reprintReceipt": "Reprint Receipt",
+      "saveSuccess": "Transaction updated successfully",
+      "orderNumber": "Order #{id}",
+      "noRecentOrders": "No recent orders in this session",
+      "itemsCount": "{count} items",
+      "noActiveSession": "No active session found",
+      "startSessionHint": "Please start a sales session in order to track and view recent orders.",
+      "dockLeft": "Dock Left",
+      "dockRight": "Dock Right",
+      "loadMore": "Load More",
+      "editingOrderModeActive": "Editing Order #{id} Active",
+      "tappingAddsHint": "Tapping products in the grid adds them directly to this past order."
     },
     "product": {
       "categories": {

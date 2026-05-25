@@ -35,6 +35,8 @@ What an AI agent should do first
 Suggested additional customizations (next steps)
 - Create an `agent` skill for `electron-build` that automates build checks and warns about native module breaks.
 - Add a `deploy` instruction that documents release flow (electron publish to GitHub releases).
+- **Custom Git Commit Command (`/commit`)**:
+  - AI coding agents support the `/commit` command to dynamically inspect the active `git status` / `git diff` and format commit messages strictly matching `.github/copilot-instructions.md` specifications.
 
 Minimal editing policy
 - Keep AI-generated edits confined to the appropriate `src/` folder for the subproject being changed. Run unit/dev builds before proposing packaging changes.

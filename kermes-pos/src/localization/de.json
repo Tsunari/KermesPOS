@@ -273,7 +273,21 @@
       "printReceiptToggleHint": "Steuert, ob nach dem Verkauf ein Beleg gedruckt wird",
       "paymentMethod": "Zahlung",
       "paymentCash": "Bar",
-      "paymentCard": "Karte"
+      "paymentCard": "Karte",
+      "recentOrders": "Letzte Bestellungen",
+      "editOrder": "Bestellung bearbeiten",
+      "reprintReceipt": "Beleg nachdrucken",
+      "saveSuccess": "Transaktion erfolgreich aktualisiert",
+      "orderNumber": "Bestellung #{id}",
+      "noRecentOrders": "Keine letzten Bestellungen in dieser Sitzung",
+      "itemsCount": "{count} Artikel",
+      "noActiveSession": "Keine aktive Sitzung gefunden",
+      "startSessionHint": "Bitte starten Sie eine Verkaufssitzung, um letzte Bestellungen zu verfolgen und anzuzeigen.",
+      "dockLeft": "Links andocken",
+      "dockRight": "Rechts andocken",
+      "loadMore": "Mehr laden",
+      "editingOrderModeActive": "Bestellung #{id} bearbeiten aktiv",
+      "tappingAddsHint": "Durch Tippen auf Produkte im Raster werden sie direkt zu dieser vergangenen Bestellung hinzugefügt."
     },
     "product": {
       "categories": {

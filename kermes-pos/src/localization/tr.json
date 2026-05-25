@@ -273,7 +273,21 @@
       "printReceiptToggleHint": "Satıştan sonra fişin yazdırılıp yazdırılmayacağını kontrol eder",
       "paymentMethod": "Ödeme",
       "paymentCash": "Nakit",
-      "paymentCard": "Kart"
+      "paymentCard": "Kart",
+      "recentOrders": "Son Siparişler",
+      "editOrder": "Siparişi Düzenle",
+      "reprintReceipt": "Fişi Yeniden Yazdır",
+      "saveSuccess": "İşlem başarıyla güncellendi",
+      "orderNumber": "Sipariş #{id}",
+      "noRecentOrders": "Bu oturumda son sipariş bulunamadı",
+      "itemsCount": "{count} ürün",
+      "noActiveSession": "Aktif oturum bulunamadı",
+      "startSessionHint": "Son siparişleri takip etmek ve görüntülemek için lütfen bir satış oturum başlatın.",
+      "dockLeft": "Sola Kenarla",
+      "dockRight": "Sağa Kenarla",
+      "loadMore": "Daha Fazla Yükle",
+      "editingOrderModeActive": "Sipariş #{id} Düzenleme Aktif",
+      "tappingAddsHint": "Izgaradaki ürünlere dokunulduğunda doğrudan bu geçmiş siparişe eklenir."
     },
     "product": {
       "categories": {

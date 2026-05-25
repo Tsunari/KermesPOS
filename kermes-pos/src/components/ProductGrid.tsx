@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, useTheme } from '@mui/material';
+import { Box, useTheme, Typography } from '@mui/material';
 import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -9,6 +9,7 @@ import { useSettings } from '../context/SettingsContext';
 import { getCategoryStyle } from '../utils/categoryUtils';
 import { useVariableContext } from '../context/VariableContext';
 import { productService } from '../services/productService';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ProductGridProps {
   products: Product[];
@@ -75,7 +76,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({
 }) => {
   const { showDescription } = useSettings();
   const theme = useTheme();
-  const { fixedGridMode, cardsPerRow, products } = useVariableContext(); // use context products
+  const { t } = useLanguage();
+  const { fixedGridMode, cardsPerRow, products, recentOrdersOpen, editingTransaction } = useVariableContext(); // use context products
   const [orderedProducts, setOrderedProducts] = useState<Product[]>(products);
 
   // Sort products by category and order within category
@@ -155,10 +157,11 @@ const ProductGrid: React.FC<ProductGridProps> = ({
         pr: 2,
         height: '100%',
         overflowY: 'auto',
-        overflowX: 'hidden',
+        overflowX: 'auto',
         width: '100%',
         '&::-webkit-scrollbar': {
           width: '8px',
+          height: '8px',
         },
         '&::-webkit-scrollbar-track': {
           background: theme.palette.grey[100],
@@ -172,6 +175,31 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           },
         },
       }}>
+        {editingTransaction && (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              bgcolor: theme.palette.mode === 'dark' ? 'rgba(237, 108, 2, 0.15)' : '#fff8e1',
+              color: theme.palette.mode === 'dark' ? '#ffb74d' : '#b78103',
+              border: '1.5px solid',
+              borderColor: theme.palette.mode === 'dark' ? '#f57c00' : '#ffe082',
+              borderRadius: '12px',
+              p: 1.5,
+              mb: 2,
+              boxShadow: theme.palette.mode === 'dark'
+                ? '0 4px 12px 0 rgba(0, 0, 0, 0.3)'
+                : '0 2px 8px 0 rgba(237, 108, 2, 0.04)',
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
+              ⚠️ {t('app.cart.editingOrderModeActive')?.replace('{id}', editingTransaction.id.toString()) || `Editing Order #${editingTransaction.id} Active`}
+            </Typography>
+            <Typography variant="caption" sx={{ mt: 0.5, fontWeight: 600 }}>
+              {t('app.cart.tappingAddsHint') || 'Tapping products in the grid adds them directly to this past order.'}
+            </Typography>
+          </Box>
+        )}
         {categoryOrder
           .filter(category => groupedProducts[category] && groupedProducts[category].length > 0)
           .map(category => {
@@ -186,7 +214,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                     sx={{
                       display: 'grid',
                       gridTemplateColumns: fixedGridMode
-                        ? `repeat(${cardsPerRow}, 1fr)`
+                        ? `repeat(${recentOrdersOpen ? Math.max(2, cardsPerRow - 3) : cardsPerRow}, 1fr)`
                         : 'repeat(auto-fit, minmax(180px, 1fr))',
                       gap: 0.5, // smaller gap
                       width: '100%',

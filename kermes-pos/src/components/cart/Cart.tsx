@@ -21,6 +21,7 @@ import {
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import PrintIcon from '@mui/icons-material/Print';
 import CancelIcon from '@mui/icons-material/Cancel';
+import HistoryIcon from '@mui/icons-material/History';
 import { RootState } from '../../store';
 import { removeFromCart, clearCart, updateQuantity } from '../../store/slices/cartSlice';
 import CartItemRow from './CartItemRow';
@@ -56,7 +57,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
   const [previewAnchorEl, setPreviewAnchorEl] = useState<HTMLElement | null>(null);
   const [selectedPrinter, setSelectedPrinter] = useState<string>('');
   const [isPrinting, setIsPrinting] = useState(false);
-  const { kursName, setKursName } = useVariableContext();
+  const { kursName, setKursName, recentOrdersOpen, setRecentOrdersOpen } = useVariableContext();
   const [paymentMethod, setPaymentMethod] = React.useState<'cash' | 'card'>('cash');
   const [receiptKursName, setReceiptKursName] = useState('Münih Fatih Kermes');
   const [kursNameDraft, setKursNameDraft] = useState(kursName);
@@ -127,6 +128,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
         paymentMethod,
         activeSession?.id
       );
+      window.dispatchEvent(new CustomEvent('transactionSaved'));
       setSuccessMessage(
         isReceiptPrintingEnabled
           ? t('sales.receiptPrinted')
@@ -315,6 +317,15 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
               <ReceiptPreview items={cartItems} total={total} />
             </Box>
           </Popover>
+          <Tooltip title={t('app.cart.recentOrders') || 'Recent Orders'}>
+            <IconButton
+              onClick={() => setRecentOrdersOpen(!recentOrdersOpen)}
+              color={recentOrdersOpen ? 'secondary' : 'primary'}
+              sx={{ padding: '5px' }}
+            >
+              <HistoryIcon />
+            </IconButton>
+          </Tooltip>
           <Tooltip title={t('app.cart.setKursName')}>
             <IconButton
               onClick={handleKursNameDialogOpen}
