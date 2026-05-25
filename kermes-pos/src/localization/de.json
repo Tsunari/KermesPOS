@@ -270,7 +270,10 @@
       "forSummary": "(für Zusammenfassung)",
       "onReceipt": "(für Beleg)",
       "printReceiptToggle": "Beleg drucken",
-      "printReceiptToggleHint": "Steuert, ob nach dem Verkauf ein Beleg gedruckt wird"
+      "printReceiptToggleHint": "Steuert, ob nach dem Verkauf ein Beleg gedruckt wird",
+      "paymentMethod": "Zahlung",
+      "paymentCash": "Bar",
+      "paymentCard": "Karte"
     },
     "product": {
       "categories": {

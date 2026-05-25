@@ -40,15 +40,16 @@ class ProductService {
         const categoryOrder: Record<string, number> = {};
 
         // Convert global order to per-category order
-        this.products.forEach((product) => {
+        this.products = this.products.map((product) => {
           const category = product.category;
           if (!categoryOrder[category]) {
             categoryOrder[category] = 0;
           }
           // Assign order within category
           if (product.order === undefined) {
-            product.order = categoryOrder[category]++;
+            return { ...product, order: categoryOrder[category]++ };
           }
+          return product;
         });
 
         this.saveProducts();
@@ -68,14 +69,15 @@ class ProductService {
   private initializeOrderField(): void {
     const categoryOrder: Record<string, number> = {};
 
-    this.products.forEach((product) => {
+    this.products = this.products.map((product) => {
       const category = product.category;
       if (!categoryOrder[category]) {
         categoryOrder[category] = 0;
       }
       if (product.order === undefined) {
-        product.order = categoryOrder[category]++;
+        return { ...product, order: categoryOrder[category]++ };
       }
+      return product;
     });
 
     this.saveProducts();
@@ -165,13 +167,11 @@ class ProductService {
     // Insert at new position
     filtered.splice(newOrder, 0, product);
 
-    // Update order field for all affected products
-    filtered.forEach((p, index) => {
-      const prodIndex = this.products.findIndex(prod => prod.id === p.id);
-      if (prodIndex !== -1) {
-        this.products[prodIndex].order = index;
-      }
-    });
+    // Update order field for all affected products (must not mutate frozen objects)
+    const orderMap = new Map(filtered.map((p, index) => [p.id, index]));
+    this.products = this.products.map(p =>
+      orderMap.has(p.id) ? { ...p, order: orderMap.get(p.id)! } : p
+    );
 
     this.saveProducts();
   }
@@ -187,12 +187,10 @@ class ProductService {
         .filter(p => p.category === category)
         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-      categoryProducts.forEach((p, index) => {
-        const prodIndex = this.products.findIndex(prod => prod.id === p.id);
-        if (prodIndex !== -1) {
-          this.products[prodIndex].order = index;
-        }
-      });
+      const orderMap = new Map(categoryProducts.map((p, index) => [p.id, index]));
+      this.products = this.products.map(p =>
+        orderMap.has(p.id) ? { ...p, order: orderMap.get(p.id)! } : p
+      );
     }
 
     this.saveProducts();

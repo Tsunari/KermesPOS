@@ -270,7 +270,10 @@
       "forSummary": "(tutanak için)",
       "onReceipt": "(fiş için)",
       "printReceiptToggle": "Fiş yazdır",
-      "printReceiptToggleHint": "Satıştan sonra fişin yazdırılıp yazdırılmayacağını kontrol eder"
+      "printReceiptToggleHint": "Satıştan sonra fişin yazdırılıp yazdırılmayacağını kontrol eder",
+      "paymentMethod": "Ödeme",
+      "paymentCash": "Nakit",
+      "paymentCard": "Kart"
     },
     "product": {
       "categories": {

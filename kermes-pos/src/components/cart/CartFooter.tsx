@@ -5,13 +5,17 @@ import {
   Button,
   Tooltip,
   IconButton,
-  Popover
+  Popover,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import { useLanguage } from '../../context/LanguageContext';
 import ChangeCalculator from './ChangeCalculator';
 import ModernSwitch from '../ui/ModernSwitch';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import HotkeySettings from '../HotkeySettings';
+import PaymentsIcon from '@mui/icons-material/Payments';         // cash
+import CreditCardIcon from '@mui/icons-material/CreditCard';    // card
 
 interface CartFooterProps {
   total: number;
@@ -20,9 +24,20 @@ interface CartFooterProps {
   isReceiptPrintingEnabled: boolean;
   onToggleReceiptPrinting: (enabled: boolean) => void;
   hotkey?: string;
+  paymentMethod: 'cash' | 'card';
+  onPaymentMethodChange: (method: 'cash' | 'card') => void;
 }
 
-const CartFooter: React.FC<CartFooterProps> = ({ total, onPrint, hasItems, isReceiptPrintingEnabled, onToggleReceiptPrinting, hotkey = 'Space' }) => {
+const CartFooter: React.FC<CartFooterProps> = ({
+  total,
+  onPrint,
+  hasItems,
+  isReceiptPrintingEnabled,
+  onToggleReceiptPrinting,
+  hotkey = 'Space',
+  paymentMethod,
+  onPaymentMethodChange,
+}) => {
   const { t } = useLanguage();
   const formatHotkey = (h: string) => {
     if (!h) return 'Space';
@@ -32,7 +47,6 @@ const CartFooter: React.FC<CartFooterProps> = ({ total, onPrint, hasItems, isRec
       if (/^Meta$/i.test(p) || /^Cmd$/i.test(p) || /^Command$/i.test(p)) return 'Meta';
       if (/^Alt$/i.test(p)) return 'Alt';
       if (/^Shift$/i.test(p)) return 'Shift';
-      // key: if single char show uppercase, else title-case
       if (p.length === 1) return p.toUpperCase();
       if (p === 'Space') return 'Space';
       return p;
@@ -61,7 +75,62 @@ const CartFooter: React.FC<CartFooterProps> = ({ total, onPrint, hasItems, isRec
           <ChangeCalculator total={total} />
         </Box>
       </Box>
-      <Box sx={{ mt: 2, position: 'relative' }}>
+
+      {/* Payment Method Toggle */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5, mt: 0.5 }}>
+        <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', flexShrink: 0, fontSize: 12 }}>
+          {t('app.cart.paymentMethod') || 'Payment'}
+        </Typography>
+        <ToggleButtonGroup
+          value={paymentMethod}
+          exclusive
+          onChange={(_, val) => { if (val) onPaymentMethodChange(val); }}
+          size="small"
+          sx={{
+            flex: 1,
+            borderRadius: '6px',
+            border: '1.5px solid',
+            borderColor: 'divider',
+            overflow: 'hidden',
+            '& .MuiToggleButton-root': {
+              flex: 1,
+              py: 0.4,
+              px: 1,
+              fontWeight: 600,
+              fontSize: 12,
+              textTransform: 'none',
+              gap: 0.5,
+              border: 'none',
+              borderRadius: '0 !important',
+              '&:not(:last-of-type)': {
+                borderRight: '1.5px solid',
+                borderColor: 'divider',
+              },
+              '&.Mui-selected': {
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                borderColor: 'primary.main',
+                '&:hover': { bgcolor: 'primary.dark' },
+              },
+              '&:not(.Mui-selected)': {
+                color: 'text.secondary',
+                '&:hover': { bgcolor: 'action.hover' },
+              },
+            },
+          }}
+        >
+          <ToggleButton value="cash" aria-label="cash payment">
+            <PaymentsIcon sx={{ fontSize: 15 }} />
+            {t('app.cart.paymentCash') || 'Cash'}
+          </ToggleButton>
+          <ToggleButton value="card" aria-label="card payment">
+            <CreditCardIcon sx={{ fontSize: 15 }} />
+            {t('app.cart.paymentCard') || 'Card'}
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
+
+      <Box sx={{ mt: 0.5, position: 'relative' }}>
         {hasItems ? (
           <Button
             variant="contained"

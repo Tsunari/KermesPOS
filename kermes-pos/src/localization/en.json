@@ -269,7 +269,10 @@
       "forSummary": "(for summary)",
       "onReceipt": "(on receipt)",
       "printReceiptToggle": "Print receipt",
-      "printReceiptToggleHint": "Toggle to control whether a receipt is printed"
+      "printReceiptToggleHint": "Toggle to control whether a receipt is printed",
+      "paymentMethod": "Payment",
+      "paymentCash": "Cash",
+      "paymentCard": "Card"
     },
     "product": {
       "categories": {

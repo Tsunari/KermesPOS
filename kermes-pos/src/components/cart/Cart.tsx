@@ -32,7 +32,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { getCategoryStyle } from '../../utils/categoryUtils';
 import { cartTransactionService } from '../../services/cartTransactionService';
 import { sessionService } from '../../services/sessionService';
-import { Badge } from '@mui/icons-material';
+import StorefrontIcon from '@mui/icons-material/Storefront';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ReceiptPreview from './receipt/ReceiptPreview';
 import { useVariableContext } from '../../context/VariableContext';
@@ -57,6 +57,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
   const [selectedPrinter, setSelectedPrinter] = useState<string>('');
   const [isPrinting, setIsPrinting] = useState(false);
   const { kursName, setKursName } = useVariableContext();
+  const [paymentMethod, setPaymentMethod] = React.useState<'cash' | 'card'>('cash');
   const [receiptKursName, setReceiptKursName] = useState('Münih Fatih Kermes');
   const [kursNameDraft, setKursNameDraft] = useState(kursName);
   const [receiptKursNameDraft, setReceiptKursNameDraft] = useState(receiptKursName);
@@ -123,8 +124,8 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
       await cartTransactionService.saveTransaction(
         cartItems, 
         total, 
-        'cash', // or use a real payment method
-        activeSession?.id // Link to active session if exists
+        paymentMethod,
+        activeSession?.id
       );
       setSuccessMessage(
         isReceiptPrintingEnabled
@@ -320,7 +321,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
               color="primary"
               sx={{ padding: '5px' }}
             >
-              <Badge />
+              <StorefrontIcon />
             </IconButton>
           </Tooltip>
           {devMode && (
@@ -431,6 +432,8 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
         isReceiptPrintingEnabled={isReceiptPrintingEnabled}
         onToggleReceiptPrinting={setIsReceiptPrintingEnabled}
         hotkey={configuredHotkey || 'Space'}
+        paymentMethod={paymentMethod}
+        onPaymentMethodChange={setPaymentMethod}
       />
 
       <Dialog
