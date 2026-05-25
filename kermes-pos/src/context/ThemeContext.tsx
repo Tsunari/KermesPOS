@@ -44,21 +44,37 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     palette: {
       mode: isDarkMode ? 'dark' : 'light',
       primary: {
-        main: '#1976d2',
+        main: isDarkMode ? '#4178f5' : '#1a6cf7',   // vivid royal blue — stronger in both modes
+        light: isDarkMode ? '#6b9afe' : '#5b8ffb',
+        dark: isDarkMode ? '#2456d0' : '#0e4fd4',
+        contrastText: '#ffffff',
       },
       secondary: {
-        main: '#dc004e',
+        main: '#f06292',
+        light: '#f48fb1',
+        dark: '#c2185b',
       },
       background: {
-        default: isDarkMode ? '#121212' : '#f5f5f5',
-        paper: isDarkMode ? '#1e1e1e' : '#ffffff',
+        // Dark: #121212 root → #272727 paper gives clear, visible depth separation
+        // Light: cool lavender-grey so white cards pop
+        default: isDarkMode ? '#121212' : '#f0f2f8',
+        paper:   isDarkMode ? '#272727' : '#ffffff',
       },
+      divider: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+    },
+    shape: {
+      borderRadius: 10,    // default border-radius for MUI components
+    },
+    typography: {
+      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+      fontWeightMedium: 500,
     },
     components: {
       MuiAppBar: {
         styleOverrides: {
           root: {
-            backgroundColor: isDarkMode ? '#1e1e1e' : '#1976d2',
+            // Sidebar AppBar — both modes handled via sx in App.tsx
+            backgroundColor: isDarkMode ? '#272727' : '#ffffff',
           },
         },
       },
@@ -66,6 +82,29 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         styleOverrides: {
           root: {
             backgroundImage: 'none',
+          },
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: 8,
+            textTransform: 'none',
+            fontWeight: 600,
+          },
+        },
+      },
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: 6,   // rectangular — square with soft corners
+          },
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            borderRadius: 12,
           },
         },
       },

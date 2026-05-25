@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, useTheme } from '@mui/material';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Product } from '../types/index';
@@ -47,7 +47,7 @@ const SortableProductCard = ({ product, ...props }: SortableProductCardProps) =>
     transition,
     opacity: isDragging ? 0.5 : 1,
     cursor: 'grab',
-    touchAction: 'none',
+    touchAction: 'pan-y' as const,
   };
 
   return (
@@ -93,9 +93,15 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   }, [products]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
         distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {

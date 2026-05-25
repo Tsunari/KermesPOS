@@ -109,6 +109,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <Card 
+      draggable={false}
+      onDragStart={(e) => e.preventDefault()}
       sx={{ 
         width: '100%', // fill grid cell
         height: height || 140, // use fixed height if provided
@@ -119,6 +121,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         borderColor: localStockStatus ? 'divider' : 'error.main',
         position: 'relative',
         bgcolor: categoryStyle?.bgColor,
+        userSelect: 'none',
         '&:hover': {
           borderColor: localStockStatus ? categoryStyle?.borderColor : 'error.main',
           boxShadow: 1,

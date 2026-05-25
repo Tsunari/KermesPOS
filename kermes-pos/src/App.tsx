@@ -12,6 +12,9 @@ import {
   SpeedDialIcon,
   SpeedDialAction,
   Slider,
+  Tooltip,
+  Divider,
+  Fade
 } from '@mui/material';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import BarChartIcon from '@mui/icons-material/BarChart';
@@ -219,7 +222,20 @@ function AppContent() {
   ];
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh', position: 'relative', bgcolor: 'background.default' }}>
+    <Box sx={{
+      display: 'flex',
+      height: '100vh',
+      position: 'relative',
+      // Dark: explicit deep shade so cards float above it
+      // Light: use the curated theme background (cool lavender-grey #f0f2f8)
+      // with a very subtle radial gradient for a premium feel
+      bgcolor: theme.palette.mode === 'dark'
+        ? 'background.default'          // #121212 — clearly behind #1e1e1e paper cards
+        : 'background.default',
+      ...(theme.palette.mode === 'light' && {
+        backgroundImage: 'radial-gradient(ellipse at 20% 10%, #e8edff 0%, transparent 55%), radial-gradient(ellipse at 80% 90%, #f3f0ff 0%, transparent 55%)',
+      }),
+    }}>
       <UpdateNotifier />
       {/* Animated AppBar */}
       <AppBar
@@ -290,68 +306,82 @@ function AppContent() {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', width: '100%' }}>
-            <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
-              <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
-                <Badge
-                  badgeContent={totalQuantity}
-                  color="error"
-                  sx={{
-                    '& .MuiBadge-badge': {
-                      minWidth: 22,
-                      height: 22,
-                      px: 1.2,
-                      fontWeight: 700,
-                      fontSize: 13,
-                      borderRadius: 8,
-                      background: theme => theme.palette.mode === 'dark'
-                        ? 'rgba(255,255,255,0.18)'
-                        : 'rgba(0,0,0,0.10)',
-                      color: theme => theme.palette.mode === 'dark'
-                        ? theme.palette.primary.light
-                        : theme.palette.primary.dark,
-                      boxShadow: '0 2px 8px 0 rgba(31,38,135,0.10)',
-                      border: theme => `1.5px solid ${theme.palette.divider}`,
-                      backdropFilter: 'blur(6px)',
-                      transition: 'background 0.2s, color 0.2s',
-                      transform: 'translate(25px, -20px)',
-                    },
-                  }}
-                  overlap="circular"
-                >
-                  <RestaurantMenuIcon />
-                </Badge>
-              </IconButton>
-            </Link>
-            <Link to="/statistics" style={{ color: 'inherit', textDecoration: 'none' }}>
-              <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
-                <BarChartIcon />
-              </IconButton>
-            </Link>
-            <Link to="/sessions" style={{ color: 'inherit', textDecoration: 'none' }}>
-              <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
-                <EventIcon />
-              </IconButton>
-            </Link>
-            <Link to="/sync" style={{ color: 'inherit', textDecoration: 'none' }}>
-              <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
-                <CloudUploadIcon />
-              </IconButton>
-            </Link>
-            <Link to="/products" style={{ color: 'inherit', textDecoration: 'none' }}>
-              <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
-                <Inventory />
-              </IconButton>
-            </Link>
-            <Link to="/settings" style={{ color: 'inherit', textDecoration: 'none' }}>
-              <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
-                <SettingsIcon />
-              </IconButton>
-            </Link>
-            <Link to="/import-export" style={{ color: 'inherit', textDecoration: 'none' }}>
-              <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 2, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
-                <ImportExportIcon />
-              </IconButton>
-            </Link>
+            <Tooltip title={t('app.appbar.pos') || 'POS Menu'} arrow placement="right">
+              <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 1, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
+                  <Badge
+                    badgeContent={totalQuantity}
+                    color="error"
+                    sx={{
+                      '& .MuiBadge-badge': {
+                        minWidth: 22,
+                        height: 22,
+                        px: 1.2,
+                        fontWeight: 700,
+                        fontSize: 13,
+                        borderRadius: 8,
+                        background: theme => theme.palette.mode === 'dark'
+                          ? 'rgba(255,255,255,0.18)'
+                          : 'rgba(0,0,0,0.10)',
+                        color: theme => theme.palette.mode === 'dark'
+                          ? theme.palette.primary.light
+                          : theme.palette.primary.dark,
+                        boxShadow: '0 2px 8px 0 rgba(31,38,135,0.10)',
+                        border: theme => `1.5px solid ${theme.palette.divider}`,
+                        backdropFilter: 'blur(6px)',
+                        transition: 'background 0.2s, color 0.2s',
+                        transform: 'translate(25px, -20px)',
+                      },
+                    }}
+                    overlap="circular"
+                  >
+                    <RestaurantMenuIcon />
+                  </Badge>
+                </IconButton>
+              </Link>
+            </Tooltip>
+            <Tooltip title={t('app.appbar.statistics') || 'Statistics'} arrow placement="right">
+              <Link to="/statistics" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 1, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
+                  <BarChartIcon />
+                </IconButton>
+              </Link>
+            </Tooltip>
+            <Tooltip title={t('app.appbar.sessions') || 'Sessions'} arrow placement="right">
+              <Link to="/sessions" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 1, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
+                  <EventIcon />
+                </IconButton>
+              </Link>
+            </Tooltip>
+            <Tooltip title={t('app.appbar.sync') || 'Cloud Sync'} arrow placement="right">
+              <Link to="/sync" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 1, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
+                  <CloudUploadIcon />
+                </IconButton>
+              </Link>
+            </Tooltip>
+            <Tooltip title={t('app.appbar.products') || 'Product Management'} arrow placement="right">
+              <Link to="/products" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 1, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
+                  <Inventory />
+                </IconButton>
+              </Link>
+            </Tooltip>
+            <Tooltip title={t('app.appbar.settings') || 'Settings'} arrow placement="right">
+              <Link to="/settings" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 1, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
+                  <SettingsIcon />
+                </IconButton>
+              </Link>
+            </Tooltip>
+            <Tooltip title={t('app.appbar.importExport') || 'Import/Export'} arrow placement="right">
+              <Link to="/import-export" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <IconButton color="primary" size="large" sx={{ mb: 1, borderRadius: 1, bgcolor: 'background.default', '&:hover': { bgcolor: 'primary.light', color: 'primary.main' } }}>
+                  <ImportExportIcon />
+                </IconButton>
+              </Link>
+            </Tooltip>
             <ThemeToggle />
           </Box>
         </Toolbar>
@@ -365,224 +395,280 @@ function AppContent() {
         transition: 'margin-left 0.6s cubic-bezier(0.77,0,0.175,1)',
         position: 'relative',
         background: 'transparent',
+        overflow: 'hidden', // Disable horizontal/vertical overflow scroll conflicts
       }}>
-        {isProductsPage && (
+        {isProductsPage ? (
+          // POS Screen: Side-by-side floating cards (Cart + ProductGrid)
+          <Box sx={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden' }}>
+            <Paper
+              elevation={0}
+              sx={{
+                width: '320px',
+                height: 'calc(100vh - 24px)',
+                borderRadius: 3,
+                m: 1.5,
+                mr: 0.75,
+                border: `1.5px solid ${theme.palette.divider}`,
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                bgcolor: 'background.paper',
+                boxShadow: theme.palette.mode === 'dark'
+                  ? '0 8px 32px 0 rgba(0,0,0,0.55)'
+                  : '0 4px 24px 0 rgba(0,0,0,0.11)',
+              }}
+            >
+              <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                <NumericKeypad
+                  onNumberClick={handleNumberClick}
+                  onClear={handleClearQuantity}
+                  selectedQuantity={selectedQuantity}
+                  separateAdditionEnabled={separateAdditionEnabled}
+                  onSeparateAdditionToggle={setSeparateAdditionEnabled}
+                  productTapSeparateEnabled={productTapSeparateEnabled}
+                  onProductTapSeparateToggle={setProductTapSeparateEnabled}
+                />
+              </Box>
+              <Box sx={{ p: 2, flex: 1, overflow: 'auto' }}>
+                <Cart devMode={devMode} />
+              </Box>
+            </Paper>
+
+            <Paper
+              elevation={0}
+              sx={{
+                flex: 1,
+                height: 'calc(100vh - 24px)',
+                borderRadius: 3,
+                m: 1.5,
+                ml: 0.75,
+                border: `1.5px solid ${theme.palette.divider}`,
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                bgcolor: 'background.paper',
+                boxShadow: theme.palette.mode === 'dark'
+                  ? '0 8px 32px 0 rgba(0,0,0,0.55)'
+                  : '0 4px 24px 0 rgba(0,0,0,0.11)',
+                p: 1.5,
+                position: 'relative',
+              }}
+            >
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <Box sx={{ height: '100%', overflow: 'hidden' }}>
+                      <ProductGrid
+                        products={products}
+                        onStockChange={handleStockChange}
+                        onEdit={handleEditProduct}
+                        onDelete={handleDeleteProduct}
+                        onProductClick={handleProductClick}
+                      />
+                      <SpeedDial
+                        ariaLabel="SpeedDial"
+                        sx={{
+                          position: 'absolute',
+                          bottom: 24,
+                          right: 24,
+                          zIndex: 1300,
+                          '& .MuiFab-root': {
+                            width: 48,
+                            height: 48,
+                            borderRadius: '16px',
+                            background: 'rgba(40,40,60,0.55)',
+                            backdropFilter: 'blur(8px)',
+                            boxShadow: '0 4px 16px 0 rgba(31, 38, 135, 0.18)',
+                            color: 'white',
+                            border: '1.5px solid rgba(255,255,255,0.18)',
+                            transition: 'background 0.2s, box-shadow 0.2s',
+                            '&:hover': {
+                              background: theme.palette.primary.main,
+                              color: theme.palette.primary.contrastText,
+                              boxShadow: '0 8px 24px 0 rgba(31, 38, 135, 0.22)',
+                            },
+                          },
+                        }}
+                        icon={<SpeedDialIcon openIcon={<MenuIcon />} />}
+                        onOpen={() => setSpeedDialOpen(true)}
+                        onClose={() => setSpeedDialOpen(false)}
+                        open={speedDialOpen}
+                      >
+                        {actions.map((action) => (
+                          <SpeedDialAction
+                            key={action.name}
+                            icon={action.icon}
+                            tooltipTitle={action.name}
+                            onClick={action.onClick}
+                            sx={{
+                              bgcolor: 'rgba(255,255,255,0.65)',
+                              color: theme.palette.primary.main,
+                              borderRadius: 2,
+                              boxShadow: '0 1px 4px 0 rgba(31, 38, 135, 0.10)',
+                              minWidth: 40,
+                              minHeight: 36,
+                              px: 1.5,
+                              fontWeight: 600,
+                              fontSize: 14,
+                              backdropFilter: 'blur(8px)',
+                              transition: 'background 0.2s, color 0.2s',
+                              '&:hover': {
+                                bgcolor: theme.palette.primary.light,
+                                color: theme.palette.primary.contrastText,
+                              },
+                            }}
+                          />
+                        ))}
+                        {fixedGridMode && (
+                          <SpeedDialAction
+                            key="slider-action"
+                            icon={
+                              <Box sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                height: 160,
+                                justifyContent: 'center',
+                                width: 56,
+                                overflow: 'visible',
+                                p: 0.5,
+                                mt: 1,
+                              }}>
+                                <Slider
+                                  orientation="vertical"
+                                  value={cardsPerRow}
+                                  min={2}
+                                  max={12}
+                                  step={1}
+                                  marks
+                                  valueLabelDisplay="auto"
+                                  onChange={(_, value) => setCardsPerRow(value as number)}
+                                  sx={{
+                                    height: 150,
+                                    mx: 0,
+                                    bgcolor: 'transparent',
+                                    '& .MuiSlider-thumb': {
+                                      bgcolor: 'secondary.main',
+                                      transition: 'background 0.2s',
+                                      '&:hover, &.Mui-focusVisible, &.Mui-active': {
+                                        boxShadow: `0 0 0 8px ${theme.palette.secondary.main}22`,
+                                        bgcolor: 'secondary.dark',
+                                      },
+                                    },
+                                    '& .MuiSlider-rail': {
+                                      bgcolor: theme.palette.divider,
+                                      opacity: 1,
+                                    },
+                                    '& .MuiSlider-track': {
+                                      bgcolor: 'secondary.main',
+                                    },
+                                  }}
+                                />
+                                <Box component="span" sx={{ fontWeight: 500, color: 'text.secondary', fontSize: 13, mt: 1 }}>
+                                  {cardsPerRow}x
+                                </Box>
+                              </Box>
+                            }
+                            tooltipTitle={t('products.cards_per_row') || 'Cards per row'}
+                            tooltipOpen={false}
+                            onClick={e => e.stopPropagation()}
+                            sx={{
+                              bgcolor: 'background.paper',
+                              color: theme.palette.primary.main,
+                              borderRadius: 2,
+                              minWidth: 56,
+                              minHeight: 180,
+                              border: `1.5px solid ${theme.palette.divider}`,
+                              display: 'flex',
+                              alignItems: 'center',
+                              pointerEvents: 'auto',
+                              overflow: 'visible',
+                              p: 0,
+                              '&:hover': {
+                                bgcolor: 'background.paper',
+                              },
+                              boxShadow: 'none',
+                              '&:hover, &:active, &.Mui-focusVisible': {
+                                bgcolor: 'background.paper',
+                                boxShadow: 'none',
+                              },
+                              '& .MuiTouchRipple-root': {
+                                display: 'none',
+                              },
+                            }}
+                          />
+                        )}
+                      </SpeedDial>
+                    </Box>
+                  }
+                />
+              </Routes>
+            </Paper>
+          </Box>
+        ) : (
+          // Other Screens (Statistics, Settings, Sessions, etc.): Single large floating card
           <Paper
-            elevation={3}
+            elevation={0}
             sx={{
-              width: '300px',
-              height: '100%',
-              borderRadius: 0,
+              flex: 1,
+              height: 'calc(100vh - 24px)',
+              borderRadius: 3,
+              m: 1.5,
+              border: `1.5px solid ${theme.palette.divider}`,
               overflow: 'auto',
-              display: 'flex',
-              flexDirection: 'column',
+              bgcolor: 'background.paper',
+              boxShadow: theme.palette.mode === 'dark' ? '0 4px 24px 0 rgba(0,0,0,0.4)' : '0 4px 20px 0 rgba(0,0,0,0.06)',
+              p: 3,
+              position: 'relative',
+              '&::-webkit-scrollbar': {
+                width: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: 'transparent',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                borderRadius: '4px',
+              },
             }}
           >
-            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-              <NumericKeypad
-                onNumberClick={handleNumberClick}
-                onClear={handleClearQuantity}
-                selectedQuantity={selectedQuantity}
-                separateAdditionEnabled={separateAdditionEnabled}
-                onSeparateAdditionToggle={setSeparateAdditionEnabled}
-                productTapSeparateEnabled={productTapSeparateEnabled}
-                onProductTapSeparateToggle={setProductTapSeparateEnabled}
+            <Routes>
+              <Route
+                path="/statistics"
+                element={<StatisticsPage products={products} devMode={devMode} />}
               />
-            </Box>
-            <Box sx={{ p: 2, flex: 1, overflow: 'auto' }}>
-              <Cart devMode={devMode} />
-            </Box>
+              <Route
+                path="/sessions"
+                element={<SessionsPage />}
+              />
+              <Route
+                path="/sync"
+                element={<SyncPage />}
+              />
+              <Route
+                path="/import-export"
+                element={<ImportExport devMode={devMode} />}
+              />
+              <Route
+                path="/settings"
+                element={<SettingsPage devMode={devMode} setDevMode={setDevMode} />}
+              />
+              <Route
+                path="/settings/menu"
+                element={<MenuSettings />}
+              />
+              <Route
+                path="/settings/appearance"
+                element={<AppearanceSettings />}
+              />
+              <Route
+                path="/products"
+                element={<ProductManagementPage />}
+              />
+            </Routes>
           </Paper>
         )}
-        <Box sx={{ flex: 1, overflow: 'auto', p: 2, position: 'relative' }}>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <Box sx={{ p: 2 }}>
-                  <ProductGrid
-                    products={products}
-                    onStockChange={handleStockChange}
-                    onEdit={handleEditProduct}
-                    onDelete={handleDeleteProduct}
-                    onProductClick={handleProductClick}
-                  />
-                  <SpeedDial
-                    ariaLabel="SpeedDial"
-                    sx={{
-                      position: 'fixed',
-                      bottom: 24,
-                      right: 24,
-                      zIndex: 1300,
-                      '& .MuiFab-root': {
-                        width: 48,
-                        height: 48,
-                        borderRadius: '16px',
-                        background: 'rgba(40,40,60,0.55)',
-                        backdropFilter: 'blur(8px)',
-                        boxShadow: '0 4px 16px 0 rgba(31, 38, 135, 0.18)',
-                        color: 'white',
-                        border: '1.5px solid rgba(255,255,255,0.18)',
-                        transition: 'background 0.2s, box-shadow 0.2s',
-                        '&:hover': {
-                          background: theme.palette.primary.main,
-                          color: theme.palette.primary.contrastText,
-                          boxShadow: '0 8px 24px 0 rgba(31, 38, 135, 0.22)',
-                        },
-                      },
-                    }}
-                    icon={<SpeedDialIcon openIcon={<MenuIcon />} />}
-                    onOpen={() => setSpeedDialOpen(true)}
-                    onClose={() => setSpeedDialOpen(false)}
-                    open={speedDialOpen}
-                  >
-                    {actions.map((action, idx) => (
-                      <SpeedDialAction
-                        key={action.name}
-                        icon={action.icon}
-                        tooltipTitle={action.name}
-                        onClick={action.onClick}
-                        sx={{
-                          bgcolor: 'rgba(255,255,255,0.65)',
-                          color: theme.palette.primary.main,
-                          borderRadius: 2,
-                          boxShadow: '0 1px 4px 0 rgba(31, 38, 135, 0.10)',
-                          minWidth: 40,
-                          minHeight: 36,
-                          px: 1.5,
-                          fontWeight: 600,
-                          fontSize: 14,
-                          backdropFilter: 'blur(8px)',
-                          transition: 'background 0.2s, color 0.2s',
-                          '&:hover': {
-                            bgcolor: theme.palette.primary.light,
-                            color: theme.palette.primary.contrastText,
-                          },
-                        }}
-                      />
-                    ))}
-                    {/* Render slider as a custom SpeedDialAction inside the popover */}
-                    {fixedGridMode && (
-                      <SpeedDialAction
-                        key="slider-action"
-                        icon={
-                          <Box sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            height: 160,
-                            justifyContent: 'center',
-                            width: 56,
-                            overflow: 'visible',
-                            p: 0.5,
-                            mt: 1,
-                          }}>
-                            <Slider
-                              orientation="vertical"
-                              value={cardsPerRow}
-                              min={2}
-                              max={12}
-                              step={1}
-                              marks
-                              valueLabelDisplay="auto"
-                              onChange={(_, value) => setCardsPerRow(value as number)}
-                              sx={{
-                                height: 150,
-                                mx: 0,
-                                bgcolor: 'transparent',
-                                '& .MuiSlider-thumb': {
-                                  bgcolor: 'secondary.main',
-                                  transition: 'background 0.2s',
-                                  '&:hover, &.Mui-focusVisible, &.Mui-active': {
-                                    boxShadow: `0 0 0 8px ${theme.palette.secondary.main}22`,
-                                    bgcolor: 'secondary.dark',
-                                  },
-                                },
-                                '& .MuiSlider-rail': {
-                                  bgcolor: theme.palette.divider,
-                                  opacity: 1,
-                                },
-                                '& .MuiSlider-track': {
-                                  bgcolor: 'secondary.main',
-                                },
-                                '&:hover': {
-                                  bgcolor: 'transparent',
-                                },
-                              }}
-                            />
-                            <Box component="span" sx={{ fontWeight: 500, color: 'text.secondary', fontSize: 13, mt: 1 }}>
-                              {cardsPerRow}x
-                            </Box>
-                          </Box>
-                        }
-                        tooltipTitle={t('products.cards_per_row') || 'Cards per row'}
-                        tooltipOpen={false}
-                        onClick={e => e.stopPropagation()}
-                        sx={{
-                          bgcolor: 'background.paper',
-                          color: theme.palette.primary.main,
-                          borderRadius: 2,
-                          // boxShadow: '0 1px 4px 0 rgba(31, 38, 135, 0.10)',
-                          minWidth: 56,
-                          minHeight: 180,
-                          border: `1.5px solid ${theme.palette.divider}`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          pointerEvents: 'auto',
-                          overflow: 'visible',
-                          p: 0,
-                          '&:hover': {
-                            bgcolor: 'background.paper',
-                          },
-                          boxShadow: 'none', // Remove fill/highlight on click/focus/active
-                          '&:hover, &:active, &.Mui-focusVisible': {
-                            bgcolor: 'background.paper',
-                            boxShadow: 'none', // Prevent fill/highlight
-                          },
-                          '& .MuiTouchRipple-root': {
-                            display: 'none', // Disable ripple effect
-                          },
-                        }}
-                      />
-                    )}
-                  </SpeedDial>
-                </Box>
-              }
-            />
-            <Route
-              path="/statistics"
-              element={<StatisticsPage products={products} devMode={devMode} />}
-            />
-            <Route
-              path="/sessions"
-              element={<SessionsPage />}
-            />
-            <Route
-              path="/sync"
-              element={<SyncPage />}
-            />
-            <Route
-              path="/import-export"
-              element={<ImportExport devMode={devMode} />}
-            />
-            <Route
-              path="/settings"
-              element={<SettingsPage devMode={devMode} setDevMode={setDevMode} />}
-            />
-            <Route
-              path="/settings/menu"
-              element={<MenuSettings />}
-            />
-            <Route
-              path="/settings/appearance"
-              element={<AppearanceSettings />}
-            />
-            <Route
-              path="/products"
-              element={<ProductManagementPage />}
-            />
-          </Routes>
-        </Box>
       </Box>
       <ProductDialog
         open={isAddProductOpen}
