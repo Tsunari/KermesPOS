@@ -285,7 +285,15 @@
       "tooltipDeleteInstant": "Anında sil",
       "tooltipVisibilityShow": "Izgarada göster",
       "tooltipVisibilityHide": "Izgaradan gizle",
-      "tooltipVisibilityMulti": "Toplu değiştirmek için basılı tutup sürükleyin"
+      "tooltipVisibilityMulti": "Toplu değiştirmek için basılı tutup sürükleyin",
+      "dragToReorder": "Yeniden sıralamak için sürükleyin",
+      "deselectAllCategory": "Kategori seçimini kaldır",
+      "selectAllCategory": "Kategoriyi seç",
+      "selectedCount": "{count} seçildi",
+      "makeVisible": "Göster",
+      "hideSelected": "Gizle",
+      "deleteSelected": "Sil",
+      "clearSelection": "Temizle"
     },
     "sessions": {
       "title": "Oturumlar",

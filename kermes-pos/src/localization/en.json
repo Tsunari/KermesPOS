@@ -284,7 +284,15 @@
       "tooltipDeleteInstant": "Instant delete",
       "tooltipVisibilityShow": "Show in grid",
       "tooltipVisibilityHide": "Hide from grid",
-      "tooltipVisibilityMulti": "Hold and drag to multi-toggle"
+      "tooltipVisibilityMulti": "Hold and drag to multi-toggle",
+      "dragToReorder": "Drag to reorder",
+      "deselectAllCategory": "Deselect All Category",
+      "selectAllCategory": "Select All Category",
+      "selectedCount": "{count} Selected",
+      "makeVisible": "Show",
+      "hideSelected": "Hide",
+      "deleteSelected": "Delete",
+      "clearSelection": "Clear"
     },
     "devMode": {
       "enableToUse": "Enable Dev Mode to use this feature",

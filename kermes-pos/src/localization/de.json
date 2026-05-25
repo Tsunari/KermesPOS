@@ -285,7 +285,15 @@
       "tooltipDeleteInstant": "Sofort löschen",
       "tooltipVisibilityShow": "Im Raster anzeigen",
       "tooltipVisibilityHide": "Im Raster ausblenden",
-      "tooltipVisibilityMulti": "Halten und ziehen zum Mehrfach-Umschalten"
+      "tooltipVisibilityMulti": "Halten und ziehen zum Mehrfach-Umschalten",
+      "dragToReorder": "Zum Neuordnen ziehen",
+      "deselectAllCategory": "Kategorieauswahl aufheben",
+      "selectAllCategory": "Kategorie auswählen",
+      "selectedCount": "{count} ausgewählt",
+      "makeVisible": "Anzeigen",
+      "hideSelected": "Ausblenden",
+      "deleteSelected": "Löschen",
+      "clearSelection": "Leeren"
     },
     "sessions": {
       "title": "Sitzungen",
