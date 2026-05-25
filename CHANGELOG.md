@@ -5,6 +5,20 @@ All notable changes to the Kermes project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.18.0] - 25-05-2026
+### Global
+- Kermes menu small UI adjustments  --menu
+- Create language context and hooks for multilingual support  --menu
+- Implement order page with real-time updates and order management  --menu
+- Add German localization for menu app  --menu
+- Add English localization for menu app  --menu
+- Add Turkish localization for menu app  --menu
+
+### Kermes POS
+#### Added
+- Add autosync functionality for products to Firestore
+
+
 ## [1.17.0] - 25-05-2026
 ### Global
 - Document custom commit slash command in AGENTS.md --chore
