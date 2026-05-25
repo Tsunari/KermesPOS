@@ -5,6 +5,24 @@ All notable changes to the Kermes project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.0] - 25-05-2026
+### Global
+- Suspend/activate account toggles and search/filters in management  --admin
+- Simplified session locks and permanent completion actions  --admin
+- Global eslint warning overrides for unused elements and explicit any --change
+- Active kermes name toggle  --menu --admin
+
+### Kermes POS
+#### Added
+- Payment method functionality
+- Implement product management with drag-and-drop ordering and bulk visibility toggling
+#### Changed
+- Distinguish lock and complete sync errors and prompt local complete
+- Persist sync page session selection dropdown
+#### Fixed
+- Timezone-safe calendar date splits for sessions and transactions --fix
+
+
 ## [1.14.0] - 24-05-2026
 ### Global
 - Refactoring and loading  --menu
