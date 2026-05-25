@@ -14,11 +14,13 @@ import {
   Slider,
   Tooltip,
   Divider,
-  Fade
+  Fade,
+  Popover
 } from '@mui/material';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -27,6 +29,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import ViewComfyIcon from '@mui/icons-material/ViewComfy';
 import EventIcon from '@mui/icons-material/Event';
+import ModernSwitch from './components/ui/ModernSwitch';
 import Cart from './components/cart/Cart';
 import ProductDialog from './components/ProductDialog';
 import ProductGrid from './components/ProductGrid';
@@ -200,26 +203,12 @@ function AppContent() {
     }
   };
 
-  // Add grid mode toggle and slider actions for SpeedDial
-  const [speedDialOpen, setSpeedDialOpen] = useState(false);
+  // Premium Slide-Out Floating Action Dock State
+  const [dockOpen, setDockOpen] = useState(false);
 
   const handleToggleGridMode = () => {
     setFixedGridMode(!fixedGridMode);
   };
-
-  const actions = [
-    { icon: <AddIcon />, name: t("products.add"), onClick: handleAddProduct },
-    {
-      icon: isAppBarVisible ? <VisibilityOffIcon /> : <VisibilityIcon />,
-      name: isAppBarVisible ? t("common.hideAppBar") : t("common.showAppBar"),
-      onClick: () => setIsAppBarVisible(!isAppBarVisible)
-    },
-    {
-      icon: fixedGridMode ? <ViewModuleIcon /> : <ViewComfyIcon />, // improved icons
-      name: fixedGridMode ? t('products.grid_fixed') : t('products.grid_responsive'),
-      onClick: handleToggleGridMode,
-    },
-  ];
 
   return (
     <Box sx={{
@@ -229,11 +218,9 @@ function AppContent() {
       // Dark: explicit deep shade so cards float above it
       // Light: use the curated theme background (cool lavender-grey #f0f2f8)
       // with a very subtle radial gradient for a premium feel
-      bgcolor: theme.palette.mode === 'dark'
-        ? 'background.default'          // #121212 — clearly behind #1e1e1e paper cards
-        : 'background.default',
+      bgcolor: 'background.default',
       ...(theme.palette.mode === 'light' && {
-        backgroundImage: 'radial-gradient(ellipse at 20% 10%, #e8edff 0%, transparent 55%), radial-gradient(ellipse at 80% 90%, #f3f0ff 0%, transparent 55%)',
+        backgroundImage: 'radial-gradient(ellipse at 20% 10%, #eef2f6 0%, transparent 60%), radial-gradient(ellipse at 80% 90%, #f8fafc 0%, transparent 60%)',
       }),
     }}>
       <UpdateNotifier />
@@ -466,140 +453,184 @@ function AppContent() {
                         onDelete={handleDeleteProduct}
                         onProductClick={handleProductClick}
                       />
-                      <SpeedDial
-                        ariaLabel="SpeedDial"
+                      <Box
                         sx={{
                           position: 'absolute',
                           bottom: 24,
                           right: 24,
-                          zIndex: 1300,
-                          '& .MuiFab-root': {
-                            width: 48,
-                            height: 48,
-                            borderRadius: '16px',
-                            background: 'rgba(40,40,60,0.55)',
-                            backdropFilter: 'blur(8px)',
-                            boxShadow: '0 4px 16px 0 rgba(31, 38, 135, 0.18)',
-                            color: 'white',
-                            border: '1.5px solid rgba(255,255,255,0.18)',
-                            transition: 'background 0.2s, box-shadow 0.2s',
-                            '&:hover': {
-                              background: theme.palette.primary.main,
-                              color: theme.palette.primary.contrastText,
-                              boxShadow: '0 8px 24px 0 rgba(31, 38, 135, 0.22)',
-                            },
-                          },
+                          zIndex: 1200,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: dockOpen ? 1.5 : 0,
+                          height: 48, // Lock height perfectly in both states
+                          px: dockOpen ? 1.8 : 0.8,
+                          borderRadius: '14px',
+                          bgcolor: theme.palette.mode === 'dark' ? 'rgba(30,30,30,0.85)' : 'rgba(255,255,255,0.85)',
+                          backdropFilter: 'blur(16px)',
+                          border: `1.5px solid ${theme.palette.divider}`,
+                          boxShadow: theme.palette.mode === 'dark'
+                            ? '0 8px 32px 0 rgba(0,0,0,0.4)'
+                            : '0 8px 24px 0 rgba(0,0,0,0.08)',
+                          transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1)',
+                          width: 'auto',
+                          overflow: 'hidden',
                         }}
-                        icon={<SpeedDialIcon openIcon={<MenuIcon />} />}
-                        onOpen={() => setSpeedDialOpen(true)}
-                        onClose={() => setSpeedDialOpen(false)}
-                        open={speedDialOpen}
                       >
-                        {actions.map((action) => (
-                          <SpeedDialAction
-                            key={action.name}
-                            icon={action.icon}
-                            tooltipTitle={action.name}
-                            onClick={action.onClick}
-                            sx={{
-                              bgcolor: 'rgba(255,255,255,0.65)',
-                              color: theme.palette.primary.main,
-                              borderRadius: 2,
-                              boxShadow: '0 1px 4px 0 rgba(31, 38, 135, 0.10)',
-                              minWidth: 40,
-                              minHeight: 36,
-                              px: 1.5,
-                              fontWeight: 600,
-                              fontSize: 14,
-                              backdropFilter: 'blur(8px)',
-                              transition: 'background 0.2s, color 0.2s',
-                              '&:hover': {
-                                bgcolor: theme.palette.primary.light,
-                                color: theme.palette.primary.contrastText,
-                              },
-                            }}
-                          />
-                        ))}
-                        {fixedGridMode && (
-                          <SpeedDialAction
-                            key="slider-action"
-                            icon={
-                              <Box sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                height: 160,
-                                justifyContent: 'center',
-                                width: 56,
-                                overflow: 'visible',
-                                p: 0.5,
-                                mt: 1,
-                              }}>
-                                <Slider
-                                  orientation="vertical"
-                                  value={cardsPerRow}
-                                  min={2}
-                                  max={12}
-                                  step={1}
-                                  marks
-                                  valueLabelDisplay="auto"
-                                  onChange={(_, value) => setCardsPerRow(value as number)}
+                        {/* Smooth Transition Wrapper for inner controls */}
+                        <Box sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1.5,
+                          width: dockOpen ? 'auto' : 0,
+                          opacity: dockOpen ? 1 : 0,
+                          overflow: 'hidden',
+                          transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                          pointerEvents: dockOpen ? 'auto' : 'none',
+                        }}>
+                          {/* Action: Add Product */}
+                          <Tooltip title={t("products.add") || "Add Product"}>
+                            <IconButton
+                              onClick={handleAddProduct}
+                              color="primary"
+                              size="small"
+                              sx={{
+                                borderRadius: '8px',
+                                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                                p: 1,
+                                '&:hover': {
+                                  bgcolor: 'primary.main',
+                                  color: 'primary.contrastText',
+                                }
+                              }}
+                            >
+                              <AddIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+
+                          {/* Action: Toggle Left Sidebar */}
+                          <Tooltip title={isAppBarVisible ? t("common.hideAppBar") : t("common.showAppBar")}>
+                            <IconButton
+                              onClick={() => setIsAppBarVisible(!isAppBarVisible)}
+                              color="primary"
+                              size="small"
+                              sx={{
+                                borderRadius: '8px',
+                                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                                p: 1,
+                                '&:hover': {
+                                  bgcolor: 'primary.main',
+                                  color: 'primary.contrastText',
+                                }
+                              }}
+                            >
+                              {isAppBarVisible ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                            </IconButton>
+                          </Tooltip>
+
+                          <Divider orientation="vertical" flexItem />
+
+                          {/* Grid Mode Selection */}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Tooltip title={fixedGridMode ? t('products.grid_fixed') : t('products.grid_responsive')}>
+                              <IconButton
+                                onClick={handleToggleGridMode}
+                                color={fixedGridMode ? 'primary' : 'default'}
+                                size="small"
+                                sx={{
+                                  borderRadius: '8px',
+                                  bgcolor: fixedGridMode 
+                                    ? 'primary.light' 
+                                    : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
+                                  p: 1,
+                                  color: fixedGridMode ? 'primary.main' : 'text.secondary',
+                                  '&:hover': {
+                                    bgcolor: fixedGridMode ? 'primary.main' : 'action.hover',
+                                    color: fixedGridMode ? 'white' : 'text.primary',
+                                  }
+                                }}
+                              >
+                                <ViewModuleIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: 12 }}>
+                              {t('products.grid_fixed_toggle') || 'Fixed'}
+                            </Typography>
+                            
+                            <ModernSwitch
+                              checked={fixedGridMode}
+                              onChange={handleToggleGridMode}
+                              size="small"
+                            />
+                          </Box>
+
+                          {/* Cards per row adjustments */}
+                          {fixedGridMode && (
+                            <>
+                              <Divider orientation="vertical" flexItem />
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <IconButton
+                                  size="small"
+                                  disabled={cardsPerRow <= 2}
+                                  onClick={() => setCardsPerRow(Math.max(2, cardsPerRow - 1))}
                                   sx={{
-                                    height: 150,
-                                    mx: 0,
-                                    bgcolor: 'transparent',
-                                    '& .MuiSlider-thumb': {
-                                      bgcolor: 'secondary.main',
-                                      transition: 'background 0.2s',
-                                      '&:hover, &.Mui-focusVisible, &.Mui-active': {
-                                        boxShadow: `0 0 0 8px ${theme.palette.secondary.main}22`,
-                                        bgcolor: 'secondary.dark',
-                                      },
-                                    },
-                                    '& .MuiSlider-rail': {
-                                      bgcolor: theme.palette.divider,
-                                      opacity: 1,
-                                    },
-                                    '& .MuiSlider-track': {
-                                      bgcolor: 'secondary.main',
-                                    },
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                    borderRadius: '6px',
+                                    p: 0.5,
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
+                                    '&:hover': { bgcolor: 'action.hover' }
                                   }}
-                                />
-                                <Box component="span" sx={{ fontWeight: 500, color: 'text.secondary', fontSize: 13, mt: 1 }}>
+                                >
+                                  <RemoveIcon fontSize="small" />
+                                </IconButton>
+                                <Typography variant="body2" sx={{ fontWeight: 700, minWidth: 28, textAlign: 'center', color: 'primary.main', fontSize: 13 }}>
                                   {cardsPerRow}x
-                                </Box>
+                                </Typography>
+                                <IconButton
+                                  size="small"
+                                  disabled={cardsPerRow >= 12}
+                                  onClick={() => setCardsPerRow(Math.min(12, cardsPerRow + 1))}
+                                  sx={{
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                    borderRadius: '6px',
+                                    p: 0.5,
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
+                                    '&:hover': { bgcolor: 'action.hover' }
+                                  }}
+                                >
+                                  <AddIcon fontSize="small" />
+                                </IconButton>
                               </Box>
-                            }
-                            tooltipTitle={t('products.cards_per_row') || 'Cards per row'}
-                            tooltipOpen={false}
-                            onClick={e => e.stopPropagation()}
+                            </>
+                          )}
+                          
+                          <Divider orientation="vertical" flexItem />
+                        </Box>
+
+                        {/* Open/Close Settings Trigger */}
+                        <Tooltip title={dockOpen ? "Close Dock" : "Open Dock Settings"}>
+                          <IconButton
+                            onClick={() => setDockOpen(!dockOpen)}
+                            color={dockOpen ? 'primary' : 'default'}
+                            size="small"
                             sx={{
-                              bgcolor: 'background.paper',
-                              color: theme.palette.primary.main,
-                              borderRadius: 2,
-                              minWidth: 56,
-                              minHeight: 180,
-                              border: `1.5px solid ${theme.palette.divider}`,
-                              display: 'flex',
-                              alignItems: 'center',
-                              pointerEvents: 'auto',
-                              overflow: 'visible',
-                              p: 0,
+                              borderRadius: '8px',
+                              bgcolor: dockOpen ? 'primary.light' : 'transparent',
+                              p: 1,
+                              transition: 'transform 0.4s ease',
+                              transform: dockOpen ? 'rotate(90deg)' : 'none',
                               '&:hover': {
-                                bgcolor: 'background.paper',
-                              },
-                              boxShadow: 'none',
-                              '&:hover, &:active, &.Mui-focusVisible': {
-                                bgcolor: 'background.paper',
-                                boxShadow: 'none',
-                              },
-                              '& .MuiTouchRipple-root': {
-                                display: 'none',
-                              },
+                                bgcolor: dockOpen ? 'primary.main' : 'action.hover',
+                                color: dockOpen ? 'white' : 'primary.main',
+                              }
                             }}
-                          />
-                        )}
-                      </SpeedDial>
+                          >
+                            <SettingsIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </Box>
                   }
                 />

@@ -44,9 +44,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     palette: {
       mode: isDarkMode ? 'dark' : 'light',
       primary: {
-        main: isDarkMode ? '#4178f5' : '#1a6cf7',   // vivid royal blue — stronger in both modes
-        light: isDarkMode ? '#6b9afe' : '#5b8ffb',
-        dark: isDarkMode ? '#2456d0' : '#0e4fd4',
+        main: isDarkMode ? '#4178f5' : '#2563eb',   // vivid modern royal/cobalt blue
+        light: isDarkMode ? '#6b9afe' : '#eff6ff',  // modern soft blue background tint
+        dark: isDarkMode ? '#2456d0' : '#1d4ed8',
         contrastText: '#ffffff',
       },
       secondary: {
@@ -55,12 +55,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         dark: '#c2185b',
       },
       background: {
-        // Dark: #121212 root → #1e1e1e paper #272727 before
-        // Light: cool lavender-grey so white cards pop
-        default: isDarkMode ? '#121212' : '#f0f2f8',
-        paper:   isDarkMode ? '#1e1e1e' : '#ffffff',
+        // Dark: #121212 root → #1e1e1e paper
+        // Light: sophisticated calming soft slate-zinc scheme (no blinding pure white paper backgrounds!)
+        default: isDarkMode ? '#121212' : '#e4e7eb',
+        paper:   isDarkMode ? '#1e1e1e' : '#f4f5f7',
       },
-      divider: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+      text: {
+        primary: isDarkMode ? 'rgba(255,255,255,0.95)' : 'rgba(15,23,42,0.9)', // slate-900
+        secondary: isDarkMode ? 'rgba(255,255,255,0.65)' : 'rgba(71,85,105,0.8)', // slate-600
+      },
+      divider: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.06)',
     },
     shape: {
       borderRadius: 10,    // default border-radius for MUI components

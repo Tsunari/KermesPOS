@@ -119,7 +119,8 @@
     "searchPlaceholder": "Search products...",
     "grid_fixed": "Grid fixed",
     "grid_responsive": "Grid responsive",
-    "cards_per_row": "Cards per row"
+    "cards_per_row": "Cards per row",
+    "grid_fixed_toggle": "Grid fixed toggle"
   },
   "sales": {
     "title": "Sales",
@@ -393,6 +394,15 @@
       "all_synced_success": "All transaction data in this session is already fully synchronized and up to date with the cloud database.",
       "start_sync_with_count": "Start Cloud Synchronization ({count} New Transactions)",
       "resync": "Resynchronize Cloud Data"
+    },
+    "appbar": {
+      "pos": "Pos",
+      "statistics": "Statistics",
+      "sessions": "Sessions",
+      "sync": "Sync",
+      "products": "Products",
+      "settings": "Settings",
+      "importExport": "Import Export"
     }
   },
   "Error loading sessions. Check browser console.": "Error loading sessions. Check browser console.",

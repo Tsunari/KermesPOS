@@ -127,23 +127,23 @@ const ProductCard: React.FC<ProductCardProps> = ({
         borderColor: localStockStatus 
           ? (theme.palette.mode === 'dark' 
               ? alpha(categoryStyle?.borderColor || '#ffffff', 0.22) 
-              : 'divider')
+              : alpha(categoryStyle?.borderColor || 'rgba(0,0,0,0.12)', 0.16))
           : 'error.main',
         position: 'relative',
         bgcolor: theme.palette.mode === 'dark'
           ? alpha(categoryStyle?.borderColor || '#ffffff', 0.08)
-          : categoryStyle?.bgColor,
+          : '#ffffff',
         userSelect: 'none',
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         boxShadow: theme.palette.mode === 'dark' 
           ? '0 4px 12px 0 rgba(0,0,0,0.18)' 
-          : '1',
+          : '0 2px 6px 0 rgba(15,23,42,0.04)',
         '&:hover': {
           borderColor: localStockStatus ? categoryStyle?.borderColor : 'error.main',
           boxShadow: theme.palette.mode === 'dark' 
             ? '0 6px 20px 0 rgba(0,0,0,0.35)' 
-            : '1',
-          transform: 'translateY(-2px)',
+            : '0 6px 15px 0 rgba(15,23,42,0.08)',
+          transform: 'translateY(-1px)',
         },
         '&::after': !localStockStatus ? {
           content: '""',
