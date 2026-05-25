@@ -55,10 +55,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         dark: '#c2185b',
       },
       background: {
-        // Dark: #121212 root → #272727 paper gives clear, visible depth separation
+        // Dark: #121212 root → #1e1e1e paper #272727 before
         // Light: cool lavender-grey so white cards pop
         default: isDarkMode ? '#121212' : '#f0f2f8',
-        paper:   isDarkMode ? '#272727' : '#ffffff',
+        paper:   isDarkMode ? '#1e1e1e' : '#ffffff',
       },
       divider: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
     },

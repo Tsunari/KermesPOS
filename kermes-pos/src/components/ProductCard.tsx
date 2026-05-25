@@ -10,6 +10,7 @@ import {
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
+import { useTheme, alpha } from '@mui/material/styles';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Product } from '../types/index';
 import { useDispatch } from 'react-redux';
@@ -42,6 +43,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   categoryStyle,
   height,
 }) => {
+  const theme = useTheme();
   const dispatch = useDispatch();
   const { useDoubleClick } = useSettings();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -118,13 +120,26 @@ const ProductCard: React.FC<ProductCardProps> = ({
         flexDirection: 'column',
         cursor: localStockStatus ? 'pointer' : 'not-allowed',
         border: '1px solid',
-        borderColor: localStockStatus ? 'divider' : 'error.main',
+        borderColor: localStockStatus 
+          ? (theme.palette.mode === 'dark' 
+              ? alpha(categoryStyle?.borderColor || '#ffffff', 0.22) 
+              : 'divider')
+          : 'error.main',
         position: 'relative',
-        bgcolor: categoryStyle?.bgColor,
+        bgcolor: theme.palette.mode === 'dark'
+          ? alpha(categoryStyle?.borderColor || '#ffffff', 0.08)
+          : categoryStyle?.bgColor,
         userSelect: 'none',
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: theme.palette.mode === 'dark' 
+          ? '0 4px 12px 0 rgba(0,0,0,0.18)' 
+          : '1',
         '&:hover': {
           borderColor: localStockStatus ? categoryStyle?.borderColor : 'error.main',
-          boxShadow: 1,
+          boxShadow: theme.palette.mode === 'dark' 
+            ? '0 6px 20px 0 rgba(0,0,0,0.35)' 
+            : '1',
+          transform: 'translateY(-2px)',
         },
         '&::after': !localStockStatus ? {
           content: '""',

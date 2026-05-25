@@ -77,7 +77,7 @@ const CartFooter: React.FC<CartFooterProps> = ({
       </Box>
 
       {/* Payment Method Toggle */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5, mt: 0.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5, mt: 1.5 }}>
         <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', flexShrink: 0, fontSize: 12 }}>
           {t('app.cart.paymentMethod') || 'Payment'}
         </Typography>

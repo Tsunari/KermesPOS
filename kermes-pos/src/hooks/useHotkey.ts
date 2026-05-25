@@ -56,6 +56,7 @@ export default function useHotkey(hotkey: string | undefined | null, handler: (e
       if (!target) return;
       if (matches(e, target)) {
         e.preventDefault();
+        e.stopPropagation();
         handler(e);
       }
     };
