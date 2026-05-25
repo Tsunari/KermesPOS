@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { LanguageProvider } from "./hooks/useLanguage";
 // import BottomNav from './components/BottomNav';
 
 const geistSans = Geist({
@@ -30,7 +31,9 @@ export default function RootLayout({
           <div className="w-full h-full bg-white flex flex-col xl:max-w-md xl:rounded-3xl xl:shadow-xl xl:overflow-hidden xl:h-[850px] xl:w-[400px]">
             {/* All page content should be placed inside <main> to ensure consistent layout */}
             <main className="flex-1 w-full overflow-y-auto no-scrollbar">
-              {children}
+              <LanguageProvider>
+                {children}
+              </LanguageProvider>
             </main>
           </div>
         </div>

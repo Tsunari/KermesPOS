@@ -27,11 +27,16 @@ import LockOpenIcon from '@mui/icons-material/LockOpen';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import StorageIcon from '@mui/icons-material/Storage';
 import LogoutIcon from '@mui/icons-material/Logout';
+import WifiTetheringIcon from '@mui/icons-material/WifiTethering';
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import { useLanguage } from '../context/LanguageContext';
+import ModernSwitch from './ui/ModernSwitch';
 import { Session } from '../types/session';
 import { sessionService } from '../services/sessionService';
 import { CartTransaction, cartTransactionService } from '../services/cartTransactionService';
 import { firestoreSyncService, PlaceProfile } from '../services/firestoreSyncService';
+import { useVariableContext } from '../context/VariableContext';
+import { productService } from '../services/productService';
 
 const SyncPage: React.FC = () => {
   const navigate = useNavigate();
@@ -60,12 +65,59 @@ const SyncPage: React.FC = () => {
   const [syncProgress, setSyncProgress] = useState(0);
   const [syncStepText, setSyncStepText] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
+  const [productsSyncLoading, setProductsSyncLoading] = useState(false);
+
+  const {
+    onlineOrdersEnabled,
+    setOnlineOrdersEnabled,
+    setProducts,
+    setProfile: setGlobalProfile,
+    activeKermesId
+  } = useVariableContext();
+
+  const handlePushProducts = async () => {
+    setProductsSyncLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const currentProducts = productService.getAllProducts();
+      await firestoreSyncService.pushProductsToCloud(currentProducts, activeKermesId || undefined);
+      setSuccess(t('app.sync.products_push_success') || "Products successfully published to the cloud menu catalog!");
+    } catch (err: any) {
+      console.error("Products push error:", err);
+      setError(err.message || "Failed to push products to the cloud.");
+    } finally {
+      setProductsSyncLoading(false);
+    }
+  };
+
+  const handlePullProducts = async () => {
+    const confirmMsg = t('app.sync.products_pull_confirm') || 
+      "Warning: This will overwrite your local products list with the cloud menu catalog master version. Are you sure you want to proceed?";
+    if (!window.confirm(confirmMsg)) return;
+
+    setProductsSyncLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const pulledProducts = await firestoreSyncService.pullProductsFromCloud(activeKermesId || undefined);
+      productService.importProducts(JSON.stringify({ products: pulledProducts }));
+      setProducts([...productService.getAllProducts()]);
+      setSuccess(t('app.sync.products_pull_success') || "Cloud products catalog successfully imported locally!");
+    } catch (err: any) {
+      console.error("Products pull error:", err);
+      setError(err.message || "Failed to pull products from the cloud.");
+    } finally {
+      setProductsSyncLoading(false);
+    }
+  };
 
   // Check login on mount
   useEffect(() => {
     const savedProfile = firestoreSyncService.getPlaceProfile();
     if (savedProfile) {
       setProfile(savedProfile);
+      setGlobalProfile(savedProfile);
       loadSessions();
     }
   }, []);
@@ -149,6 +201,7 @@ const SyncPage: React.FC = () => {
     try {
       const placeProfile = await firestoreSyncService.loginPlace(email, password);
       setProfile(placeProfile);
+      setGlobalProfile(placeProfile);
       setSuccess(t('app.sync.login_success') || "Login successful!");
       
       // Load sessions after login
@@ -167,6 +220,7 @@ const SyncPage: React.FC = () => {
       setLoading(true);
       await firestoreSyncService.logout();
       setProfile(null);
+      setGlobalProfile(null);
       setSessions([]);
       setSelectedSessionId('');
       setSessionTransactions([]);
@@ -371,6 +425,72 @@ const SyncPage: React.FC = () => {
               {t('app.sync.logout_btn') || "Logout"}
             </Button>
           </Paper>
+
+          {/* Online Customer Ordering Control Card */}
+          <Card sx={{ borderRadius: 3, boxShadow: theme.shadows[3] }}>
+            <CardContent sx={{ p: 4 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <WifiTetheringIcon color="primary" />
+                {t('app.sync.online_ordering_title') || "Online Customer Ordering Control"}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                {t('app.sync.online_ordering_desc') || "Manage the real-time queue synchronization and dynamic catalog menu for mobile pre-orders."}
+              </Typography>
+
+              <Stack spacing={3}>
+                {/* Online Orders Toggle - uses ModernSwitch, writes globally to Firestore */}
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.25 }}>
+                      {t('app.sync.online_orders_local_toggle') || "Receive Incoming Pre-orders"}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4 }}>
+                      {t('app.sync.online_orders_local_toggle_desc') || "Activates real-time queue sync and shows the glowing badge in Cart. Customers can only pre-order while this is ON."}
+                    </Typography>
+                  </Box>
+                  <ModernSwitch
+                    edge="end"
+                    checked={onlineOrdersEnabled}
+                    onChange={(e) => setOnlineOrdersEnabled(e.target.checked)}
+                  />
+                </Box>
+
+                <Divider />
+
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5 }}>
+                    {t('app.sync.collaborative_products_title') || "Menu Catalog Synchronization"}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                    {t('app.sync.collaborative_products_desc') || "Publish your custom products, pricing, and category sorting to customers, or sync lists across multiple terminals."}
+                  </Typography>
+
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handlePushProducts}
+                      disabled={productsSyncLoading || isSyncing}
+                      startIcon={<CloudUploadIcon />}
+                      sx={{ borderRadius: 2, textTransform: 'none', px: 3, fontWeight: 600 }}
+                    >
+                      {productsSyncLoading ? <CircularProgress size={20} color="inherit" /> : (t('app.sync.push_products_btn') || "Push products to cloud")}
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      onClick={handlePullProducts}
+                      disabled={productsSyncLoading || isSyncing}
+                      startIcon={<CloudDownloadIcon />}
+                      sx={{ borderRadius: 2, textTransform: 'none', px: 3, fontWeight: 600 }}
+                    >
+                      {productsSyncLoading ? <CircularProgress size={20} color="inherit" /> : (t('app.sync.pull_products_btn') || "Pull products from cloud")}
+                    </Button>
+                  </Stack>
+                </Box>
+              </Stack>
+            </CardContent>
+          </Card>
 
           {/* Sync Operations Card */}
           <Card sx={{ borderRadius: 3, boxShadow: theme.shadows[4] }}>

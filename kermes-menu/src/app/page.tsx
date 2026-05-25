@@ -5,13 +5,14 @@ import InfoIcon from '@mui/icons-material/Info';
 import ContactMailIcon from '@mui/icons-material/ContactMail';
 import PageContainer from './components/PageContainer';
 import Image from 'next/image';
-import { CardGiftcard, Festival, Recommend, School } from '@mui/icons-material';
+import { CardGiftcard, Festival, Recommend, School, ShoppingBag } from '@mui/icons-material';
 import { useEffect, useState } from 'react';
 import { onSnapshot, doc } from "firebase/firestore";
 import { db } from "../../firebaseInit";
 
 const navCards = [
   { label: 'Kermesimiz', href: '/festival', icon: Festival },
+  { label: 'Online Ön Sipariş (Kasada Hızlı Teslim)', href: '/order', icon: ShoppingBag },
   { label: 'Menü', href: '/menu', icon: RestaurantMenuIcon },
   { label: 'Hakkımızda', href: '/about', icon: InfoIcon },
   { label: 'Sponsorlarımız', href: '/sponsor', icon: Recommend },
@@ -39,7 +40,24 @@ type KermesRecord = {
 export default function Home() {
   const [settings, setSettings] = useState<KermesSettings | null>(null);
   const [activeKermes, setActiveKermes] = useState<KermesRecord | null>(null);
+  const [hasSavedTicket, setHasSavedTicket] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const updateTicketState = () => {
+      try {
+        const raw = localStorage.getItem('menu.onlineOrder.recent');
+        const parsed = raw ? JSON.parse(raw) : null;
+        setHasSavedTicket(Boolean(parsed?.orderId));
+      } catch {
+        setHasSavedTicket(false);
+      }
+    };
+
+    updateTicketState();
+    window.addEventListener('storage', updateTicketState);
+    return () => window.removeEventListener('storage', updateTicketState);
+  }, []);
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, SETTINGS_DOC), (snap) => {
@@ -102,6 +120,20 @@ export default function Home() {
       <div className="flex flex-col items-center w-full px-2 py-8 gap-4">
         {settings.active ? (
           <>
+            <div className="w-full flex justify-end mb-2">
+              <Link
+                href="/order?ticket=1"
+                className={`inline-flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-xl border transition ${
+                  hasSavedTicket
+                    ? 'bg-black text-white border-black shadow-sm'
+                    : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                <ShoppingBag fontSize="small" />
+                Fişim
+              </Link>
+            </div>
+
             {/* Hero SVG header */}
             <div className="w-full flex justify-center mb-4">
               <a className="w-fit">

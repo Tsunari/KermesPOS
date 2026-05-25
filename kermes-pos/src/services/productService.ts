@@ -1,5 +1,6 @@
 import { Product } from '../types/index';
 import productsData from '../data/products.json';
+import { firestoreSyncService } from './firestoreSyncService';
 
 // Type assertion to ensure the JSON data matches our Product type
 const typedProducts = productsData.products as Product[];
@@ -228,6 +229,16 @@ class ProductService {
 
   private saveProducts(): void {
     localStorage.setItem('products', JSON.stringify(this.products));
+    try {
+      const profile = firestoreSyncService.getPlaceProfile();
+      if (profile) {
+        firestoreSyncService.pushProductsToCloud(this.products).catch(err => {
+          console.error("Autosync products to Firestore failed:", err);
+        });
+      }
+    } catch (err) {
+      console.error("Autosync products error:", err);
+    }
   }
 }
 

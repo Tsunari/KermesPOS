@@ -44,7 +44,8 @@
     "nativePrintError": "Native yazdırma hatası:",
     "failedToPrint": "Native yazıcı ile yazdırma başarısız oldu",
     "reset": "Sıfırla",
-    "create": "Oluştur"
+    "create": "Oluştur",
+    "no_results": "Eşleşen sipariş bulunamadı."
   },
   "settings": {
     "title": "Ayarlar",
@@ -287,7 +288,34 @@
       "dockRight": "Sağa Kenarla",
       "loadMore": "Daha Fazla Yükle",
       "editingOrderModeActive": "Sipariş #{id} Düzenleme Aktif",
-      "tappingAddsHint": "Izgaradaki ürünlere dokunulduğunda doğrudan bu geçmiş siparişe eklenir."
+      "editingOnlineOrderModeActive": "Online Ön Sipariş Düzenleme Aktif",
+      "tappingAddsHint": "Izgaradaki ürünlere dokunulduğunda doğrudan bu geçmiş siparişe eklenir.",
+      "tappingAddsOnlineHint": "Izgaradaki ürünlere dokunulduğunda doğrudan bu online ön siparişe eklenir.",
+      "online_orders_pill": "{count} Ön Sipariş",
+      "online_orders_title": "Online Sipariş Kuyruğu",
+      "online_orders_search": "Kuyruk numarası ara...",
+      "online_orders_empty": "Kuyrukta bekleyen online sipariş yok.",
+      "online_orders_import": "Sepete Aktar",
+      "online_orders_importing": "Aktarılıyor...",
+      "online_orders_edit": "Düzenle",
+      "online_orders_editing": "Düzenleniyor...",
+      "online_orders_cancel": "İptal",
+      "online_orders_cancelling": "İptal ediliyor...",
+      "online_orders_saving": "Kaydediliyor...",
+      "online_orders_edit_title": "Online Ön Siparişi Düzenle",
+      "online_orders_edit_mode_started": "Online ön sipariş düzenleme modu aktif edildi.",
+      "online_orders_edit_mode_active": "Online Ön Sipariş Düzenleniyor",
+      "online_orders_exit_edit_mode": "Düzenleme Modundan Çık",
+      "online_orders_edit_empty": "Siparişte ürün kalmadı.",
+      "online_orders_imported_msg": "Online ön sipariş başarıyla sepete aktarıldı!",
+      "online_orders_saved_msg": "Online ön sipariş başarıyla güncellendi.",
+      "online_orders_cancelled_msg": "Online ön sipariş iptal edildi.",
+      "online_orders_not_pending": "Bu sipariş artık düzenlenemez.",
+      "online_orders_already_taken": "Bu sipariş başka bir kasiyer tarafından işleme alınmış.",
+      "online_orders_cancel_failed": "Online sipariş iptal edilemedi. Lütfen tekrar deneyin.",
+      "online_orders_save_failed": "Online sipariş değişiklikleri kaydedilemedi.",
+      "online_orders_import_failed": "Online sipariş sepete aktarılamadı. Lütfen tekrar deneyin.",
+      "imported_order_active": "Ön sipariş aktarıldı. Ödeme tamamlandığında güncellenir."
     },
     "product": {
       "categories": {
@@ -417,7 +445,18 @@
       "unsynced": "Senkronize Edilmemiş",
       "all_synced_success": "Bu oturumdaki tüm işlem verileri zaten tamamen senkronize edilmiş ve bulut veritabanıyla güncel durumda.",
       "start_sync_with_count": "Bulut Senkronizasyonunu Başlat ({count} Yeni İşlem)",
-      "resync": "Bulut Verilerini Yeniden Senkronize Et"
+      "resync": "Bulut Verilerini Yeniden Senkronize Et",
+      "online_ordering_title": "Çevrimiçi Ön Sipariş Kontrolü",
+      "online_ordering_desc": "Mobil ön siparişler için gerçek zamanlı kuyruk senkronizasyonunu ve dinamik menü kataloğunu yönetin.",
+      "online_orders_local_toggle": "Çevrimiçi Ön Siparişleri Al",
+      "online_orders_local_toggle_desc": "Ön siparişleri senkronize et ve Sepette gerçek zamanlı Parıldayan Bildirim göster",
+      "collaborative_products_title": "Menü Kataloğu Senkronizasyonu",
+      "collaborative_products_desc": "Özel ürünlerinizi, fiyatlandırmanızı ve kategori sıralamanızı müşterilere yayınlayın veya listeleri birden çok kasa arasında eşitleyin.",
+      "push_products_btn": "Ürünleri buluta yükle",
+      "pull_products_btn": "Ürünleri buluttan indir",
+      "products_push_success": "Ürünler başarıyla bulut menü kataloğuna yayınlandı!",
+      "products_pull_confirm": "Uyarı: Bu işlem, yerel ürün listenizin üzerine bulut menü kataloğunun ana sürümünü yazacaktır. Devam etmek istediğinizden emin misiniz?",
+      "products_pull_success": "Bulut ürün kataloğu başarıyla yerel olarak içe aktarıldı!"
     }
   },
   "Error loading sessions": {

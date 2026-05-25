@@ -9,10 +9,10 @@ import {
   where, 
   getDocs 
 } from "firebase/firestore";
-import { auth, db } from "../firebaseInit";
+import { auth, getDb } from "../firebaseInit";
 import { Session } from "../types/session";
 import { CartTransaction, cartTransactionService } from "./cartTransactionService";
-import { CartItem } from "../types/index";
+import { CartItem, Product } from "../types/index";
 
 export interface PlaceProfile {
   email: string;
@@ -25,6 +25,19 @@ export type SyncStatusType = "idle" | "syncing" | "success" | "error";
 
 class FirestoreSyncService {
   private profileKey = "pos.placeProfile";
+  private activeKermesKey = "pos.activeKermesId";
+
+  private resolveKermesId(preferredKermesId?: string): string {
+    if (preferredKermesId) return preferredKermesId;
+
+    const activeKermesId = localStorage.getItem(this.activeKermesKey);
+    if (activeKermesId) return activeKermesId;
+
+    const profile = this.getPlaceProfile();
+    if (profile?.kermesId) return profile.kermesId;
+
+    throw new Error("Kermes kimliği bulunamadı. Lütfen tekrar giriş yapın.");
+  }
 
   getPlaceProfile(): PlaceProfile | null {
     const data = localStorage.getItem(this.profileKey);
@@ -53,7 +66,7 @@ class FirestoreSyncService {
     const uid = userCredential.user.uid;
 
     // Fetch place profile details
-    const profileSnap = await getDoc(doc(db, "pos_accounts", uid));
+    const profileSnap = await getDoc(doc(getDb(), "pos_accounts", uid));
     if (!profileSnap.exists()) {
       await signOut(auth);
       throw new Error("Bu hesap bir kermes satış noktası olarak kayıtlı değil.");
@@ -108,7 +121,7 @@ class FirestoreSyncService {
     // 0.1 Check POS account suspended status
     const uid = auth.currentUser?.uid;
     if (uid) {
-      const profileSnap = await getDoc(doc(db, "pos_accounts", uid));
+      const profileSnap = await getDoc(doc(getDb(), "pos_accounts", uid));
       if (profileSnap.exists()) {
         const pData = profileSnap.data();
         if (pData.status === "suspended") {
@@ -118,7 +131,7 @@ class FirestoreSyncService {
     }
 
     // 0.2 Check if the existing session is locked or completed
-    const sessionSnap = await getDoc(doc(db, "sessions", sessionId));
+    const sessionSnap = await getDoc(doc(getDb(), "sessions", sessionId));
     if (sessionSnap.exists()) {
       const sData = sessionSnap.data();
       if (sData.status === "locked") {
@@ -225,7 +238,7 @@ class FirestoreSyncService {
       syncedBy: profile.email
     };
 
-    await setDoc(doc(db, "sessions", sessionId), sessionDocData);
+    await setDoc(doc(getDb(), "sessions", sessionId), sessionDocData);
 
     onProgress?.(50, "İşlemler bulut veritabanına aktarılıyor...");
 
@@ -260,7 +273,7 @@ class FirestoreSyncService {
         syncedAt: new Date().toISOString()
       };
 
-      await setDoc(doc(db, "sales", salesDocId), salesDocData);
+      await setDoc(doc(getDb(), "sales", salesDocId), salesDocData);
       
       const percent = Math.floor(50 + (i / transactions.length) * 35);
       onProgress?.(percent, `İşlemler yükleniyor (${i + 1}/${transactions.length})...`);
@@ -270,7 +283,7 @@ class FirestoreSyncService {
 
     // 4. Reconciliation of Deletions: Fetch existing transactions in Firestore for this session, delete those missing locally.
     try {
-      const q = query(collection(db, "sales"), where("sessionId", "==", sessionId));
+      const q = query(collection(getDb(), "sales"), where("sessionId", "==", sessionId));
       const querySnap = await getDocs(q);
       
       const localSalesIds = new Set(transactions.map(tx => `${kermesId}_${session.id}_${tx.id}`));
@@ -278,7 +291,7 @@ class FirestoreSyncService {
       for (const salesDoc of querySnap.docs) {
         if (!localSalesIds.has(salesDoc.id)) {
           console.log(`Reconciliation: Deleting removed sale from Firestore: ${salesDoc.id}`);
-          await deleteDoc(doc(db, "sales", salesDoc.id));
+          await deleteDoc(doc(getDb(), "sales", salesDoc.id));
         }
       }
     } catch (err) {
@@ -296,6 +309,38 @@ class FirestoreSyncService {
     }
 
     onProgress?.(100, "Bulut senkronizasyonu başarıyla tamamlandı!");
+  }
+
+  async pushProductsToCloud(products: Product[], kermesId?: string): Promise<void> {
+    const profile = this.getPlaceProfile();
+    if (!profile) {
+      throw new Error("Kullanıcı oturumu bulunamadı. Lütfen önce giriş yapın.");
+    }
+
+    const resolvedKermesId = this.resolveKermesId(kermesId);
+    await setDoc(doc(getDb(), "kermes_products", resolvedKermesId), {
+      products,
+      updatedAt: new Date().toISOString(),
+      updatedBy: profile.email
+    });
+  }
+
+  async pullProductsFromCloud(kermesId?: string): Promise<Product[]> {
+    const profile = this.getPlaceProfile();
+    if (!profile) {
+      throw new Error("Kullanıcı oturumu bulunamadı. Lütfen önce giriş yapın.");
+    }
+
+    const resolvedKermesId = this.resolveKermesId(kermesId);
+    const snap = await getDoc(doc(getDb(), "kermes_products", resolvedKermesId));
+    if (!snap.exists()) {
+      throw new Error("Bulutta kayıtlı bir ürün listesi bulunamadı. Lütfen önce ürünleri buluta yükleyin.");
+    }
+    const data = snap.data();
+    if (!Array.isArray(data?.products)) {
+      throw new Error("Geçersiz ürün listesi formatı.");
+    }
+    return data.products as Product[];
   }
 }
 

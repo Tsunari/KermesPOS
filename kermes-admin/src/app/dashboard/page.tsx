@@ -136,6 +136,28 @@ export default function Dashboard() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [showAllFiles, setShowAllFiles] = useState<Record<string, boolean>>({});
+  const [onlineOrderingEnabled, setOnlineOrderingEnabled] = useState(false);
+
+  // Listen to global online pre-ordering config in real-time
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, "system_config", "online_ordering"), (snap) => {
+      if (snap.exists()) {
+        setOnlineOrderingEnabled(snap.data()?.enabled ?? false);
+      } else {
+        setOnlineOrderingEnabled(false);
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  async function handleOnlineOrderingToggle() {
+    const nextVal = !onlineOrderingEnabled;
+    setOnlineOrderingEnabled(nextVal);
+    await setDoc(doc(db, "system_config", "online_ordering"), {
+      enabled: nextVal,
+      updatedAt: new Date().toISOString()
+    });
+  }
 
   // Auth check
   useEffect(() => {
@@ -522,6 +544,19 @@ export default function Dashboard() {
                   type="checkbox"
                   checked={settings.showActiveKermesName ?? false}
                   onChange={handleToggleKermesNameShow}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 dark:bg-neutral-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-blue-600 dark:peer-checked:bg-blue-500 transition-all"></div>
+                <div className="absolute left-1 top-1 bg-white dark:bg-neutral-900 w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"></div>
+              </label>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-black dark:text-white">Online Sipariş Sistemi Aktif</span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={onlineOrderingEnabled}
+                  onChange={handleOnlineOrderingToggle}
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-gray-200 dark:bg-neutral-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-blue-600 dark:peer-checked:bg-blue-500 transition-all"></div>

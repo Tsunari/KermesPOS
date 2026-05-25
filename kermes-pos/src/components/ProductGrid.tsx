@@ -77,7 +77,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   const { showDescription } = useSettings();
   const theme = useTheme();
   const { t } = useLanguage();
-  const { fixedGridMode, cardsPerRow, products, recentOrdersOpen, editingTransaction } = useVariableContext(); // use context products
+  const { fixedGridMode, cardsPerRow, products, recentOrdersOpen, editingTransaction, editingOnlineOrderId } = useVariableContext(); // use context products
   const [orderedProducts, setOrderedProducts] = useState<Product[]>(products);
 
   // Sort products by category and order within category
@@ -175,7 +175,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           },
         },
       }}>
-        {editingTransaction && (
+        {(editingTransaction || editingOnlineOrderId) && (
           <Box
             sx={{
               display: 'flex',
@@ -193,10 +193,14 @@ const ProductGrid: React.FC<ProductGridProps> = ({
             }}
           >
             <Typography variant="subtitle2" sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
-              ⚠️ {t('app.cart.editingOrderModeActive')?.replace('{id}', editingTransaction.id.toString()) || `Editing Order #${editingTransaction.id} Active`}
+              ⚠️ {editingTransaction
+                ? (t('app.cart.editingOrderModeActive')?.replace('{id}', editingTransaction.id.toString()) || `Editing Order #${editingTransaction.id} Active`)
+                : (t('app.cart.editingOnlineOrderModeActive') || 'Editing Online Pre-order Active')}
             </Typography>
             <Typography variant="caption" sx={{ mt: 0.5, fontWeight: 600 }}>
-              {t('app.cart.tappingAddsHint') || 'Tapping products in the grid adds them directly to this past order.'}
+              {editingTransaction
+                ? (t('app.cart.tappingAddsHint') || 'Tapping products in the grid adds them directly to this past order.')
+                : (t('app.cart.tappingAddsOnlineHint') || 'Tapping products in the grid adds them directly to this online pre-order.')}
             </Typography>
           </Box>
         )}

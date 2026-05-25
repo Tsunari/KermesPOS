@@ -44,7 +44,8 @@
     "nativePrintError": "Fehler beim nativen Druck:",
     "failedToPrint": "Fehler beim Drucken mit dem nativen Drucker",
     "reset": "Zurücksetzen",
-    "create": "Erstellen"
+    "create": "Erstellen",
+    "no_results": "Keine passenden Bestellungen gefunden."
   },
   "settings": {
     "title": "Einstellungen",
@@ -287,7 +288,34 @@
       "dockRight": "Rechts andocken",
       "loadMore": "Mehr laden",
       "editingOrderModeActive": "Bestellung #{id} bearbeiten aktiv",
-      "tappingAddsHint": "Durch Tippen auf Produkte im Raster werden sie direkt zu dieser vergangenen Bestellung hinzugefügt."
+      "editingOnlineOrderModeActive": "Online-Vorbestellung bearbeiten aktiv",
+      "tappingAddsHint": "Durch Tippen auf Produkte im Raster werden sie direkt zu dieser vergangenen Bestellung hinzugefügt.",
+      "tappingAddsOnlineHint": "Durch Tippen auf Produkte im Raster werden sie direkt zu dieser Online-Vorbestellung hinzugefügt.",
+      "online_orders_pill": "{count} Vorbestellungen",
+      "online_orders_title": "Online-Bestellungen Warteschlange",
+      "online_orders_search": "Warteschlangennummer suchen...",
+      "online_orders_empty": "Keine ausstehenden Online-Bestellungen in der Warteschlange.",
+      "online_orders_import": "In den Warenkorb importieren",
+      "online_orders_importing": "Wird importiert...",
+      "online_orders_edit": "Bearbeiten",
+      "online_orders_editing": "Wird bearbeitet...",
+      "online_orders_cancel": "Stornieren",
+      "online_orders_cancelling": "Wird storniert...",
+      "online_orders_saving": "Wird gespeichert...",
+      "online_orders_edit_title": "Online-Vorbestellung bearbeiten",
+      "online_orders_edit_mode_started": "Bearbeitungsmodus für Online-Vorbestellung aktiviert.",
+      "online_orders_edit_mode_active": "Online-Vorbestellung wird bearbeitet",
+      "online_orders_exit_edit_mode": "Bearbeitungsmodus verlassen",
+      "online_orders_edit_empty": "Keine Artikel mehr in der Bestellung.",
+      "online_orders_imported_msg": "Online-Vorbestellung erfolgreich in den Warenkorb importiert!",
+      "online_orders_saved_msg": "Online-Vorbestellung erfolgreich aktualisiert.",
+      "online_orders_cancelled_msg": "Online-Vorbestellung storniert.",
+      "online_orders_not_pending": "Diese Bestellung kann nicht mehr bearbeitet werden.",
+      "online_orders_already_taken": "Diese Bestellung wird bereits von einem anderen Kassierer bearbeitet.",
+      "online_orders_cancel_failed": "Online-Bestellung konnte nicht storniert werden. Bitte erneut versuchen.",
+      "online_orders_save_failed": "Änderungen an der Online-Bestellung konnten nicht gespeichert werden.",
+      "online_orders_import_failed": "Online-Bestellung konnte nicht importiert werden. Bitte erneut versuchen.",
+      "imported_order_active": "Vorbestellung importiert. Wird nach dem Checkout als abgeschlossen markiert."
     },
     "product": {
       "categories": {
@@ -417,7 +445,18 @@
       "unsynced": "Nicht synchronisiert",
       "all_synced_success": "Alle Transaktionsdaten in dieser Sitzung sind bereits vollständig synchronisiert und auf dem neuesten Stand in der Cloud-Datenbank.",
       "start_sync_with_count": "Cloud-Synchronisierung starten ({count} neue Transaktionen)",
-      "resync": "Cloud-Daten neu synchronisieren"
+      "resync": "Cloud-Daten neu synchronisieren",
+      "online_ordering_title": "Online-Vorbestellungssteuerung",
+      "online_ordering_desc": "Verwalten Sie die Echtzeit-Warteschlangensynchronisierung und den dynamischen Menükatalog für mobile Vorbestellungen.",
+      "online_orders_local_toggle": "Eingehende Vorbestellungen empfangen",
+      "online_orders_local_toggle_desc": "Vorbestellungen synchronisieren und Echtzeit-Leuchtbadge im Warenkorb anzeigen",
+      "collaborative_products_title": "Menükatalog-Synchronisierung",
+      "collaborative_products_desc": "Veröffentlichen Sie Ihre benutzerdefinierten Produkte, Preise und Kategorie-Sortierungen für Kunden oder synchronisieren Sie Listen über mehrere Terminals hinweg.",
+      "push_products_btn": "Produkte in die Cloud hochladen",
+      "pull_products_btn": "Produkte aus der Cloud herunterladen",
+      "products_push_success": "Cloud-Produktkatalog erfolgreich lokal importiert!",
+      "products_pull_confirm": "Warnung: Dadurch wird Ihre lokale Produktliste mit der Master-Version des Cloud-Menükatalogs überschrieben. Möchten Sie wirklich fortfahren?",
+      "products_pull_success": "Cloud-Produktkatalog erfolgreich lokal importiert!"
     }
   },
   "Error loading sessions": {

@@ -105,7 +105,7 @@ import UpdateNotifier from './components/UpdateNotifier';
 function AppContent() {
   const { t } = useLanguage();
   const dispatch = useDispatch();
-  const { products, setProducts, fixedGridMode, setFixedGridMode, cardsPerRow, setCardsPerRow, recentOrdersOpen, recentOrdersDockPosition, editingTransaction } = useVariableContext();
+  const { products, setProducts, fixedGridMode, setFixedGridMode, cardsPerRow, setCardsPerRow, recentOrdersOpen, recentOrdersDockPosition, editingTransaction, editingOnlineOrderId } = useVariableContext();
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   const [devMode, setDevMode] = useState(false);
@@ -175,7 +175,7 @@ function AppContent() {
 
   // TODO Make this more efficient
   const handleProductClick = (product: Product) => {
-    if (editingTransaction) {
+    if (editingTransaction || editingOnlineOrderId) {
       window.dispatchEvent(new CustomEvent('addProductToEditOrder', { detail: product }));
       return;
     }

@@ -44,7 +44,8 @@
     "nativePrintError": "Error with native print:",
     "failedToPrint": "Failed to print using native printer",
     "reset": "Reset",
-    "create": "Create"
+    "create": "Create",
+    "no_results": "No matching orders found."
   },
   "settings": {
     "title": "Settings",
@@ -287,7 +288,34 @@
       "dockRight": "Dock Right",
       "loadMore": "Load More",
       "editingOrderModeActive": "Editing Order #{id} Active",
-      "tappingAddsHint": "Tapping products in the grid adds them directly to this past order."
+      "editingOnlineOrderModeActive": "Editing Online Pre-order Active",
+      "tappingAddsHint": "Tapping products in the grid adds them directly to this past order.",
+      "tappingAddsOnlineHint": "Tapping products in the grid adds them directly to this online pre-order.",
+      "online_orders_pill": "{count} Pre-orders",
+      "online_orders_title": "Online Orders Queue",
+      "online_orders_search": "Search queue number...",
+      "online_orders_empty": "No pending online orders in the queue.",
+      "online_orders_import": "Import to Cart",
+      "online_orders_importing": "Importing...",
+      "online_orders_edit": "Edit",
+      "online_orders_editing": "Editing...",
+      "online_orders_cancel": "Cancel",
+      "online_orders_cancelling": "Cancelling...",
+      "online_orders_saving": "Saving...",
+      "online_orders_edit_title": "Edit Online Pre-order",
+      "online_orders_edit_mode_started": "Online pre-order edit mode activated.",
+      "online_orders_edit_mode_active": "Editing Online Pre-order",
+      "online_orders_exit_edit_mode": "Exit Edit Mode",
+      "online_orders_edit_empty": "No items left in order.",
+      "online_orders_imported_msg": "Online pre-order successfully imported to cart!",
+      "online_orders_saved_msg": "Online pre-order updated successfully.",
+      "online_orders_cancelled_msg": "Online pre-order cancelled.",
+      "online_orders_not_pending": "This order can no longer be modified.",
+      "online_orders_already_taken": "This order is already being processed by another cashier.",
+      "online_orders_cancel_failed": "Failed to cancel online order. Please try again.",
+      "online_orders_save_failed": "Failed to save online pre-order changes.",
+      "online_orders_import_failed": "Failed to import online order. Please try again.",
+      "imported_order_active": "Pre-order imported. Completed upon checkout."
     },
     "product": {
       "categories": {
@@ -407,7 +435,18 @@
       "unsynced": "Unsynced",
       "all_synced_success": "All transaction data in this session is already fully synchronized and up to date with the cloud database.",
       "start_sync_with_count": "Start Cloud Synchronization ({count} New Transactions)",
-      "resync": "Resynchronize Cloud Data"
+      "resync": "Resynchronize Cloud Data",
+      "online_ordering_title": "Online Pre-ordering Control",
+      "online_ordering_desc": "Manage the real-time queue synchronization and dynamic catalog menu for mobile pre-orders.",
+      "online_orders_local_toggle": "Receive Incoming Pre-orders",
+      "online_orders_local_toggle_desc": "Synchronize pre-orders and show real-time Glowing Badge in Cart",
+      "collaborative_products_title": "Menu Catalog Synchronization",
+      "collaborative_products_desc": "Publish your custom products, pricing, and category sorting to customers, or sync lists across multiple terminals.",
+      "push_products_btn": "Push products to cloud",
+      "pull_products_btn": "Pull products from cloud",
+      "products_push_success": "Products successfully published to the cloud menu catalog!",
+      "products_pull_confirm": "Warning: This will overwrite your local products list with the cloud menu catalog master version. Are you sure you want to proceed?",
+      "products_pull_success": "Cloud products catalog successfully imported locally!"
     },
     "appbar": {
       "pos": "Pos",
