@@ -5,7 +5,7 @@
       "name": "Döner",
       "price": 8.00,
       "category": "food",
-      "description": "Freshly grilled döner kebab with lettuce, tomato, and special sauce",
+      "description": "",
       "inStock": true
     },
     {
@@ -13,7 +13,7 @@
       "name": "Döner Dürüm",
       "price": 9.00,
       "category": "food",
-      "description": "Döner kebab wrapped in thin flatbread with fresh vegetables",
+      "description": "",
       "inStock": true
     },
     {
@@ -21,7 +21,7 @@
       "name": "Döner Tabak",
       "price": 13.00,
       "category": "food",
-      "description": "Döner kebab served on a plate with rice and salad",
+      "description": "",
       "inStock": true
     },
     {
@@ -29,7 +29,7 @@
       "name": "Adana",
       "price": 8.00,
       "category": "food",
-      "description": "Spicy minced meat kebab grilled on skewers",
+      "description": "",
       "inStock": true
     },
     {
@@ -37,7 +37,7 @@
       "name": "Balik",
       "price": 10.00,
       "category": "food",
-      "description": "Fresh grilled fish served with salad",
+      "description": "",
       "inStock": true
     },
     {
@@ -45,7 +45,7 @@
       "name": "Balik Ekmek",
       "price": 8.00,
       "category": "food",
-      "description": "Grilled fish sandwich with fresh vegetables",
+      "description": "",
       "inStock": true
     },
     {
@@ -53,7 +53,7 @@
       "name": "Tantuni",
       "price": 8.00,
       "category": "food",
-      "description": "Spicy minced meat wrapped in thin flatbread",
+      "description": "",
       "inStock": true
     },
     {
@@ -61,7 +61,7 @@
       "name": "Tantuni Tabak",
       "price": 13.00,
       "category": "food",
-      "description": "Tantuni served on a plate with rice and salad",
+      "description": "",
       "inStock": true
     },
     {
@@ -69,7 +69,7 @@
       "name": "Köfte Ekmek",
       "price": 8.00,
       "category": "food",
-      "description": "Grilled meatball sandwich with fresh vegetables",
+      "description": "",
       "inStock": true
     },
     {
@@ -77,7 +77,7 @@
       "name": "Köfte Tabak",
       "price": 10.00,
       "category": "food",
-      "description": "Grilled meatballs served with rice and salad",
+      "description": "",
       "inStock": true
     },
     {
@@ -85,7 +85,7 @@
       "name": "1/2 Yarim Tavuk",
       "price": 8.00,
       "category": "food",
-      "description": "Half grilled chicken with rice and salad",
+      "description": "",
       "inStock": true
     },
     {
@@ -93,7 +93,7 @@
       "name": "1 Tam Tavuk",
       "price": 15.00,
       "category": "food",
-      "description": "Whole grilled chicken with rice and salad",
+      "description": "",
       "inStock": true
     },
     {
@@ -101,7 +101,7 @@
       "name": "Hamsi Tava",
       "price": 10.00,
       "category": "food",
-      "description": "Fried anchovies served with salad",
+      "description": "",
       "inStock": true
     },
     {
@@ -109,7 +109,7 @@
       "name": "Kumpir",
       "price": 8.00,
       "category": "food",
-      "description": "Baked potato with various toppings",
+      "description": "",
       "inStock": true
     },
     {
@@ -117,7 +117,7 @@
       "name": "Talebe Yemek",
       "price": 5.00,
       "category": "food",
-      "description": "Bless you",
+      "description": "",
       "inStock": true
     },
     {
@@ -125,7 +125,7 @@
       "name": "Cay",
       "price": 1.00,
       "category": "drink",
-      "description": "Traditional Turkish black tea",
+      "description": "",
       "inStock": true
     },
     {
@@ -133,7 +133,7 @@
       "name": "Kahve",
       "price": 2.00,
       "category": "drink",
-      "description": "Turkish coffee",
+      "description": "",
       "inStock": true
     },
     {
@@ -141,7 +141,7 @@
       "name": "Su",
       "price": 1.50,
       "category": "drink",
-      "description": "Mineral water",
+      "description": "",
       "inStock": true
     },
     {
@@ -149,7 +149,7 @@
       "name": "Ayran",
       "price": 1.50,
       "category": "drink",
-      "description": "Traditional yogurt drink",
+      "description": "",
       "inStock": true
     },
     {
@@ -157,7 +157,7 @@
       "name": "Acik Yayik Ayran",
       "price": 2.00,
       "category": "drink",
-      "description": "Homemade yogurt drink",
+      "description": "",
       "inStock": true
     },
     {
@@ -165,7 +165,7 @@
       "name": "Mesrubat",
       "price": 2.00,
       "category": "drink",
-      "description": "Soft drink (Cola, Fanta, Sprite)",
+      "description": "",
       "inStock": true
     },
     {
@@ -173,7 +173,7 @@
       "name": "Spezi",
       "price": 2.00,
       "category": "drink",
-      "description": "Cola and Fanta mix",
+      "description": "",
       "inStock": true
     },
     {
@@ -181,7 +181,7 @@
       "name": "Iskembe Corba",
       "price": 6.00,
       "category": "drink",
-      "description": "Traditional tripe soup",
+      "description": "",
       "inStock": true
     },
     {
@@ -189,7 +189,7 @@
       "name": "Mercimek Corba",
       "price": 5.00,
       "category": "drink",
-      "description": "Lentil soup",
+      "description": "",
       "inStock": true
     },
     {
@@ -197,7 +197,7 @@
       "name": "Pommes",
       "price": 3.00,
       "category": "dessert",
-      "description": "French fries with ketchup",
+      "description": "",
       "inStock": true
     },
     {
@@ -205,7 +205,7 @@
       "name": "Lahmacun",
       "price": 3.00,
       "category": "dessert",
-      "description": "Thin flatbread with minced meat",
+      "description": "",
       "inStock": true
     },
     {
@@ -213,7 +213,7 @@
       "name": "Gözleme",
       "price": 3.00,
       "category": "dessert",
-      "description": "Hand-rolled flatbread with fillings",
+      "description": "",
       "inStock": true
     },
     {
@@ -221,7 +221,7 @@
       "name": "Katmer",
       "price": 3.00,
       "category": "dessert",
-      "description": "Sweet pastry with clotted cream",
+      "description": "",
       "inStock": true
     }
   ]
