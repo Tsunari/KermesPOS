@@ -291,8 +291,8 @@ function Invoke-AppDeploy {
     try {
         # ── Build ────────────────────────────────────────────────────────────
         if (-not $SkipBuild) {
-            Write-Info "$($App.Name): running $B`npm run build$R ..."
-            npm run build
+            Write-Info "$($App.Name): running ${B}npm run build$R ..."
+            npm run build | Out-Host
             if ($LASTEXITCODE -ne 0) {
                 $result.Build = "FAILED"
                 Write-Err "$($App.Name): build failed (exit $LASTEXITCODE)"
@@ -306,8 +306,8 @@ function Invoke-AppDeploy {
         }
 
         # ── Deploy ───────────────────────────────────────────────────────────
-        Write-Info "$($App.Name): running $B`firebase deploy --only hosting$R ..."
-        firebase deploy --only hosting
+        Write-Info "$($App.Name): running ${B}firebase deploy --only hosting$R ..."
+        firebase deploy --only hosting | Out-Host
         if ($LASTEXITCODE -ne 0) {
             $result.Deploy = "FAILED"
             Write-Err "$($App.Name): Firebase deploy failed (exit $LASTEXITCODE)"
@@ -456,7 +456,7 @@ if ($deployList.Count -eq 0) {
 }
 
 Write-Host ""
-Write-Info "Deploying: $($deployList | ForEach-Object { "$($_.Color)$($_.Name)$R" } | Out-String -NoNewline)"
+Write-Info ("Deploying: " + (($deployList | ForEach-Object { "$($_.Color)$($_.Name)$R" }) -join ", "))
 if ($NoBuild) {
     Write-Warn "Build step will be skipped (--NoBuild)"
 }
