@@ -273,7 +273,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="py-8 flex flex-col items-center gap-2 bg-background dark:bg-[#181818] border-t border-gray-200 dark:border-gray-700 animate-fade-in">
-        <a
+        {/* <a
           href="https://github.com/Tsunari/KermesPOS"
           target="_blank"
           rel="noopener noreferrer"
@@ -281,7 +281,7 @@ export default function Home() {
         >
           <GitHubIcon sx={{ fontSize: '1.125rem' }} />
           View on GitHub
-        </a>
+        </a> */}
         <span className="text-xs text-gray-400">© {new Date().getFullYear()} Kermes POS. All rights reserved.</span>
       </footer>
 
