@@ -20,6 +20,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import WifiOffIcon from "@mui/icons-material/WifiOff";
 
 const ORDER_RECOVERY_KEY = "menu.onlineOrder.recent";
@@ -101,6 +102,8 @@ function OrderPageContent() {
   const [ticketHydrated, setTicketHydrated] = useState(false);
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
   const [updatingTicket, setUpdatingTicket] = useState(false);
+  const [completionStep, setCompletionStep] = useState<"none" | "success_message">("none");
+  const [cancellationStep, setCancellationStep] = useState<"none" | "cancelled_message">("none");
 
   // Selected Category tab
   const [activeTab, setActiveTab] = useState<"food" | "drink" | "dessert">("food");
@@ -191,6 +194,8 @@ function OrderPageContent() {
   useEffect(() => {
     if (!trackedOrderId) {
       setSubmittedOrder(null);
+      setCompletionStep("none");
+      setCancellationStep("none");
       return;
     }
 
@@ -240,6 +245,31 @@ function OrderPageContent() {
 
     return () => unsubscribe();
   }, [trackedOrderId, activeKermesId]);
+
+  // Trigger timeouts when the order is completed (finished) or cancelled
+  useEffect(() => {
+    if (!submittedOrder) {
+      setCompletionStep("none");
+      setCancellationStep("none");
+      return;
+    }
+
+    if (submittedOrder.status === "completed") {
+      setCompletionStep("success_message");
+
+      // Automatically leave the page and clear after 4 seconds
+      const t1 = setTimeout(() => {
+        clearRecoveredTicket();
+      }, 4000);
+
+      return () => clearTimeout(t1);
+    } else if (submittedOrder.status === "cancelled") {
+      setCancellationStep("cancelled_message");
+    } else {
+      setCompletionStep("none");
+      setCancellationStep("none");
+    }
+  }, [submittedOrder?.status]);
 
   // 2. Subscribe to Dynamic Products (onSnapshot for real-time stock updates)
   useEffect(() => {
@@ -302,7 +332,7 @@ function OrderPageContent() {
           </p>
 
           <Link
-            href="/order"
+            href={`/${activeKermesId}/order`}
             className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white font-semibold px-6 py-2.5 rounded-2xl shadow transition text-sm mt-4"
           >
             {t("start_new_order") || "Start New Order"}
@@ -514,6 +544,11 @@ function OrderPageContent() {
     clearStoredTicket(activeKermesId);
     setTrackedOrderId(null);
     setSubmittedOrder(null);
+    setCart([]);
+    setCartOpen(false);
+    setEditingOrderId(null);
+    setCompletionStep("none");
+    setCancellationStep("none");
   };
 
   const statusMeta: Record<SubmittedOrderView["status"], { label: string; className: string }> = {
@@ -537,6 +572,63 @@ function OrderPageContent() {
 
   // Render Order Receipt Card
   if (submittedOrder) {
+    if (completionStep === "success_message") {
+      return (
+        <PageContainer>
+          <div className="flex flex-col items-center justify-center min-h-[80vh] py-12 px-6 gap-6 text-center select-none animate-fade-in">
+            <div className="flex h-16 w-16 items-center justify-center bg-green-50 text-green-600 rounded-full border border-green-100 shadow-sm">
+              <CheckCircleOutlineIcon className="!h-9 !w-9" />
+            </div>
+            
+            <div className="space-y-2">
+              <h1 className="text-2xl font-black text-black tracking-tight leading-tight">
+                {t("order_completed_header")}
+              </h1>
+              <p className="text-sm text-gray-500 max-w-xs leading-relaxed font-semibold">
+                {t("order_completed_body")}
+              </p>
+            </div>
+
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 mt-4 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100 shadow-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+              </span>
+              {t("order_completed_redirecting")}
+            </div>
+          </div>
+        </PageContainer>
+      );
+    }
+
+    if (cancellationStep === "cancelled_message") {
+      return (
+        <PageContainer>
+          <div className="flex flex-col items-center justify-center min-h-[80vh] py-12 px-6 gap-6 text-center select-none animate-fade-in">
+            <div className="flex h-16 w-16 items-center justify-center bg-rose-50 text-rose-600 rounded-full border border-rose-100 shadow-sm">
+              <CancelOutlinedIcon className="!h-9 !w-9" />
+            </div>
+            
+            <div className="space-y-2">
+              <h1 className="text-2xl font-black text-black tracking-tight leading-tight">
+                {t("order_cancelled_header")}
+              </h1>
+              <p className="text-sm text-gray-500 max-w-xs leading-relaxed font-semibold">
+                {t("order_cancelled_body")}
+              </p>
+            </div>
+
+            <button
+              onClick={clearRecoveredTicket}
+              className="mt-4 flex items-center gap-2 bg-black hover:bg-gray-800 text-white font-extrabold px-6 py-2.5 rounded-2xl shadow transition text-sm cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
+            >
+              {t("start_new_order")}
+            </button>
+          </div>
+        </PageContainer>
+      );
+    }
+
     return (
       <PageContainer>
         <div className="flex flex-col items-center py-8 px-4 gap-6 select-none">
