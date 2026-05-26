@@ -35,14 +35,21 @@ export default function Analytics() {
   const [selectedKermesId, setSelectedKermesId] = useState("");
   const [selectedAnalyticsSessionId, setSelectedAnalyticsSessionId] = useState<string>("all");
 
+  const [adminRole, setAdminRole] = useState<"super_admin" | "tenant_admin">("tenant_admin");
+  const [adminTenantId, setAdminTenantId] = useState<string>("");
+
   // Restore persisted selection after mount (SSR-safe)
   useEffect(() => {
-    const savedKermes = localStorage.getItem("analytics_selected_kermes");
-    if (savedKermes) {
-      setSelectedKermesId(savedKermes);
-      const savedSession = localStorage.getItem("analytics_selected_session");
-      if (savedSession) setSelectedAnalyticsSessionId(savedSession);
+    const role = sessionStorage.getItem("adminRole") || "tenant_admin";
+    const tId = sessionStorage.getItem("adminTenantId") || "";
+    if (role === "super_admin") {
+      const savedKermes = localStorage.getItem("analytics_selected_kermes");
+      if (savedKermes) setSelectedKermesId(savedKermes);
+    } else {
+      if (tId) setSelectedKermesId(tId);
     }
+    const savedSession = localStorage.getItem("analytics_selected_session");
+    if (savedSession) setSelectedAnalyticsSessionId(savedSession);
   }, []);
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
   const [expandedTransactions, setExpandedTransactions] = useState<LiveSale[]>([]);
@@ -86,6 +93,13 @@ export default function Analytics() {
   useEffect(() => {
     if (sessionStorage.getItem("isAdmin") === "true") {
       setIsAuth(true);
+      const r = (sessionStorage.getItem("adminRole") as any) || "tenant_admin";
+      const tId = sessionStorage.getItem("adminTenantId") || "";
+      setAdminRole(r);
+      setAdminTenantId(tId);
+      if (r === "tenant_admin" && tId) {
+        setSelectedKermesId(tId);
+      }
       setLoading(false);
     } else {
       router.replace("/");
@@ -259,27 +273,29 @@ export default function Analytics() {
 
             {/* Location & Session Selectors */}
             <div className="flex items-center gap-3 flex-wrap">
-              {/* Location selector — derived from synced sessions, not CMS kermeses */}
-              <div className="flex items-center gap-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 px-4 py-2 rounded-xl">
-                <LocationOnIcon className="text-gray-400 !h-5 !w-5" />
-                <select
-                  value={selectedKermesId}
-                  onChange={(e) => {
-                    const id = e.target.value;
-                    setSelectedKermesId(id);
-                    setSelectedAnalyticsSessionId("all");
-                    setExpandedSessionId(null);
-                    if (id) localStorage.setItem("analytics_selected_kermes", id);
-                    else localStorage.removeItem("analytics_selected_kermes");
-                  }}
-                  className="bg-transparent border-none text-xs font-bold text-black dark:text-white focus:outline-none cursor-pointer"
-                >
-                  <option value="" className="dark:bg-neutral-950">Satış Noktası Seçin</option>
-                  {availableLocations.map(opt => (
-                    <option key={opt.id} value={opt.id} className="dark:bg-neutral-950">{opt.name}</option>
-                  ))}
-                </select>
-              </div>
+              {/* Location selector — only shown for super_admin */}
+              {adminRole === "super_admin" && (
+                <div className="flex items-center gap-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 px-4 py-2 rounded-xl">
+                  <LocationOnIcon className="text-gray-400 !h-5 !w-5" />
+                  <select
+                    value={selectedKermesId}
+                    onChange={(e) => {
+                      const id = e.target.value;
+                      setSelectedKermesId(id);
+                      setSelectedAnalyticsSessionId("all");
+                      setExpandedSessionId(null);
+                      if (id) localStorage.setItem("analytics_selected_kermes", id);
+                      else localStorage.removeItem("analytics_selected_kermes");
+                    }}
+                    className="bg-transparent border-none text-xs font-bold text-black dark:text-white focus:outline-none cursor-pointer"
+                  >
+                    <option value="" className="dark:bg-neutral-950">Satış Noktası Seçin</option>
+                    {availableLocations.map(opt => (
+                      <option key={opt.id} value={opt.id} className="dark:bg-neutral-950">{opt.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {/* Session selector */}
               {selectedKermesId && (

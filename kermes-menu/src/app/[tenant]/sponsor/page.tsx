@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from 'react';
-import PageContainer from '../components/PageContainer';
-import LoadingScreen from '../components/LoadingScreen';
+import PageContainer from '../../components/PageContainer';
+import LoadingScreen from '../../components/LoadingScreen';
 import Image from 'next/image';
-import { useActiveKermes } from '../hooks/useActiveKermes';
+import { useActiveKermes } from '../../hooks/useActiveKermes';
 
 const IMAGE_WIDTH = 275;
 const IMAGE_HEIGHT = 250;

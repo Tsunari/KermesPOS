@@ -7,6 +7,18 @@
       "**/.*",
       "**/node_modules/**"
     ],
-    "cleanUrls": true
+    "cleanUrls": true,
+    "rewrites": [
+      { "source": "/:tenant", "destination": "/placeholder/index.html" },
+      { "source": "/:tenant/about", "destination": "/placeholder/about/index.html" },
+      { "source": "/:tenant/contact", "destination": "/placeholder/contact/index.html" },
+      { "source": "/:tenant/festival", "destination": "/placeholder/festival/index.html" },
+      { "source": "/:tenant/ikram", "destination": "/placeholder/ikram/index.html" },
+      { "source": "/:tenant/menu", "destination": "/placeholder/menu/index.html" },
+      { "source": "/:tenant/order", "destination": "/placeholder/order/index.html" },
+      { "source": "/:tenant/receipts", "destination": "/placeholder/receipts/index.html" },
+      { "source": "/:tenant/sponsor", "destination": "/placeholder/sponsor/index.html" },
+      { "source": "/:tenant/yurtlar", "destination": "/placeholder/yurtlar/index.html" }
+    ]
   }
 }

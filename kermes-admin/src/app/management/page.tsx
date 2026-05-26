@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, doc, onSnapshot, setDoc, deleteDoc } from "firebase/firestore";
+import { collection, doc, onSnapshot, setDoc, deleteDoc, getDoc } from "firebase/firestore";
 import { db } from "../../../firebaseInit";
 import { firebaseConfig } from "../../../firebaseConfig";
 import { initializeApp } from "firebase/app";
@@ -23,6 +23,7 @@ export default function Management() {
   const [posAccounts, setPosAccounts] = useState<POSAccount[]>([]);
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [newRole, setNewRole] = useState<"place" | "tenant_admin">("place");
   const [newKermesId, setNewKermesId] = useState("");
   const [newKermesName, setNewKermesName] = useState("");
   const [posLoading, setPosLoading] = useState(false);
@@ -57,8 +58,13 @@ export default function Management() {
     setPosSuccess("");
 
     try {
-      const docRef = doc(db, "pos_accounts", uid);
-      await setDoc(docRef, { status: nextStatus }, { merge: true });
+      const posDocRef = doc(db, "pos_accounts", uid);
+      const posSnap = await getDoc(posDocRef);
+      if (posSnap.exists()) {
+        await setDoc(posDocRef, { status: nextStatus }, { merge: true });
+      } else {
+        await setDoc(doc(db, "admin_accounts", uid), { status: nextStatus }, { merge: true });
+      }
       setPosSuccess(`Hesap başarıyla ${statusLabel} alındı.`);
     } catch (err: unknown) {
       console.error("Account toggle status failure:", err);
@@ -71,6 +77,11 @@ export default function Management() {
   // Auth check
   useEffect(() => {
     if (sessionStorage.getItem("isAdmin") === "true") {
+      const role = sessionStorage.getItem("adminRole");
+      if (role !== "super_admin") {
+        router.replace("/dashboard");
+        return;
+      }
       setIsAuth(true);
       setLoading(false);
     } else {
@@ -78,14 +89,24 @@ export default function Management() {
     }
   }, [router]);
 
-  // Live subscription to pos_accounts
+  // Live subscription to pos_accounts and admin_accounts
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "pos_accounts"), (snapshot) => {
-      const accounts = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as POSAccount));
-      accounts.sort((a, b) => a.email.localeCompare(b.email));
-      setPosAccounts(accounts);
+    const unsubPos = onSnapshot(collection(db, "pos_accounts"), (snapPos) => {
+      const posList = snapPos.docs.map(d => ({ id: d.id, ...d.data(), type: "Cashier" } as any));
+      
+      const unsubAdmin = onSnapshot(collection(db, "admin_accounts"), (snapAdmin) => {
+        const adminList = snapAdmin.docs
+          .map(d => ({ id: d.id, ...d.data(), kermesId: d.data().tenantId, kermesName: "Dashboard Admin", type: "Admin" } as any))
+          .filter(acc => acc.role === "tenant_admin");
+        
+        const merged = [...posList, ...adminList];
+        merged.sort((a, b) => a.email.localeCompare(b.email));
+        setPosAccounts(merged);
+      });
+      
+      return () => unsubAdmin();
     });
-    return () => unsubscribe();
+    return () => unsubPos();
   }, []);
 
   async function handleRegister(e: React.FormEvent) {
@@ -110,18 +131,29 @@ export default function Management() {
       const credential = await createUserWithEmailAndPassword(tempAuth, newEmail, newPassword);
       const uid = credential.user.uid;
 
-      await setDoc(doc(db, "pos_accounts", uid), {
-        email: newEmail,
-        role: "place",
-        kermesId: normalisedId,
-        kermesName: newKermesName.trim() || normalisedId,
-        createdAt: new Date().toISOString(),
-        status: "active",
-      });
+      if (newRole === "tenant_admin") {
+        await setDoc(doc(db, "admin_accounts", uid), {
+          uid,
+          email: newEmail,
+          role: "tenant_admin",
+          tenantId: normalisedId,
+          createdAt: new Date().toISOString(),
+          status: "active",
+        });
+      } else {
+        await setDoc(doc(db, "pos_accounts", uid), {
+          email: newEmail,
+          role: "place",
+          kermesId: normalisedId,
+          kermesName: newKermesName.trim() || normalisedId,
+          createdAt: new Date().toISOString(),
+          status: "active",
+        });
+      }
 
       await signOut(tempAuth);
 
-      setPosSuccess(`"${newEmail}" satış noktası hesabı başarıyla oluşturuldu!`);
+      setPosSuccess(`"${newEmail}" hesabı başarıyla oluşturuldu!`);
       setNewEmail("");
       setNewPassword("");
       setNewKermesId("");
@@ -135,14 +167,20 @@ export default function Management() {
   }
 
   async function handleDelete(uid: string, email: string) {
-    if (!window.confirm(`"${email}" satış noktası hesabını silmek istediğinize emin misiniz?`)) return;
+    if (!window.confirm(`"${email}" hesabını silmek istediğinize emin misiniz?`)) return;
 
     setPosLoading(true);
     setPosError("");
     setPosSuccess("");
 
     try {
-      await deleteDoc(doc(db, "pos_accounts", uid));
+      const posDocRef = doc(db, "pos_accounts", uid);
+      const posSnap = await getDoc(posDocRef);
+      if (posSnap.exists()) {
+        await deleteDoc(posDocRef);
+      } else {
+        await deleteDoc(doc(db, "admin_accounts", uid));
+      }
       setPosSuccess("Hesap veritabanından silindi. (Firebase Auth kaydını konsol üzerinden de kaldırabilirsiniz.)");
     } catch (err: unknown) {
       console.error("Account deletion failure:", err);
@@ -199,6 +237,22 @@ export default function Management() {
             )}
 
             <form onSubmit={handleRegister} className="flex flex-col gap-4">
+
+              {/* Account Type / Role Selection */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Hesap Tipi <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={newRole}
+                  onChange={(e) => setNewRole(e.target.value as any)}
+                  className="w-full text-sm rounded-xl border border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-900 px-4 py-3 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition cursor-pointer"
+                  disabled={posLoading}
+                >
+                  <option value="place">Satış Noktası (POS Register Cashier)</option>
+                  <option value="tenant_admin">Yönetici (Tenant Admin Dashboard)</option>
+                </select>
+              </div>
 
               {/* Credentials */}
               <div className="flex flex-col gap-1.5">
@@ -332,10 +386,10 @@ export default function Management() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-neutral-700">
-                    {filteredAccounts.map((acc) => (
+                    {filteredAccounts.map((acc: any) => (
                       <tr key={acc.id} className="hover:bg-gray-50 dark:hover:bg-neutral-900/40 transition">
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-sm font-semibold text-black dark:text-white">{acc.email}</p>
                             {acc.status === "suspended" ? (
                               <span className="text-[9px] font-bold bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full uppercase">
@@ -344,6 +398,15 @@ export default function Management() {
                             ) : (
                               <span className="text-[9px] font-bold bg-green-100 dark:bg-green-950/40 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full uppercase">
                                 Aktif
+                              </span>
+                            )}
+                            {acc.type === "Admin" ? (
+                              <span className="text-[9px] font-bold bg-indigo-100 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full uppercase">
+                                Yönetici
+                              </span>
+                            ) : (
+                              <span className="text-[9px] font-bold bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full uppercase">
+                                Kasa
                               </span>
                             )}
                           </div>

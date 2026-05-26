@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import PageContainer from '../components/PageContainer';
+import PageContainer from '../../components/PageContainer';
 import SendIcon from '@mui/icons-material/Send';
 
 export default function ContactPage() {

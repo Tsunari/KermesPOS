@@ -1,11 +1,11 @@
 "use client";
 import { useState } from 'react';
-import PageContainer from '../components/PageContainer';
-import CenteredImage from '../components/CenteredImage';
-import LoadingScreen from '../components/LoadingScreen';
+import PageContainer from '../../components/PageContainer';
+import CenteredImage from '../../components/CenteredImage';
+import LoadingScreen from '../../components/LoadingScreen';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DoneIcon from '@mui/icons-material/Done';
-import { useActiveKermes } from '../hooks/useActiveKermes';
+import { useActiveKermes } from '../../hooks/useActiveKermes';
 
 export default function FestivalPage() {
     const [copiedIdx, setCopiedIdx] = useState<number | null>(null);

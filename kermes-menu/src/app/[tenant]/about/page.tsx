@@ -3,12 +3,12 @@ import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { ReactNode } from 'react';
-import PageContainer from '../components/PageContainer';
-import CenteredImage from '../components/CenteredImage';
-import LoadingScreen from '../components/LoadingScreen';
+import PageContainer from '../../components/PageContainer';
+import CenteredImage from '../../components/CenteredImage';
+import LoadingScreen from '../../components/LoadingScreen';
 import DoneIcon from '@mui/icons-material/Done';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { useActiveKermes } from '../hooks/useActiveKermes';
+import { useActiveKermes } from '../../hooks/useActiveKermes';
 
 type MarkdownBlock =
   | { type: 'normal'; content: string }

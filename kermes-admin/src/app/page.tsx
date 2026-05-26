@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../../firebaseInit";
 
 export default function Home() {
@@ -18,7 +18,8 @@ export default function Home() {
     setLoading(true);
     setError("");
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      const user = credential.user;
       
       // Check if this account is bound as a POS register (role check)
       const q = query(collection(db, "pos_accounts"), where("email", "==", email.toLowerCase()));
@@ -32,7 +33,48 @@ export default function Home() {
         return;
       }
 
-      sessionStorage.setItem("isAdmin", "true");
+      // Check if this user is in admin_accounts
+      const adminDocRef = doc(db, "admin_accounts", user.uid);
+      const adminSnap = await getDoc(adminDocRef);
+
+      if (!adminSnap.exists()) {
+        // Self-bootstrapping check: If admin_accounts is empty, bootstrap the first non-cashier user as super_admin
+        const allAdminsSnap = await getDocs(collection(db, "admin_accounts"));
+        if (allAdminsSnap.empty) {
+          const superAdminData = {
+            uid: user.uid,
+            email: user.email?.toLowerCase() || email.toLowerCase(),
+            role: "super_admin",
+            tenantId: null,
+            status: "active",
+            createdAt: new Date().toISOString()
+          };
+          await setDoc(adminDocRef, superAdminData);
+          
+          sessionStorage.setItem("isAdmin", "true");
+          sessionStorage.setItem("adminRole", "super_admin");
+          sessionStorage.setItem("adminTenantId", "");
+        } else {
+          // Admin accounts exist, but this specific user is not registered in admin_accounts. Deny access.
+          await auth.signOut();
+          setError("Yönetici yetkiniz bulunmamaktadır. Lütfen sistem yöneticisiyle iletişime geçin.");
+          setLoading(false);
+          return;
+        }
+      } else {
+        const adminData = adminSnap.data();
+        if (adminData?.status === "suspended") {
+          await auth.signOut();
+          setError("Hesabınız askıya alınmıştır. Lütfen sistem yöneticisiyle iletişime geçin.");
+          setLoading(false);
+          return;
+        }
+
+        sessionStorage.setItem("isAdmin", "true");
+        sessionStorage.setItem("adminRole", adminData?.role || "tenant_admin");
+        sessionStorage.setItem("adminTenantId", adminData?.tenantId || "");
+      }
+
       router.push("/dashboard");
     } catch (err) {
       setError((err as Error).message || "Login failed");

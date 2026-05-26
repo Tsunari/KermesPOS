@@ -1,8 +1,8 @@
 "use client";
-import CenteredImage from '../components/CenteredImage';
-import PageContainer from '../components/PageContainer';
-import LoadingScreen from '../components/LoadingScreen';
-import { useActiveKermes } from '../hooks/useActiveKermes';
+import CenteredImage from '../../components/CenteredImage';
+import PageContainer from '../../components/PageContainer';
+import LoadingScreen from '../../components/LoadingScreen';
+import { useActiveKermes } from '../../hooks/useActiveKermes';
 
 export default function MenuPage() {
     const { kermesData, loading } = useActiveKermes();

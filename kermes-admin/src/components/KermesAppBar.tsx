@@ -10,6 +10,7 @@ import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const NAV_ITEMS = [
   { href: "/dashboard",  label: "Ana Sayfa",        Icon: HomeIcon },
@@ -21,6 +22,15 @@ const NAV_ITEMS = [
 export default function KermesAppBar({ onLogout }: { onLogout: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [role, setRole] = useState("tenant_admin");
+
+  useEffect(() => {
+    setRole(sessionStorage.getItem("adminRole") || "tenant_admin");
+  }, []);
+
+  const displayNavItems = NAV_ITEMS.filter(
+    (item) => item.href !== "/management" || role === "super_admin"
+  );
 
   const handleNav = (target: string) => {
     if (pathname !== target) router.push(target);
@@ -36,7 +46,7 @@ export default function KermesAppBar({ onLogout }: { onLogout: () => void }) {
       }}
     >
       <List className="flex flex-col gap-4 items-center">
-        {NAV_ITEMS.map(({ href, label, Icon }) => (
+        {displayNavItems.map(({ href, label, Icon }) => (
           <ListItem key={href} disablePadding>
             <Tooltip title={label} placement="right">
               <IconButton

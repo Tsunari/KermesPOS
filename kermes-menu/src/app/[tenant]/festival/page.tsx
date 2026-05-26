@@ -1,8 +1,8 @@
 "use client";
-import PageContainer from '../components/PageContainer';
-import CenteredImage from '../components/CenteredImage';
-import LoadingScreen from '../components/LoadingScreen';
-import { useActiveKermes } from '../hooks/useActiveKermes';
+import PageContainer from '../../components/PageContainer';
+import CenteredImage from '../../components/CenteredImage';
+import LoadingScreen from '../../components/LoadingScreen';
+import { useActiveKermes } from '../../hooks/useActiveKermes';
 
 export default function FestivalPage() {
     const { kermesData, loading } = useActiveKermes();

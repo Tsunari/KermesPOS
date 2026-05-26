@@ -11,11 +11,11 @@ import {
   serverTimestamp,
   runTransaction,
 } from "firebase/firestore";
-import { db } from "../../../firebaseInit";
-import { useActiveKermes } from "../hooks/useActiveKermes";
-import { useLanguage } from "../hooks/useLanguage";
-import PageContainer from "../components/PageContainer";
-import LoadingScreen from "../components/LoadingScreen";
+import { db } from "../../../../firebaseInit";
+import { useActiveKermes } from "../../hooks/useActiveKermes";
+import { useLanguage } from "../../hooks/useLanguage";
+import PageContainer from "../../components/PageContainer";
+import LoadingScreen from "../../components/LoadingScreen";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import CloseIcon from "@mui/icons-material/Close";
@@ -24,6 +24,29 @@ import WifiOffIcon from "@mui/icons-material/WifiOff";
 
 const ORDER_RECOVERY_KEY = "menu.onlineOrder.recent";
 
+function getRecoveryKey(kermesId?: string): string {
+  return kermesId ? `menu.${kermesId}.onlineOrder.recent` : ORDER_RECOVERY_KEY;
+}
+
+function readStoredTicket(kermesId?: string): StoredOrderTicket | null {
+  try {
+    const raw = localStorage.getItem(getRecoveryKey(kermesId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as StoredOrderTicket;
+    if (!parsed?.orderId) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredTicket(ticket: StoredOrderTicket, kermesId?: string) {
+  localStorage.setItem(getRecoveryKey(kermesId), JSON.stringify(ticket));
+}
+
+function clearStoredTicket(kermesId?: string) {
+  localStorage.removeItem(getRecoveryKey(kermesId));
+}
 interface Product {
   id: string;
   name: string;
@@ -53,25 +76,7 @@ interface SubmittedOrderView {
   status: "pending" | "imported" | "completed" | "cancelled";
 }
 
-function readStoredTicket(): StoredOrderTicket | null {
-  try {
-    const raw = localStorage.getItem(ORDER_RECOVERY_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as StoredOrderTicket;
-    if (!parsed?.orderId) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
 
-function writeStoredTicket(ticket: StoredOrderTicket) {
-  localStorage.setItem(ORDER_RECOVERY_KEY, JSON.stringify(ticket));
-}
-
-function clearStoredTicket() {
-  localStorage.removeItem(ORDER_RECOVERY_KEY);
-}
 
 function OrderPageContent() {
   const { kermesData, loading: kermesLoading } = useActiveKermes();
@@ -103,7 +108,7 @@ function OrderPageContent() {
   const activeKermesId = kermesData?.id || "";
 
   const restoreSavedTicket = () => {
-    const stored = readStoredTicket();
+    const stored = readStoredTicket(activeKermesId);
     if (!stored) {
       setTrackedOrderId(null);
       setTicketHydrated(true);
@@ -112,7 +117,7 @@ function OrderPageContent() {
 
     // If active kermes is known and differs, do not reuse stale ticket.
     if (activeKermesId && stored.kermesId && stored.kermesId !== activeKermesId) {
-      clearStoredTicket();
+      clearStoredTicket(activeKermesId);
       setTrackedOrderId(null);
       setTicketHydrated(true);
       return;
@@ -191,7 +196,7 @@ function OrderPageContent() {
 
     const unsubscribe = onSnapshot(doc(db, "online_orders", trackedOrderId), (snap) => {
       if (!snap.exists()) {
-        clearStoredTicket();
+        clearStoredTicket(activeKermesId);
         setTrackedOrderId(null);
         setSubmittedOrder(null);
         return;
@@ -199,7 +204,7 @@ function OrderPageContent() {
 
       const data = snap.data();
       if (activeKermesId && data?.kermesId && data.kermesId !== activeKermesId) {
-        clearStoredTicket();
+        clearStoredTicket(activeKermesId);
         setTrackedOrderId(null);
         setSubmittedOrder(null);
         return;
@@ -230,7 +235,7 @@ function OrderPageContent() {
         kermesId: data?.kermesId ?? activeKermesId,
         queueNumber: nextSubmitted.queueNumber,
         savedAt: Date.now(),
-      });
+      }, activeKermesId);
     });
 
     return () => unsubscribe();
@@ -450,7 +455,7 @@ function OrderPageContent() {
         kermesId: activeKermesId,
         queueNumber,
         savedAt: Date.now(),
-      });
+      }, activeKermesId);
 
       clearCart();
     } catch (err) {
@@ -506,7 +511,7 @@ function OrderPageContent() {
   };
 
   const clearRecoveredTicket = () => {
-    clearStoredTicket();
+    clearStoredTicket(activeKermesId);
     setTrackedOrderId(null);
     setSubmittedOrder(null);
   };
