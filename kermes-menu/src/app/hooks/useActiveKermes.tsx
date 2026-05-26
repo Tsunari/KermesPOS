@@ -34,6 +34,8 @@ export type KermesRecord = {
     yurtlar?: boolean;
     contact?: boolean;
   };
+  // Tenant-level explicit online ordering flag (may be undefined/null if not set)
+  onlineOrderingEnabled?: boolean | null;
 };
 
 type ActiveKermesContextType = {
@@ -90,6 +92,7 @@ export function ActiveKermesProvider({ children }: { children: React.ReactNode }
           bankReference: data?.bankReference ?? '',
           paypalLink: data?.paypalLink ?? '',
           enabledSections: data?.enabledSections ?? {},
+          onlineOrderingEnabled: typeof data?.onlineOrderingEnabled === 'boolean' ? data.onlineOrderingEnabled : null,
         });
       } else {
         setSettings(null);

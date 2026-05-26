@@ -87,7 +87,6 @@ function OrderPageContent() {
 
   // Firestore system configs
   const [globalEnabled, setGlobalEnabled] = useState<boolean | null>(null);
-  const [posListening, setPosListening] = useState<boolean | null>(null);
   const [systemLoading, setSystemLoading] = useState(true);
 
   // Products and cart states
@@ -137,7 +136,6 @@ function OrderPageContent() {
     // If no kermesId, mark as closed immediately
     if (!activeKermesId) {
       setGlobalEnabled(false);
-      setPosListening(false);
       setSystemLoading(false);
       return;
     }
@@ -145,33 +143,25 @@ function OrderPageContent() {
     // Safety timeout: don't hang on loading indefinitely
     const safetyTimer = setTimeout(() => setSystemLoading(false), 5000);
 
-    // Listen to global admin enable
+    // Listen to global admin config. Accept either `enabled` or legacy `onlineOrderingEnabled`.
     const unsubGlobal = onSnapshot(
       doc(db, "system_config", "online_ordering"),
       (snap) => {
         if (snap.exists()) {
-          setGlobalEnabled(snap.data()?.enabled ?? false);
+          const data = snap.data();
+          // Accept either `enabled` or legacy `onlineOrderingEnabled`.
+          const resolved = typeof data?.enabled === 'boolean'
+            ? data.enabled
+            : (typeof data?.onlineOrderingEnabled === 'boolean' ? data.onlineOrderingEnabled : null);
+          setGlobalEnabled(resolved);
         } else {
-          setGlobalEnabled(false);
-        }
-      },
-      () => setGlobalEnabled(false)
-    );
-
-    // Listen to POS active listening
-    const unsubPos = onSnapshot(
-      doc(db, "system_config", `pos_listening_${activeKermesId}`),
-      (snap) => {
-        if (snap.exists()) {
-          setPosListening(snap.data()?.active ?? false);
-        } else {
-          setPosListening(false);
+          setGlobalEnabled(null);
         }
         setSystemLoading(false);
         clearTimeout(safetyTimer);
       },
       () => {
-        setPosListening(false);
+        setGlobalEnabled(null);
         setSystemLoading(false);
         clearTimeout(safetyTimer);
       }
@@ -180,7 +170,6 @@ function OrderPageContent() {
     return () => {
       clearTimeout(safetyTimer);
       unsubGlobal();
-      unsubPos();
     };
   }, [kermesLoading, activeKermesId]);
 
@@ -314,8 +303,11 @@ function OrderPageContent() {
     );
   }
 
-  // Check ordering authorization
-  const isOrderingOpen = globalEnabled === true && posListening === true;
+  // Check ordering authorization — treat missing/global null as enabled so
+  // ordering works when admin switch is on; only explicit `false` closes it.
+  // Check ordering authorization — ordering is open unless either admin or tenant explicitly set false.
+  const tenantOnlineOrdering = kermesData?.onlineOrderingEnabled ?? null;
+  const isOrderingOpen = (globalEnabled !== false) && (tenantOnlineOrdering !== false);
 
   if (ticketMode && !submittedOrder && !trackedOrderId) {
     return (

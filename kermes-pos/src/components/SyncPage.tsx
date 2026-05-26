@@ -30,7 +30,6 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import WifiTetheringIcon from '@mui/icons-material/WifiTethering';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import { useLanguage } from '../context/LanguageContext';
-import ModernSwitch from './ui/ModernSwitch';
 import { Session } from '../types/session';
 import { sessionService } from '../services/sessionService';
 import { CartTransaction, cartTransactionService } from '../services/cartTransactionService';
@@ -68,8 +67,6 @@ const SyncPage: React.FC = () => {
   const [productsSyncLoading, setProductsSyncLoading] = useState(false);
 
   const {
-    onlineOrdersEnabled,
-    setOnlineOrdersEnabled,
     setProducts,
     setProfile: setGlobalProfile,
     activeKermesId
@@ -438,22 +435,6 @@ const SyncPage: React.FC = () => {
               </Typography>
 
               <Stack spacing={3}>
-                {/* Online Orders Toggle - uses ModernSwitch, writes globally to Firestore */}
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.25 }}>
-                      {t('app.sync.online_orders_local_toggle') || "Receive Incoming Pre-orders"}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4 }}>
-                      {t('app.sync.online_orders_local_toggle_desc') || "Activates real-time queue sync and shows the glowing badge in Cart. Customers can only pre-order while this is ON."}
-                    </Typography>
-                  </Box>
-                  <ModernSwitch
-                    edge="end"
-                    checked={onlineOrdersEnabled}
-                    onChange={(e) => setOnlineOrdersEnabled(e.target.checked)}
-                  />
-                </Box>
 
                 <Divider />
 
