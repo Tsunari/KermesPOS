@@ -189,62 +189,61 @@ Kardeşliğimizi pekiştirmek ve soframıza bereket katmak için ailenizle, dost
         ))}
       </div>
       <div className="bg-white/90 rounded-2xl shadow-lg p-5 border border-gray-200 mt-0 mb-4">
-                <div className="text-gray-700 text-base text-center space-y-6">
-                    { [
-                        {
-                            label: "URVE-Regionalverband München e.V.",
-                            value: "URVE-Regionalverband München e.V.",
-                        },
-                        {
-                            label: "IBAN: DE39 7015 0000 1005 1226 82",
-                            value: "DE39 7015 0000 1005 1226 82",
-                        },
-                        {
-                            label: "VZ: Mitgliedsbeitrag Rosenheim",
-                            value: "Mitgliedsbeitrag Rosenheim",
-                        },
-                    ].map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-center space-x-2 mb-5 last:mb-0">
-                            <span>{item.label}</span>
-                            <button
-                                type="button"
-                                className="p-1 rounded hover:bg-gray-200"
-                                onClick={() => {
-                                    navigator.clipboard.writeText(item.value);
-                                    setCopiedIdx(idx);
-                                    setTimeout(() => setCopiedIdx(null), 5000);
-                                }}
-                                aria-label="Copy to clipboard"
-                            >
-                                {copiedIdx === idx ? (
-                                    <DoneIcon className="text-gray-500" fontSize="small" />
-                                ) : (
-                                    <ContentCopyIcon className="text-gray-500" fontSize="small" />
-                                )}
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            </div>
-              <div className="bg-white/90 rounded-2xl shadow-lg p-0 border border-gray-200 mt-0 mb-4">
-                <div className="text-gray-700 text-base text-center space-y-6">
-                    <a
-                      href="https://www.paypal.me/URVEmuenchen"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block"
-                    >
-                      <CenteredImage
-                        width={150}
-                        innerClassName="flex justify-center items-center"
-                        outerClassName=""
-                        border={false}
-                        src="/paypal.png"
-                        alt="PayPal Logo"
-                      />
-                    </a>
-                </div>
-            </div>
+        <div className="text-gray-700 text-base text-center space-y-6">
+          {(() => {
+            const bankItems = [
+              kermesData?.bankName ? { label: kermesData.bankName, value: kermesData.bankName } : null,
+              kermesData?.bankIban ? { label: `IBAN: ${kermesData.bankIban}`, value: kermesData.bankIban } : null,
+              kermesData?.bankReference ? { label: `VZ: ${kermesData.bankReference}`, value: kermesData.bankReference } : null,
+            ].filter(Boolean) as { label: string; value: string }[];
+
+            if (bankItems.length === 0) return null;
+
+            return bankItems.map((item, idx) => (
+              <div key={idx} className="flex items-center justify-center space-x-2 mb-5 last:mb-0">
+                <span>{item.label}</span>
+                <button
+                  type="button"
+                  className="p-1 rounded hover:bg-gray-200"
+                  onClick={() => {
+                    navigator.clipboard.writeText(item.value);
+                    setCopiedIdx(idx);
+                    setTimeout(() => setCopiedIdx(null), 5000);
+                  }}
+                  aria-label="Copy to clipboard"
+                >
+                  {copiedIdx === idx ? (
+                    <DoneIcon className="text-gray-500" fontSize="small" />
+                  ) : (
+                    <ContentCopyIcon className="text-gray-500" fontSize="small" />
+                  )}
+                </button>
+              </div>
+            ));
+          })()}
+        </div>
+      </div>
+      {kermesData?.paypalLink && (
+        <div className="bg-white/90 rounded-2xl shadow-lg p-0 border border-gray-200 mt-0 mb-4">
+          <div className="text-gray-700 text-base text-center space-y-6">
+            <a
+              href={kermesData.paypalLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block"
+            >
+              <CenteredImage
+                width={150}
+                innerClassName="flex justify-center items-center"
+                outerClassName=""
+                border={false}
+                src="/paypal.png"
+                alt="PayPal Logo"
+              />
+            </a>
+          </div>
+        </div>
+      )}
     </PageContainer>
   );
 }

@@ -20,6 +20,10 @@ export type KermesRecord = {
   aboutTitle: string;
   aboutMarkdown: string;
   sponsorImages: string[];
+  bankName?: string;
+  bankIban?: string;
+  bankReference?: string;
+  paypalLink?: string;
   enabledSections?: {
     festival?: boolean;
     order?: boolean;
@@ -81,6 +85,10 @@ export function ActiveKermesProvider({ children }: { children: React.ReactNode }
           aboutTitle: data?.aboutTitle ?? 'Geleneksel Mıntıka Kermesimiz Başlıyor!',
           aboutMarkdown: data?.aboutMarkdown ?? data?.aboutText ?? '',
           sponsorImages: Array.isArray(data?.sponsorImages) ? data?.sponsorImages : [],
+          bankName: data?.bankName ?? '',
+          bankIban: data?.bankIban ?? '',
+          bankReference: data?.bankReference ?? '',
+          paypalLink: data?.paypalLink ?? '',
           enabledSections: data?.enabledSections ?? {},
         });
       } else {

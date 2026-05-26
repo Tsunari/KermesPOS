@@ -23,6 +23,10 @@ type KermesRecord = {
   sponsorImages: string[];
   active: boolean;
   onlineOrderingEnabled: boolean;
+  bankName?: string;
+  bankIban?: string;
+  bankReference?: string;
+  paypalLink?: string;
   enabledSections?: {
     festival?: boolean;
     order?: boolean;
@@ -194,6 +198,10 @@ export default function Dashboard() {
           sponsorImages: Array.isArray(data.sponsorImages) ? data.sponsorImages : [],
           active: data.active !== false,
           onlineOrderingEnabled: data.onlineOrderingEnabled !== false,
+          bankName: data.bankName ?? "",
+          bankIban: data.bankIban ?? "",
+          bankReference: data.bankReference ?? "",
+          paypalLink: data.paypalLink ?? "",
           enabledSections: data.enabledSections ?? {},
         };
       });
@@ -271,6 +279,10 @@ export default function Dashboard() {
       draft.aboutMarkdown !== original.aboutMarkdown ||
       draft.active !== original.active ||
       draft.onlineOrderingEnabled !== original.onlineOrderingEnabled ||
+      draft.bankName !== original.bankName ||
+      draft.bankIban !== original.bankIban ||
+      draft.bankReference !== original.bankReference ||
+      draft.paypalLink !== original.paypalLink ||
       JSON.stringify(draft.sponsorImages) !== JSON.stringify(original.sponsorImages) ||
       JSON.stringify(draft.enabledSections) !== JSON.stringify(original.enabledSections)
     );
@@ -351,6 +363,10 @@ export default function Dashboard() {
         sponsorImages: newKermesSponsorImages,
         active: true,
         onlineOrderingEnabled: true,
+        bankName: "",
+        bankIban: "",
+        bankReference: "",
+        paypalLink: "",
       };
 
       await setDoc(doc(db, "kermeses", kermesId), newRecord);
@@ -955,6 +971,48 @@ export default function Dashboard() {
                       className="w-full rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-950 px-3 py-2 text-black dark:text-white font-mono text-xs"
                     />
                   </div>
+
+                  {/* Payment Info */}
+                  <div className="p-3 bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-700 space-y-3">
+                    <span className="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider block">Banka &amp; Ödeme Bilgileri</span>
+                    <label className="block text-sm text-black dark:text-white">
+                      Hesap Sahibi / Kurum Adı
+                      <input
+                        value={draft?.bankName ?? selectedRecord.bankName ?? ""}
+                        onChange={(event) => updateSelectedRecord("bankName", event.target.value)}
+                        placeholder="ör. URVE-Regionalverband München e.V."
+                        className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-950 px-3 py-2 text-black dark:text-white"
+                      />
+                    </label>
+                    <label className="block text-sm text-black dark:text-white">
+                      IBAN
+                      <input
+                        value={draft?.bankIban ?? selectedRecord.bankIban ?? ""}
+                        onChange={(event) => updateSelectedRecord("bankIban", event.target.value)}
+                        placeholder="ör. DE39 7015 0000 1005 1226 82"
+                        className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-950 px-3 py-2 text-black dark:text-white font-mono"
+                      />
+                    </label>
+                    <label className="block text-sm text-black dark:text-white">
+                      Ödeme Açıklaması (Verwendungszweck)
+                      <input
+                        value={draft?.bankReference ?? selectedRecord.bankReference ?? ""}
+                        onChange={(event) => updateSelectedRecord("bankReference", event.target.value)}
+                        placeholder="ör. Mitgliedsbeitrag Rosenheim"
+                        className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-950 px-3 py-2 text-black dark:text-white"
+                      />
+                    </label>
+                    <label className="block text-sm text-black dark:text-white">
+                      PayPal Linki
+                      <input
+                        value={draft?.paypalLink ?? selectedRecord.paypalLink ?? ""}
+                        onChange={(event) => updateSelectedRecord("paypalLink", event.target.value)}
+                        placeholder="ör. https://www.paypal.me/URVEmuenchen"
+                        className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-950 px-3 py-2 text-black dark:text-white"
+                      />
+                    </label>
+                  </div>
+
                   <div className="space-y-2">
                     <label className="text-sm text-black dark:text-white font-medium block">Sponsor görselleri</label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
