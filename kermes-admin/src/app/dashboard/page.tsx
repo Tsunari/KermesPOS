@@ -23,6 +23,16 @@ type KermesRecord = {
   sponsorImages: string[];
   active: boolean;
   onlineOrderingEnabled: boolean;
+  enabledSections?: {
+    festival?: boolean;
+    order?: boolean;
+    menu?: boolean;
+    about?: boolean;
+    sponsor?: boolean;
+    ikram?: boolean;
+    yurtlar?: boolean;
+    contact?: boolean;
+  };
 };
 
 type FolderCatalogEntry = {
@@ -184,6 +194,7 @@ export default function Dashboard() {
           sponsorImages: Array.isArray(data.sponsorImages) ? data.sponsorImages : [],
           active: data.active !== false,
           onlineOrderingEnabled: data.onlineOrderingEnabled !== false,
+          enabledSections: data.enabledSections ?? {},
         };
       });
       setKermeses(records);
@@ -260,7 +271,8 @@ export default function Dashboard() {
       draft.aboutMarkdown !== original.aboutMarkdown ||
       draft.active !== original.active ||
       draft.onlineOrderingEnabled !== original.onlineOrderingEnabled ||
-      JSON.stringify(draft.sponsorImages) !== JSON.stringify(original.sponsorImages)
+      JSON.stringify(draft.sponsorImages) !== JSON.stringify(original.sponsorImages) ||
+      JSON.stringify(draft.enabledSections) !== JSON.stringify(original.enabledSections)
     );
   }, [draft, kermeses, selectedKermesId]);
 
@@ -435,6 +447,21 @@ export default function Dashboard() {
       [field]: field === "sponsorImages" && typeof value === "string" ? parseImageList(value) : value,
     } as KermesRecord;
     setDraft(nextDraft);
+  }
+
+  function toggleEnabledSection(sectionKey: string) {
+    if (!selectedRecord) return;
+    const currentSections = draft?.enabledSections ?? selectedRecord.enabledSections ?? {};
+    const nextSections = {
+      ...currentSections,
+      [sectionKey]: currentSections[sectionKey as keyof typeof currentSections] === false ? true : false,
+    };
+    
+    setDraft({
+      ...selectedRecord,
+      ...draft,
+      enabledSections: nextSections,
+    } as KermesRecord);
   }
 
   const renderFileSelector = (field: "festivalImage" | "menuImage" | "ikramImage" | "aboutImage") => {
@@ -821,6 +848,39 @@ export default function Dashboard() {
                       ))}
                     </select>
                   </label>
+
+                  {/* Active Menu Cards Toggles */}
+                  <div className="p-3 bg-white dark:bg-neutral-950 rounded-xl border border-gray-250 dark:border-neutral-700/80 space-y-2.5">
+                    <span className="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider block">
+                      Aktif Menü Kartları / Sayfalar
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { key: "festival", label: "Kermesimiz (Festival)" },
+                        { key: "order", label: "Online Ön Sipariş" },
+                        { key: "menu", label: "Menü" },
+                        { key: "about", label: "Hakkımızda" },
+                        { key: "sponsor", label: "Sponsorlarımız" },
+                        { key: "ikram", label: "Talebeleye İkram" },
+                        { key: "yurtlar", label: "Yurt Tanıtımı" },
+                        { key: "contact", label: "İletişim" },
+                      ].map((sec) => {
+                        const isEnabled = (draft?.enabledSections?.[sec.key as keyof typeof draft.enabledSections] ?? selectedRecord.enabledSections?.[sec.key as keyof typeof selectedRecord.enabledSections]) !== false;
+                        return (
+                          <label key={sec.key} className="flex items-center gap-2 text-xs font-semibold text-black dark:text-white cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={isEnabled}
+                              onChange={() => toggleEnabledSection(sec.key)}
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span>{sec.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <label className="block text-sm text-black dark:text-white">
                     Festival görsel yolu
                     <input

@@ -80,7 +80,11 @@ export default function TenantHome() {
         </h1>
         
         <div className="w-full flex flex-col gap-4">
-          {navCards.map(card => {
+          {navCards.filter(card => {
+            const key = card.href.replace('/', '');
+            const enabledSections = kermesData?.enabledSections ?? {};
+            return enabledSections[key as keyof typeof enabledSections] !== false;
+          }).map(card => {
             const Icon = card.icon;
             const tenantHref = `/${kermesData.id}${card.href}`;
             return (

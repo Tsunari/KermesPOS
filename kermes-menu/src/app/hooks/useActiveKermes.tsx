@@ -20,6 +20,16 @@ export type KermesRecord = {
   aboutTitle: string;
   aboutMarkdown: string;
   sponsorImages: string[];
+  enabledSections?: {
+    festival?: boolean;
+    order?: boolean;
+    menu?: boolean;
+    about?: boolean;
+    sponsor?: boolean;
+    ikram?: boolean;
+    yurtlar?: boolean;
+    contact?: boolean;
+  };
 };
 
 type ActiveKermesContextType = {
@@ -71,6 +81,7 @@ export function ActiveKermesProvider({ children }: { children: React.ReactNode }
           aboutTitle: data?.aboutTitle ?? 'Geleneksel Mıntıka Kermesimiz Başlıyor!',
           aboutMarkdown: data?.aboutMarkdown ?? data?.aboutText ?? '',
           sponsorImages: Array.isArray(data?.sponsorImages) ? data?.sponsorImages : [],
+          enabledSections: data?.enabledSections ?? {},
         });
       } else {
         setSettings(null);
