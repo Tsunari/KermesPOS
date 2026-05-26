@@ -161,6 +161,8 @@ try {
         "electron" = "Kermes Electron"
         "pos" = "Kermes POS"
         "web" = "Kermes Web"
+        "admin" = "Kermes Admin"
+        "menu" = "Kermes Menu"
     }
     $typeMap = @{
         "feat" = "Added"
@@ -283,6 +285,23 @@ try {
         Push-Location ./kermes-pos
         firebase deploy --only hosting
         Pop-Location
+    }
+
+    # Offer to invoke deploy.ps1 for any web app commits in the same range
+    $webScopes = @("--menu", "--admin", "--web")
+    $webCommits = git log "$lastTag..HEAD" --pretty=format:"%s" | Where-Object {
+        $msg = $_
+        $webScopes | Where-Object { $msg -match [regex]::Escape($_) }
+    }
+    if ($webCommits) {
+        Write-Host ""
+        Write-Host "  Web-app commits detected in this release range:" -ForegroundColor Yellow
+        $webCommits | Select-Object -First 6 | ForEach-Object { Write-Host "  · $_" -ForegroundColor DarkGray }
+        Write-Host ""
+        $webDeploy = Read-Host "  Deploy web apps now via deploy.ps1? (y/n)"
+        if ($webDeploy -eq 'y' -or $webDeploy -eq 'Y') {
+            & "$PSScriptRoot\deploy.ps1" -Since $lastTag
+        }
     }
 
     #region Final Output
