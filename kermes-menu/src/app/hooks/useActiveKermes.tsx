@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../../firebaseInit';
-import { useParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 export type KermesSettings = {
   active: boolean;
@@ -49,8 +49,8 @@ const ActiveKermesContext = createContext<ActiveKermesContextType>({
 });
 
 export function ActiveKermesProvider({ children }: { children: React.ReactNode }) {
-  const params = useParams();
-  const tenantId = (params?.tenant as string) || '';
+  const pathname = usePathname();
+  const tenantId = pathname ? pathname.split('/').filter(Boolean)[0] || '' : '';
   const [settings, setSettings] = useState<KermesSettings | null>(null);
   const [kermesData, setKermesData] = useState<KermesRecord | null>(null);
   const [loading, setLoading] = useState(true);
