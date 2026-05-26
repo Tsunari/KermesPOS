@@ -5,6 +5,34 @@ All notable changes to the Kermes project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.0] - 26-05-2026
+### Global
+- Online order problems fix  -menu
+- Replace useParams with usePathname for tenant ID retrieval  --menu
+- Remove unneded auth  --menu
+- Bankl and paypal info dynamic  --menu --admin
+- Dynamic page context and administrative dashboard for tenant management  --menu
+- Reset cart and clear editing locks when starting a new order  --menu
+- Implement clean minimalist status screens and timeouts for finished and cancelled tickets  --menu
+- Relocate routing endpoints into tenant dynamic folder segment  --menu
+- Integrate real-time interactive active kermeses portal landing page  --menu
+- Implement namespace prefixes for storage keys to isolate cart sessions  --menu
+- Create dynamic active kermes provider react context  --menu
+- Add role-based firestore rules restricting tenant administrators --feat
+- Secure settings toggle sync and lock dashboard scope to tenant identifiers  --admin
+- Implement provisioner forms supporting tenant admins and register accounts  --admin
+- Replace asset folder text input with interactive directory dropdown  --admin
+- Render pulsing unsaved changes status badge next to editor headers  --admin
+- Design floating glassmorphic unsaved changes action bar at viewport bottom  --admin
+- Implement revert edits action to restore draft to firestore originals  --admin
+- Append viewport entrance slide-up keyframes to main styling utilities  --admin
+
+### Kermes POS
+#### Changed
+- [Care] remove pos listening
+- Standard product descriptions deleted
+
+
 ## [1.18.0] - 25-05-2026
 ### Global
 - Kermes menu small UI adjustments  --menu
