@@ -783,7 +783,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
   }, [hoveredTimelinePoint]);
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: 'background.default', color: 'text.primary', pb: 12 }}>
+    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: 'background.default', color: 'text.primary', pb: 12, borderRadius: 3 }}>
       
       {/* Dev mode warning banner */}
       {devMode && (
