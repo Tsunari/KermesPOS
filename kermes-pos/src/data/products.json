@@ -2,227 +2,235 @@
   "products": [
     {
       "id": "1001",
-      "name": "Döner",
-      "price": 8.00,
+      "name": "Kuzu Çevirme",
+      "price": 10.0,
       "category": "food",
-      "description": "",
+      "description": "Lamm am Spieß 100g",
       "inStock": true
     },
     {
       "id": "1002",
-      "name": "Döner Dürüm",
-      "price": 9.00,
+      "name": "Bütün Tavuk",
+      "price": 15.0,
       "category": "food",
-      "description": "",
+      "description": "Ganzes Grillhähnchen",
       "inStock": true
     },
     {
       "id": "1003",
-      "name": "Döner Tabak",
-      "price": 13.00,
+      "name": "Yarım Tavuk",
+      "price": 8.0,
       "category": "food",
-      "description": "",
+      "description": "Halbes Grillhähnchen",
       "inStock": true
     },
     {
       "id": "1004",
-      "name": "Adana",
-      "price": 8.00,
+      "name": "Çıtır Dürüm",
+      "price": 8.0,
       "category": "food",
-      "description": "",
+      "description": "Hähnchen-Geschnetzeltes",
       "inStock": true
     },
     {
       "id": "1005",
-      "name": "Balik",
-      "price": 10.00,
+      "name": "Adana Kebap",
+      "price": 8.0,
       "category": "food",
       "description": "",
       "inStock": true
     },
     {
       "id": "1006",
-      "name": "Balik Ekmek",
-      "price": 8.00,
+      "name": "Tavuk Pirzola",
+      "price": 8.0,
       "category": "food",
-      "description": "",
+      "description": "Hähnchenkotelett 2 Stück",
       "inStock": true
     },
     {
       "id": "1007",
       "name": "Tantuni",
-      "price": 8.00,
+      "price": 9.0,
       "category": "food",
-      "description": "",
+      "description": "Brot / Dürüm",
       "inStock": true
     },
     {
       "id": "1008",
-      "name": "Tantuni Tabak",
-      "price": 13.00,
+      "name": "Döner",
+      "price": 8.0,
       "category": "food",
-      "description": "",
+      "description": "Döner Brot",
       "inStock": true
     },
     {
       "id": "1009",
-      "name": "Köfte Ekmek",
-      "price": 8.00,
+      "name": "Döner Dürüm",
+      "price": 9.0,
       "category": "food",
       "description": "",
       "inStock": true
     },
     {
       "id": "1010",
-      "name": "Köfte Tabak",
-      "price": 10.00,
+      "name": "Hatay Döner",
+      "price": 10.0,
       "category": "food",
-      "description": "",
+      "description": "Döner nach Hatay-Art",
       "inStock": true
     },
     {
       "id": "1011",
-      "name": "1/2 Yarim Tavuk",
-      "price": 8.00,
+      "name": "Dana Burger",
+      "price": 8.0,
       "category": "food",
-      "description": "",
+      "description": "Rindfleischburger",
       "inStock": true
     },
     {
       "id": "1012",
-      "name": "1 Tam Tavuk",
-      "price": 15.00,
+      "name": "Tavuk Burger",
+      "price": 8.0,
       "category": "food",
-      "description": "",
+      "description": "Hähnchen-Burger",
       "inStock": true
     },
     {
       "id": "1013",
-      "name": "Hamsi Tava",
-      "price": 10.00,
+      "name": "Balık Burger",
+      "price": 8.0,
       "category": "food",
-      "description": "",
+      "description": "Fisch-Burger",
       "inStock": true
     },
     {
       "id": "1014",
-      "name": "Kumpir",
-      "price": 8.00,
+      "name": "Burgermenü",
+      "price": 10.0,
       "category": "food",
-      "description": "",
-      "inStock": true
-    },
-    {
-      "id": "1015",
-      "name": "Talebe Yemek",
-      "price": 5.00,
-      "category": "food",
-      "description": "",
+      "description": "Burger + Pommes",
       "inStock": true
     },
     {
       "id": "2001",
-      "name": "Cay",
-      "price": 1.00,
+      "name": "Su",
+      "price": 1.0,
       "category": "drink",
-      "description": "",
+      "description": "Wasser",
       "inStock": true
     },
     {
       "id": "2002",
-      "name": "Kahve",
-      "price": 2.00,
+      "name": "Ayran",
+      "price": 1.0,
       "category": "drink",
       "description": "",
       "inStock": true
     },
     {
       "id": "2003",
-      "name": "Su",
-      "price": 1.50,
+      "name": "Gazlı İçecekler",
+      "price": 2.0,
       "category": "drink",
-      "description": "",
+      "description": "Softdrinks",
       "inStock": true
     },
     {
       "id": "2004",
-      "name": "Ayran",
-      "price": 1.50,
+      "name": "Çay",
+      "price": 1.0,
       "category": "drink",
-      "description": "",
+      "description": "Türkischer Tee",
       "inStock": true
     },
     {
       "id": "2005",
-      "name": "Acik Yayik Ayran",
-      "price": 2.00,
+      "name": "Mocktail",
+      "price": 5.0,
       "category": "drink",
-      "description": "",
-      "inStock": true
-    },
-    {
-      "id": "2006",
-      "name": "Mesrubat",
-      "price": 2.00,
-      "category": "drink",
-      "description": "",
-      "inStock": true
-    },
-    {
-      "id": "2007",
-      "name": "Spezi",
-      "price": 2.00,
-      "category": "drink",
-      "description": "",
-      "inStock": true
-    },
-    {
-      "id": "2008",
-      "name": "Iskembe Corba",
-      "price": 6.00,
-      "category": "drink",
-      "description": "",
-      "inStock": true
-    },
-    {
-      "id": "2009",
-      "name": "Mercimek Corba",
-      "price": 5.00,
-      "category": "drink",
-      "description": "",
+      "description": "Alkoholfreier Cocktail",
       "inStock": true
     },
     {
       "id": "3001",
       "name": "Pommes",
-      "price": 3.00,
+      "price": 3.0,
       "category": "dessert",
       "description": "",
       "inStock": true
     },
     {
       "id": "3002",
-      "name": "Lahmacun",
-      "price": 3.00,
+      "name": "Chicken Nuggets",
+      "price": 4.0,
       "category": "dessert",
-      "description": "",
+      "description": "6 Stück",
       "inStock": true
     },
     {
       "id": "3003",
-      "name": "Gözleme",
-      "price": 3.00,
+      "name": "Tulumba Tatlısı",
+      "price": 1.5,
       "category": "dessert",
-      "description": "",
+      "description": "Türkisches Gebäck in Sirup",
       "inStock": true
     },
     {
       "id": "3004",
-      "name": "Katmer",
-      "price": 3.00,
+      "name": "Künefe",
+      "price": 2.0,
       "category": "dessert",
-      "description": "",
+      "description": "Teigfäden mit Käse",
+      "inStock": true
+    },
+    {
+      "id": "3005",
+      "name": "Pasta Çeşitleri",
+      "price": 3.0,
+      "category": "dessert",
+      "description": "Verschiedene Kuchenstücke",
+      "inStock": true
+    },
+    {
+      "id": "3006",
+      "name": "Mantı",
+      "price": 4.0,
+      "category": "dessert",
+      "description": "Teigtaschen Portion",
+      "inStock": true
+    },
+    {
+      "id": "3007",
+      "name": "Sarma",
+      "price": 1.0,
+      "category": "dessert",
+      "description": "Gefüllte Weinblätter 5 Stück",
+      "inStock": true
+    },
+    {
+      "id": "3008",
+      "name": "Lahmacun",
+      "price": 2.5,
+      "category": "dessert",
+      "description": "Türkische Pizza",
+      "inStock": true
+    },
+    {
+      "id": "3009",
+      "name": "Gözleme",
+      "price": 3.0,
+      "category": "dessert",
+      "description": "Türkischer Pfannkuchen",
+      "inStock": true
+    },
+    {
+      "id": "3010",
+      "name": "İçli Köfte",
+      "price": 2.0,
+      "category": "dessert",
+      "description": "Gefüllte Bulgurbällchen",
       "inStock": true
     }
   ]
-} 
+}

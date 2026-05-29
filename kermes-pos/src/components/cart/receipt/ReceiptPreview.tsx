@@ -2,16 +2,15 @@ import React from 'react';
 import { Box, Typography, Paper, Divider } from '@mui/material';
 import { CartItem } from '../../../types/index';
 
+import { useSettings } from '../../../context/SettingsContext';
+
 interface ReceiptPreviewProps {
   items: CartItem[];
   total: number;
 }
 
 const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ items, total }) => {
-  // Format price with currency symbol
-  const formatPrice = (price: number): string => {
-    return price.toFixed(2).replace('.', ',') + '€';
-  };
+  const { formatPrice } = useSettings();
 
   return (
     <Paper 

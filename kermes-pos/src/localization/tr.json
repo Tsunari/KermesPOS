@@ -101,7 +101,58 @@
     },
     "menu": {
       "description": "Açıklama"
+    },
+    "tabs": {
+      "appearance": "Görünüm",
+      "behavior": "Çalışma Şekli",
+      "language": "Dil Seçenekleri",
+      "security": "Güvenlik & Yedek",
+      "system": "Sistem & Hakkında"
+    },
+    "diagnostics": {
+      "title": "Sistem Analizi",
+      "dbSize": "Veritabanı İstatistikleri",
+      "totalProducts": "Toplam Aktif Ürün",
+      "totalTransactions": "Toplam İşlem Günlüğü",
+      "storageUsed": "Tahmini Yerel Depolama"
+    },
+    "factoryReset": {
+      "title": "Fabrika Ayarları",
+      "button": "Tüm Ayarları Sıfırla",
+      "confirm": "Tüm uygulama ayarlarını varsayılana sıfırlamak istediğinizden emin misiniz?",
+      "success": "Tüm ayarlar başarıyla varsayılana sıfırlandı."
     }
+  },
+  "importExport": {
+    "title": "Ürünleri İçe/Dışa Aktar",
+    "exportTitle": "Dışa Aktar & Yedekle",
+    "exportDesc": "Mevcut ürün kataloğunuzu sisteminize JSON yedek dosyası olarak kaydedin.",
+    "importTitle": "İçe Aktar & Geri Yükle",
+    "importDesc": "Kataloğunuzu güncellemek için JSON formatındaki ürün verilerini sürükleyip bırakın veya yapıştırın.",
+    "dropzoneActive": "JSON dosyasını buraya bırakın...",
+    "dropzoneIdle": "Bir products.json dosyasını buraya sürükleyip bırakın veya seçmek için tıklayın",
+    "orPaste": "veya aşağıya ham JSON verisini yapıştırın",
+    "validateSuccess": "JSON sözdizimi ve yapısı geçerli!",
+    "validateErrorSyntax": "Yazım Hatası: {error} (Satır {line})",
+    "validateErrorSchema": "Şema Hatası: {error}",
+    "dryRunTitle": "İçe Aktarım Önizlemesi",
+    "dryRunDesc": "Veritabanınıza uygulamadan önce içe aktarılacak ürünleri doğrulayın.",
+    "dryRunChecklist": "Aktarım Bütünlük Kontrolü",
+    "dryRunSuccess": "Tüm ürünler veritabanı uyumluluk testlerinden geçti!",
+    "totalProducts": "Toplam Ürün",
+    "categoryBreakdown": "Kategori Dağılımı",
+    "modeLabel": "İçe Aktarım Stratejisi",
+    "modeOverwrite": "Tamamen Üzerine Yaz (Mevcut listeyi siler)",
+    "modeMerge": "Akıllı Birleştirme (Yenileri ekler, eşleşen kimlikleri günceller)",
+    "actionApply": "Aktarımı Uygula & Kataloğu Güncelle",
+    "actionCancel": "İptal Et",
+    "snapshotsTitle": "Veritabanı Zaman Makinesi (Yerel Yedekler)",
+    "snapshotsDesc": "Kermes, yıkıcı içe aktarma işlemlerinden önce otomatik olarak yedek alır. Geçmiş bir durumu anında geri yükleyin.",
+    "snapshotRestoreConfirm": "Ürün veritabanınızı bu yedek noktasına geri yüklemek istediğinizden emin misiniz? Mevcut listeniz yedeklenecektir.",
+    "snapshotRestoreSuccess": "Veritabanı başarıyla geri yüklendi!",
+    "noSnapshots": "Yerel yedek noktası bulunamadı.",
+    "itemsCount": "{count} ürün",
+    "exampleTemplate": "Örnek JSON Şablonunu Kopyala"
   },
   "products": {
     "title": "Ürünler",

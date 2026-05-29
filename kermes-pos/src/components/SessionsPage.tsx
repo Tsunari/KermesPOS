@@ -34,6 +34,7 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { useLanguage } from '../context/LanguageContext';
+import { useSettings } from '../context/SettingsContext';
 import { Session } from '../types/session';
 import { sessionService } from '../services/sessionService';
 import { cartTransactionService } from '../services/cartTransactionService';
@@ -48,6 +49,7 @@ const getLocalDateString = (d: Date = new Date()) => {
 const SessionsPage: React.FC = () => {
   const { t } = useLanguage();
   const theme = useTheme();
+  const { formatPrice } = useSettings();
 
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
@@ -788,6 +790,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
 }) => {
   const theme = useTheme();
   const { t } = useLanguage();
+  const { formatPrice } = useSettings();
   const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
@@ -946,11 +949,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
                 {t('app.sessions.revenue') || 'Revenue'}
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 800, color: 'success.main', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {stats?.totalRevenue.toLocaleString('de-DE', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-                €
+                {stats ? formatPrice(stats.totalRevenue) : formatPrice(0)}
               </Typography>
             </Box>
           </Box>
@@ -1043,11 +1042,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
                 {t('app.sessions.avgOrder') || 'Avg.'}
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {stats?.averageOrderValue.toLocaleString('de-DE', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-                €
+                {stats ? formatPrice(stats.averageOrderValue) : formatPrice(0)}
               </Typography>
             </Box>
           </Box>

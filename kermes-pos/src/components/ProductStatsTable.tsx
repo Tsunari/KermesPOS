@@ -20,6 +20,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { useLanguage } from '../context/LanguageContext';
+import { useSettings } from '../context/SettingsContext';
 import { ProductStats } from '../services/cartTransactionService';
 import PriceHistoryPopover from './PriceHistoryPopover';
 
@@ -38,6 +39,7 @@ const ProductStatsTable: React.FC<ProductStatsTableProps> = ({
   showComparison = false
 }) => {
   const { t } = useLanguage();
+  const { formatPrice } = useSettings();
   const [sortField, setSortField] = useState<SortField>('revenue');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [searchQuery, setSearchQuery] = useState('');
@@ -255,10 +257,7 @@ const ProductStatsTable: React.FC<ProductStatsTableProps> = ({
                         }}
                       >
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {stat.revenue.toLocaleString('de-DE', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                          })}€
+                          {formatPrice(stat.revenue)}
                         </Typography>
                         {stat.priceHistory && stat.priceHistory.length > 1 && (
                           <Chip
@@ -329,10 +328,7 @@ const ProductStatsTable: React.FC<ProductStatsTableProps> = ({
               {t('app.statistics.totalRevenue') || 'Total Revenue'}
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 600, color: 'success.main' }}>
-              {totalRevenue.toLocaleString('de-DE', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}€
+              {formatPrice(totalRevenue)}
             </Typography>
           </Box>
         </Box>

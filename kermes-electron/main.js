@@ -378,6 +378,7 @@ function printWithPythonWin(cartData) {
     const singleCart = {
       items: [item],
       total: item.price * item.quantity,
+      currency: cartData.currency || "EUR",
     };
     // console.log("Current kurs name:", kursName);
     const proc = spawn(pythonExe, [scriptPath, kursName], {

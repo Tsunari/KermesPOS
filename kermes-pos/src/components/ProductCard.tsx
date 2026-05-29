@@ -45,11 +45,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const theme = useTheme();
   const dispatch = useDispatch();
-  const { useDoubleClick } = useSettings();
+  const { useDoubleClick, formatPrice } = useSettings();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [localStockStatus, setLocalStockStatus] = React.useState(product.inStock);
   const open = Boolean(anchorEl);
-
+  
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     // Don't add to cart if clicking on the switch or menu button
     if (
@@ -242,7 +242,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             fontSize: 18,
           }}
         >
-          {product.price.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€
+          {formatPrice(product.price)}
         </Typography>
       </Box>
       <Menu

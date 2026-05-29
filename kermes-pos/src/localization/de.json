@@ -101,7 +101,58 @@
     },
     "menu": {
       "description": "Beschreibung"
+    },
+    "tabs": {
+      "appearance": "Erscheinungsbild",
+      "behavior": "Verhalten",
+      "language": "Sprache",
+      "security": "Sicherheit & Backup",
+      "system": "System & Über"
+    },
+    "diagnostics": {
+      "title": "Systemdiagnose",
+      "dbSize": "Datenbankstatistik",
+      "totalProducts": "Aktive Produkte Gesamt",
+      "totalTransactions": "Transaktionsprotokolle Gesamt",
+      "storageUsed": "Geschätzter lokaler Speicher"
+    },
+    "factoryReset": {
+      "title": "Werkseinstellungen",
+      "button": "Alle Einstellungen zurücksetzen",
+      "confirm": "Sind Sie sicher, dass Sie alle Einstellungen auf die Werkseinstellungen zurücksetzen möchten?",
+      "success": "Alle Einstellungen wurden erfolgreich zurückgesetzt."
     }
+  },
+  "importExport": {
+    "title": "Produkte importieren/exportieren",
+    "exportTitle": "Export & Backup",
+    "exportDesc": "Speichern Sie Ihren aktuellen Produktkatalog als JSON-Backup-Datei auf Ihrem System.",
+    "importTitle": "Import & Wiederherstellung",
+    "importDesc": "Ziehen Sie Produktdaten im JSON-Format per Drag & Drop hierher oder fügen Sie sie ein.",
+    "dropzoneActive": "JSON-Datei hier ablegen...",
+    "dropzoneIdle": "Ziehen Sie eine products.json-Datei hierher oder klicken Sie zum Auswählen",
+    "orPaste": "oder fügen Sie rohes JSON unten ein",
+    "validateSuccess": "JSON-Syntax und -Struktur sind gültig!",
+    "validateErrorSyntax": "Syntaxfehler: {error} in Zeile {line}",
+    "validateErrorSchema": "Schemafehler: {error}",
+    "dryRunTitle": "Import-Vorschau (Trockenlauf)",
+    "dryRunDesc": "Überprüfen Sie die zu importierenden Produkte, bevor Sie sie auf Ihre Datenbank anwenden.",
+    "dryRunChecklist": "Import-Integritätsprüfung",
+    "dryRunSuccess": "Alle Produkte haben die Datenbankkompatibilitätsprüfungen bestanden!",
+    "totalProducts": "Produkte insgesamt",
+    "categoryBreakdown": "Kategorie-Aufteilung",
+    "modeLabel": "Importstrategie",
+    "modeOverwrite": "Komplett überschreiben (Löscht aktuelle Liste)",
+    "modeMerge": "Intelligentes Zusammenführen (Fügt neue hinzu, aktualisiert übereinstimmende IDs)",
+    "actionApply": "Import anwenden & Katalog aktualisieren",
+    "actionCancel": "Abbrechen",
+    "snapshotsTitle": "Datenbank-Zeitmaschine (Lokale Schnappschüsse)",
+    "snapshotsDesc": "Kermes erstellt vor destruktiven Importvorgängen automatisch Backups. Stellen Sie einen früheren Zustand sofort wieder her.",
+    "snapshotRestoreConfirm": "Sind Sie sicher, dass Sie Ihre Produktdatenbank auf diesen Schnappschuss zurücksetzen möchten? Die aktuelle Liste wird gesichert.",
+    "snapshotRestoreSuccess": "Datenbank erfolgreich wiederhergestellt!",
+    "noSnapshots": "Keine lokalen Schnappschüsse gefunden.",
+    "itemsCount": "{count} Produkte",
+    "exampleTemplate": "Beispiel-JSON-Struktur kopieren"
   },
   "products": {
     "title": "Produkte",

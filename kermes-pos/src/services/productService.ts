@@ -197,6 +197,77 @@ class ProductService {
     this.saveProducts();
   }
 
+  // Create a backup snapshot of current products in localStorage (max 3)
+  createLocalBackup(): void {
+    try {
+      const backupsString = localStorage.getItem('products_backups');
+      const backups = backupsString ? JSON.parse(backupsString) : [];
+      
+      const newBackup = {
+        timestamp: Date.now(),
+        products: [...this.products]
+      };
+      
+      // Prepend the new backup
+      backups.unshift(newBackup);
+      
+      // Limit to 3 backups
+      if (backups.length > 3) {
+        backups.pop();
+      }
+      
+      localStorage.setItem('products_backups', JSON.stringify(backups));
+    } catch (error) {
+      console.error('Failed to create local products backup:', error);
+    }
+  }
+
+  // Get list of local backups
+  getLocalBackups(): { timestamp: number; count: number }[] {
+    try {
+      const backupsString = localStorage.getItem('products_backups');
+      if (!backupsString) return [];
+      const backups = JSON.parse(backupsString) as { timestamp: number; products: Product[] }[];
+      return backups.map(b => ({
+        timestamp: b.timestamp,
+        count: b.products.length
+      }));
+    } catch (error) {
+      console.error('Failed to read local backups:', error);
+      return [];
+    }
+  }
+
+  // Restore products from a backup by timestamp
+  restoreFromBackup(timestamp: number): boolean {
+    try {
+      const backupsString = localStorage.getItem('products_backups');
+      if (!backupsString) return false;
+      const backups = JSON.parse(backupsString) as { timestamp: number; products: Product[] }[];
+      const targetBackup = backups.find(b => b.timestamp === timestamp);
+      if (targetBackup) {
+        // Create backup of current list before restoring (allows undoing a restore!)
+        const currentProducts = [...this.products];
+        this.products = targetBackup.products.map(p => ({ ...p }));
+        this.saveProducts();
+        
+        // Update backups to replace the restored one with the backup of before restoring
+        const updatedBackups = backups.map(b => {
+          if (b.timestamp === timestamp) {
+            return { timestamp: Date.now(), products: currentProducts };
+          }
+          return b;
+        });
+        localStorage.setItem('products_backups', JSON.stringify(updatedBackups));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to restore from local backup:', error);
+      return false;
+    }
+  }
+
   // Export products to a JSON file
   exportProducts(): string {
     return JSON.stringify({ products: this.products }, null, 2);
@@ -207,6 +278,7 @@ class ProductService {
     try {
       const data = JSON.parse(jsonString);
       if (Array.isArray(data.products)) {
+        this.createLocalBackup(); // Auto backup before import!
         this.products = data.products.map((p: Partial<Product> & { InStock?: boolean; instock?: boolean }) => {
           // Normalize inStock / InStock / instock to camelCase inStock
           const stockValue = p.inStock !== undefined ? p.inStock : (p.InStock !== undefined ? p.InStock : (p.instock !== undefined ? p.instock : true));
@@ -227,8 +299,43 @@ class ProductService {
     }
   }
 
+  // Merge products from a JSON string instead of replacing
+  mergeProducts(jsonString: string): boolean {
+    try {
+      const data = JSON.parse(jsonString);
+      if (Array.isArray(data.products)) {
+        this.createLocalBackup(); // Auto backup before merge!
+        const importedList = data.products.map((p: Partial<Product> & { InStock?: boolean; instock?: boolean }) => {
+          const stockValue = p.inStock !== undefined ? p.inStock : (p.InStock !== undefined ? p.InStock : (p.instock !== undefined ? p.instock : true));
+          return {
+            ...p,
+            inStock: !!stockValue,
+          };
+        }) as Product[];
+
+        // Merge logic: Map current products by ID, then overwrite/append
+        const existingProductsMap = new Map<string, Product>();
+        this.products.forEach(p => existingProductsMap.set(p.id, p));
+        
+        importedList.forEach(importedProduct => {
+          existingProductsMap.set(importedProduct.id, importedProduct as Product);
+        });
+
+        this.products = Array.from(existingProductsMap.values());
+        this.initializeOrderField();
+        this.saveProducts();
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error merging products:', error);
+      return false;
+    }
+  }
+
   // Reset to default products from JSON file
   resetToDefault(): void {
+    this.createLocalBackup(); // Auto backup before reset!
     this.products = typedProducts.map(p => ({ ...p }));
     this.initializeOrderField();
     this.saveProducts();

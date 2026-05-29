@@ -31,8 +31,20 @@ def clear_print_queue(printer_name):
     finally:
         win32print.ClosePrinter(hprinter)
 
+def format_receipt_price(price, currency):
+    price = float(price)
+    if currency == "USD":
+        return f"${price:,.2f}"
+    elif currency == "TRY":
+        val = f"{price:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        return f"{val} \u20BA"
+    else: # EUR is default
+        val = f"{price:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        return f"{val} \u20AC"
+
 def main():
     cart = json.load(sys.stdin)
+    currency = cart.get("currency", "EUR")
     printer_name = win32print.GetDefaultPrinter()
     hprinter = win32print.OpenPrinter(printer_name)
     hdc = win32ui.CreateDC()
@@ -100,7 +112,7 @@ def main():
             hdc.SelectObject(font_normal)
         except Exception:
             pass
-        fiyat_text = f"Fiyat: {item['price']:,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
+        fiyat_text = f"Fiyat: {format_receipt_price(item['price'], currency)}"
         hdc.TextOut(x_left, y, fiyat_text)
         # Now print Adet with bold font, positioned after Fiyat
         try:
@@ -129,7 +141,7 @@ def main():
             pass
 
     # Total
-    hdc.TextOut(x_left, y, f"Toplam: {cart['total']:.2f} €".replace(",", "X").replace(".", ",").replace("X", "."))
+    hdc.TextOut(x_left, y, f"Toplam: {format_receipt_price(cart['total'], currency)}")
     y += line_height
     hdc.TextOut(x_left, y, "Afiyet olsun! | Guten Appetit!")
     y += line_height

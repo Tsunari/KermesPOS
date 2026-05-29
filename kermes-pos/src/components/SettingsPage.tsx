@@ -1,6 +1,28 @@
 import React, { ChangeEvent, useState, useEffect } from 'react';
-import { Box, Typography, Paper, Divider, List, ListItem, ListItemIcon, ListItemText, Chip, Button, Select, MenuItem, FormControl, Badge } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Paper,
+  Divider,
+  Button,
+  Select,
+  MenuItem,
+  FormControl,
+  Badge,
+  Tabs,
+  Tab,
+  Grid,
+  Card,
+  CardContent,
+  Stack,
+  Chip,
+  Alert,
+  Snackbar,
+} from '@mui/material';
 import { Link } from 'react-router-dom';
+import { useTheme as useMuiTheme } from '@mui/material/styles';
+
+// Icons
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SecurityIcon from '@mui/icons-material/Security';
 import PaletteIcon from '@mui/icons-material/Palette';
@@ -11,45 +33,88 @@ import TouchAppIcon from '@mui/icons-material/TouchApp';
 import SystemUpdateIcon from '@mui/icons-material/SystemUpdate';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import InfoIcon from '@mui/icons-material/Info';
+import StorageIcon from '@mui/icons-material/Storage';
+import ViewColumnIcon from '@mui/icons-material/ViewColumn';
+import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+
 import ModernSwitch from './ui/ModernSwitch';
-// import { productService } from '../services/productService';
 import { useSettings } from '../context/SettingsContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
+import { productService } from '../services/productService';
+import { cartTransactionService } from '../services/cartTransactionService';
 
 interface SettingsPageProps {
   devMode: boolean;
   setDevMode: (value: boolean) => void;
 }
 
-/**
- * The `SettingsPage` component renders a settings interface for the application.
- * It provides various configurable options such as appearance, notifications, 
- * security, language, and more. Each setting is displayed as a list item with 
- * an associated control (e.g., switch, dropdown, or button).
- *
- * @param {SettingsPageProps} props - The props for the `SettingsPage` component.
- * @param {boolean} props.devMode - Indicates whether the developer mode is enabled.
- * @param {(checked: boolean) => void} props.setDevMode - Callback to toggle developer mode.
- *
- * @returns {JSX.Element} The rendered `SettingsPage` component.
- *
- * @remarks
- * - This component uses the `useSettings` and `useLanguage` hooks to manage 
- *   application settings and localization.
- * - The `renderSettingItem` function is used to render individual settings 
- *   with a consistent layout and behavior.
- * - Includes a section for "About" information, displaying the app version 
- *   and a brief description.
- *
- * @example
- * ```tsx
- * <SettingsPage 
- *   devMode={true} 
- *   setDevMode={(checked) => console.log('Dev mode:', checked)} 
- * />
- * ```
- */
+interface SettingCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  control: React.ReactNode;
+  active?: boolean;
+  onClick?: () => void;
+}
+
+const SettingCard: React.FC<SettingCardProps> = ({ icon, title, description, control, active = false, onClick }) => {
+  const muiTheme = useMuiTheme();
+  return (
+    <Card 
+      variant="outlined" 
+      onClick={onClick}
+      sx={{ 
+        mb: 2, 
+        borderRadius: 2.5, 
+        borderColor: active ? 'primary.main' : 'divider',
+        boxShadow: active ? '0 4px 12px rgba(65, 120, 245, 0.04)' : 'none',
+        bgcolor: active ? (muiTheme.palette.mode === 'dark' ? 'rgba(65, 120, 245, 0.02)' : 'rgba(65, 120, 245, 0.01)') : 'background.paper',
+        transition: 'all 0.25s ease',
+        cursor: onClick ? 'pointer' : 'default',
+        '&:hover': {
+          borderColor: 'primary.main',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)'
+        }
+      }}
+    >
+      <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+        <Stack direction="row" alignItems="center" spacing={2.5}>
+          <Box sx={{ 
+            p: 1.5, 
+            borderRadius: 2, 
+            bgcolor: active ? 'rgba(65, 120, 245, 0.08)' : 'action.hover', 
+            color: active ? 'primary.main' : 'text.secondary',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.25s ease'
+          }}>
+            {icon}
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, mb: 0.5 }}>
+              {title}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {description}
+            </Typography>
+          </Box>
+          <Box sx={{ pointerEvents: onClick ? 'none' : 'auto' }}>
+            {control}
+          </Box>
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+};
+
 const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
+  const muiTheme = useMuiTheme();
+  const { isDarkMode, toggleTheme } = useTheme();
   const {
     useDoubleClick,
     setUseDoubleClick,
@@ -57,22 +122,59 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
     setNotifications,
     security,
     setSecurity,
-    appearance,
-    setAppearance,
     autoBackup,
     setAutoBackup,
     showDescription,
     setShowDescription,
+    showPageScrollbars,
+    setShowPageScrollbars,
+    showComponentScrollbars,
+    setShowComponentScrollbars,
+    setAppearance,
+    setShowScrollbars,
+    currency,
+    setCurrency,
   } = useSettings();
 
   const { language, setLanguage, t } = useLanguage();
 
-  // Update notification state
+  // Active Category Tab index (persisted in localStorage)
+  const [activeTab, setActiveTabState] = useState(() => {
+    const saved = localStorage.getItem('settings_active_tab');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+
+  const setActiveTab = (newValue: number) => {
+    setActiveTabState(newValue);
+    localStorage.setItem('settings_active_tab', newValue.toString());
+  };
+  
+  // Update system states
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [updateVersion, setUpdateVersion] = useState<string>('');
 
-  // Listen for update status from electron
+  // Diagnostic states
+  const [dbStats, setDbStats] = useState({
+    productsCount: 0,
+    transactionsCount: 0,
+    estimatedBytes: 0,
+  });
+
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
+
+  // Load diagnostics and updates on mount
   useEffect(() => {
+    loadDiagnostics();
+
+    // Listen for update status from electron
     if (typeof window !== 'undefined' && window.electronAPI?.update?.onStatus) {
       const unsubscribe = window.electronAPI.update.onStatus((payload: any) => {
         if (payload?.status === 'available' && payload?.info?.version) {
@@ -89,6 +191,32 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
     }
   }, []);
 
+  const loadDiagnostics = async () => {
+    try {
+      const products = productService.getAllProducts();
+      let transactionsList = [];
+      try {
+        transactionsList = await cartTransactionService.getTransactions();
+      } catch (err) {
+        console.warn('Failed to load transactions for diagnostics', err);
+      }
+
+      // Approximate storage bytes calculation
+      const productsLen = localStorage.getItem('products')?.length || 0;
+      const settingsLen = localStorage.getItem('settings')?.length || 0;
+      const backupsLen = localStorage.getItem('products_backups')?.length || 0;
+      const totalBytes = (productsLen + settingsLen + backupsLen) * 2; // rough UTF-16 bytes estimation
+
+      setDbStats({
+        productsCount: products.length,
+        transactionsCount: transactionsList.length,
+        estimatedBytes: totalBytes,
+      });
+    } catch (e) {
+      console.error('Diagnostics loading failed:', e);
+    }
+  };
+
   const handleOpenUpdate = () => {
     try {
       window.electronAPI?.update?.open?.();
@@ -97,300 +225,489 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
     }
   };
 
-  // const handleDefineDefault = () => {
-  //   if (window.confirm(t('settings.developer.defineDefaultDescription'))) {
-  //   productService.exportProducts();
-  //     alert(t('settings.developer.defineDefaultSuccess'));
-  //   }
-  // };
+  const handleFactoryReset = () => {
+    if (window.confirm(t('settings.factoryReset.confirm') || 'Reset all options to default?')) {
+      // Clear settings from localStorage
+      localStorage.removeItem('settings');
+      
+      // Trigger contexts reload to defaults
+      setUseDoubleClick(false);
+      setNotifications(true);
+      setSecurity(false);
+      setAutoBackup(false);
+      setShowDescription(false);
+      setShowPageScrollbars(false);
+      setShowComponentScrollbars(true);
+      
+      // Update states
+      setSnackbar({
+        open: true,
+        message: t('settings.factoryReset.success') || 'Settings reset to default successfully!',
+        severity: 'success'
+      });
+    }
+  };
 
-  const renderSettingItem = (
-    icon: React.ReactNode,
-    primary: string,
-    secondary: string,
-    checked: boolean,
-    onChange: (checked: boolean) => void,
-    isActive: boolean = false,
-    linkTo?: string
-  ) => (
-    <ListItem>
-      <ListItemIcon>
-        {icon}
-      </ListItemIcon>
-      <ListItemText
-        primary={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {primary}
-            {isActive && (
-              <Chip
-                label={t('common.active')}
-                size="small"
-                color="success"
-                variant="outlined"
-                sx={{ ml: 0 }}
-              />
-            )}
-          </Box>
-        }
-        secondary={secondary}
-      />
-      {linkTo ? (
-        <Button component={Link} to={linkTo} variant="outlined" size="small">
-          {t('common.configure')}
-        </Button>
-      ) : (
-        <ModernSwitch
-          edge="end"
-          checked={checked}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.checked)}
-        />
-      )}
-    </ListItem>
-  );
-
-  const renderFormItem = (
-    icon: React.ReactNode,
-    primary: string,
-    secondary: string,
-    formControl: React.ReactNode,
-    isActive: boolean = false
-  ) => (
-    <ListItem>
-      <ListItemIcon>
-        {icon}
-      </ListItemIcon>
-      <ListItemText
-        primary={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {primary}
-            {isActive && (
-              <Chip
-                label={t('common.active')}
-                size="small"
-                color="success"
-                variant="outlined"
-                sx={{ ml: 0 }}
-              />
-            )}
-          </Box>
-        }
-        secondary={secondary}
-      />
-      {formControl}
-    </ListItem>
-  );
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
 
   return (
-    <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
-      <Typography variant="h4" gutterBottom>
+    <Box sx={{ p: 1, maxWidth: 1100, mx: 'auto' }}>
+      <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
         {t('settings.title')}
       </Typography>
 
-      <Paper sx={{ p: 3, mb: 3 }}>
-        {/* <Typography variant="h6" gutterBottom>
-          {t('settings.appearance.title')}
-        </Typography> */}
-
-        <List>
-
-          {renderSettingItem(
-            <PaletteIcon />,
-            t('settings.appearance.title'),
-            t('settings.appearance.darkModeDescription'),
-            appearance,
-            setAppearance,
-            true,
-            "/settings/appearance"
-          )}
-
-          <Divider />
-
-          {renderSettingItem(
-            <VisibilityIcon />,
-            t('settings.showDescription'),
-            t('settings.showDescriptionDescription'),
-            showDescription,
-            setShowDescription,
-            true
-          )}
-
-          <Divider />
-
-          {renderSettingItem(
-            <TouchAppIcon />,
-            t('settings.doubleClick'),
-            t('settings.doubleClickDescription'),
-            useDoubleClick,
-            setUseDoubleClick,
-            true
-          )}
-
-          <Divider />
-
-          {renderFormItem(
-            <LanguageIcon />,
-            t('settings.language.title'),
-            t('settings.language.selectLanguage'),
-            <FormControl sx={{ minWidth: 120 }}>
-              <Select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as any)}
-                size="small"
-              >
-                <MenuItem value="en">{t('settings.language.languages.en')}</MenuItem>
-                <MenuItem value="de">{t('settings.language.languages.de')}</MenuItem>
-                <MenuItem value="tr">{t('settings.language.languages.tr')}</MenuItem>
-              </Select>
-            </FormControl>,
-            true
-          )}
-
-          <Divider />
-
-          {renderSettingItem(
-            <CodeIcon />,
-            t('settings.developer.devMode'),
-            t('settings.developer.devModeDescription'),
-            devMode,
-            setDevMode,
-            true
-          )}
-
-          <Divider />
-
-          {renderSettingItem(
-            <NotificationsIcon />,
-            t('settings.notifications.enable'),
-            t('settings.notifications.description'),
-            notifications,
-            setNotifications
-          )}
-
-          <Divider />
-
-          {renderSettingItem(
-            <SecurityIcon />,
-            t('settings.security.enable'),
-            t('settings.security.description'),
-            security,
-            setSecurity
-          )}
-
-          <Divider />
-
-          {renderSettingItem(
-            <BackupIcon />,
-            t('settings.backup.autoBackup'),
-            t('settings.backup.description'),
-            autoBackup,
-            setAutoBackup
-          )}
-
-          <Divider />
-
-          <ListItem>
-            <ListItemIcon>
-              <MenuBookIcon />
-            </ListItemIcon>
-            <ListItemText
-              primary={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  {t('products.title')}
-                  <Chip
-                    label={t('common.active')}
-                    size="small"
-                    color="success"
-                    variant="outlined"
-                    sx={{ ml: 0 }}
-                  />
-                </Box>
-              }
-              secondary={t('settings.menu.description') || 'Customer-facing menu showing name and price only'}
-            />
-            <Button component="a" href="/customer-menu.html" target="_blank" rel="noopener" variant="outlined" color="primary" sx={{ minWidth: 0, padding: '5px', mr: 1 }}>
-              {t('common.show')}
-            </Button>
-            <Button component={Link} to="/settings/menu" variant="contained" color="primary" sx={{ minWidth: 0, padding: '5px' }}>
-              {t('common.configure')}
-            </Button>
-          </ListItem>
-
-          <Divider />
-
-          <ListItem>
-            <ListItemIcon>
-              <Badge 
-                badgeContent={updateAvailable ? '!' : 0} 
-                color="error"
-                overlap="circular"
-              >
-                <SystemUpdateIcon />
-              </Badge>
-            </ListItemIcon>
-            <ListItemText
-              primary={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  {t('app.updates.check') || 'Check for Updates'}
-                  {updateAvailable ? (
-                    <Chip
-                      label={`v${updateVersion} ${t('app.updates.available') || 'Available'}`}
-                      size="small"
-                      color="warning"
-                      variant="filled"
-                      sx={{ ml: 0, fontWeight: 600 }}
-                    />
-                  ) : (
-                    <Chip
-                      label={t('common.active')}
-                      size="small"
-                      color="success"
-                      variant="outlined"
-                      sx={{ ml: 0 }}
-                    />
-                  )}
-                </Box>
-              }
-              secondary={
-                updateAvailable 
-                  ? t('app.updates.newVersionAvailable') || `A new version (${updateVersion}) is available for download.`
-                  : t('app.updates.checkDescription') || 'Check for and install software updates'
-              }
-            />
-            <Button
-              variant={updateAvailable ? "contained" : "outlined"}
-              color={updateAvailable ? "warning" : "primary"}
-              onClick={handleOpenUpdate}
-              sx={{ minWidth: 0, padding: '5px' }}
-            >
-              {updateAvailable ? t('app.updates.download') || 'Update' : t('app.updates.check') || 'Check'}
-            </Button>
-          </ListItem>
-        </List>
-      </Paper>
-
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          {t('settings.about.title')}
-        </Typography>
-        <Typography variant="body1" paragraph>
-          {t('settings.about.description')}
-        </Typography>
-        <Typography variant="body2" paragraph>
-          Support:{' '}
-          <Button
-            variant="text"
-            color="primary"
-            component="a"
-            href="mailto:talebelergfc@gmail.com?subject=Kermes%20POS%20Support"
-            sx={{ textTransform: 'none', padding: '5px', minWidth: 0 }}
+      <Grid container spacing={3}>
+        {/* Left Column: Sidebar Category Selector */}
+        <Grid size={{ xs: 12, md: 4, lg: 3 }}>
+          <Paper 
+            elevation={0} 
+            sx={{ 
+              border: `1.5px solid ${muiTheme.palette.divider}`, 
+              borderRadius: 3, 
+              overflow: 'hidden',
+              bgcolor: 'background.paper',
+            }}
           >
-            talebelergfc@gmail.com
-          </Button>
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {t('settings.about.version')} {require('../../package.json').version || 'Problem with fetching version'}
-        </Typography>
-      </Paper>
+            <Tabs
+              orientation="vertical"
+              value={activeTab}
+              onChange={handleTabChange}
+              sx={{
+                borderRight: 0,
+                '& .MuiTabs-indicator': {
+                  left: 0,
+                  width: '4px',
+                  borderRadius: '0 4px 4px 0',
+                },
+                '& .MuiTab-root': {
+                  alignItems: 'center',
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  py: 2.8,
+                  px: 3,
+                  fontWeight: 700,
+                  fontSize: '1.12rem',
+                  color: 'text.secondary',
+                  borderBottom: `1px solid ${muiTheme.palette.divider}`,
+                  textTransform: 'none',
+                  transition: 'all 0.2s ease',
+                  '&.Mui-selected': {
+                    color: 'primary.main',
+                    bgcolor: muiTheme.palette.mode === 'dark' ? 'rgba(37, 99, 235, 0.04)' : 'rgba(37, 99, 235, 0.01)',
+                  },
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                  },
+                },
+              }}
+            >
+              <Tab icon={<PaletteIcon sx={{ mr: 1, fontSize: 20 }} />} iconPosition="start" label={t('settings.tabs.appearance') || 'Appearance'} />
+              <Tab icon={<TouchAppIcon sx={{ mr: 1, fontSize: 20 }} />} iconPosition="start" label={t('settings.tabs.behavior') || 'Behavior'} />
+              <Tab icon={<LanguageIcon sx={{ mr: 1, fontSize: 20 }} />} iconPosition="start" label={t('settings.tabs.language') || 'Language'} />
+              <Tab icon={<BackupIcon sx={{ mr: 1, fontSize: 20 }} />} iconPosition="start" label={t('settings.tabs.security') || 'Security & Backup'} />
+              <Tab 
+                icon={
+                  <Badge variant="dot" color="error" invisible={!updateAvailable}>
+                    <InfoIcon sx={{ mr: 1, fontSize: 20 }} />
+                  </Badge>
+                } 
+                iconPosition="start" 
+                label={t('settings.tabs.system') || 'System & About'} 
+              />
+            </Tabs>
+          </Paper>
+        </Grid>
+
+        {/* Right Column: Tab Panel Content */}
+        <Grid size={{ xs: 12, md: 8, lg: 9 }}>
+          <Paper 
+            elevation={0} 
+            sx={{ 
+              p: 3, 
+              border: `1.5px solid ${muiTheme.palette.divider}`, 
+              borderRadius: 3, 
+              bgcolor: 'background.paper',
+              minHeight: 400
+            }}
+          >
+            {/* TAB 0: APPEARANCE */}
+            {activeTab === 0 && (
+              <Box>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 800, mb: 3 }}>
+                  {t('settings.tabs.appearance') || 'Appearance Settings'}
+                </Typography>
+
+                <SettingCard
+                  icon={<PaletteIcon />}
+                  title={t('settings.appearance.darkMode')}
+                  description={t('settings.appearance.darkModeDescription')}
+                  control={
+                    <ModernSwitch
+                      checked={isDarkMode}
+                      onChange={toggleTheme}
+                    />
+                  }
+                  active={isDarkMode}
+                  onClick={toggleTheme}
+                />
+
+                <SettingCard
+                  icon={<VisibilityIcon />}
+                  title={t('settings.appearance.pageScrollbars')}
+                  description={t('settings.appearance.pageScrollbarsDescription')}
+                  control={
+                    <ModernSwitch
+                      checked={showPageScrollbars}
+                      onChange={(e) => setShowPageScrollbars(e.target.checked)}
+                    />
+                  }
+                  active={showPageScrollbars}
+                  onClick={() => setShowPageScrollbars(!showPageScrollbars)}
+                />
+
+                <SettingCard
+                  icon={<ViewColumnIcon />}
+                  title={t('settings.appearance.componentScrollbars')}
+                  description={t('settings.appearance.componentScrollbarsDescription')}
+                  control={
+                    <ModernSwitch
+                      checked={showComponentScrollbars}
+                      onChange={(e) => setShowComponentScrollbars(e.target.checked)}
+                    />
+                  }
+                  active={showComponentScrollbars}
+                  onClick={() => setShowComponentScrollbars(!showComponentScrollbars)}
+                />
+              </Box>
+            )}
+
+            {/* TAB 1: BEHAVIOR */}
+            {activeTab === 1 && (
+              <Box>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 800, mb: 3 }}>
+                  {t('settings.tabs.behavior') || 'General & Behavior'}
+                </Typography>
+
+                <SettingCard
+                  icon={<VisibilityIcon />}
+                  title={t('settings.showDescription')}
+                  description={t('settings.showDescriptionDescription')}
+                  control={
+                    <ModernSwitch
+                      checked={showDescription}
+                      onChange={(e) => setShowDescription(e.target.checked)}
+                    />
+                  }
+                  active={showDescription}
+                  onClick={() => setShowDescription(!showDescription)}
+                />
+
+                <SettingCard
+                  icon={<TouchAppIcon />}
+                  title={t('settings.doubleClick')}
+                  description={t('settings.doubleClickDescription')}
+                  control={
+                    <ModernSwitch
+                      checked={useDoubleClick}
+                      onChange={(e) => setUseDoubleClick(e.target.checked)}
+                    />
+                  }
+                  active={useDoubleClick}
+                  onClick={() => setUseDoubleClick(!useDoubleClick)}
+                />
+
+                <SettingCard
+                  icon={<MenuBookIcon />}
+                  title="Menu Configurator"
+                  description="Customize menu presentation columns, title, and currency for customer screen."
+                  control={
+                    <Button 
+                      component={Link} 
+                      to="/settings/menu" 
+                      variant="contained" 
+                      size="small"
+                      sx={{ borderRadius: 2 }}
+                    >
+                      {t('common.configure')}
+                    </Button>
+                  }
+                  active={true}
+                />
+              </Box>
+            )}
+
+            {/* TAB 2: LANGUAGE */}
+            {activeTab === 2 && (
+              <Box>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 800, mb: 3 }}>
+                  {t('settings.language.title')}
+                </Typography>
+
+                <SettingCard
+                  icon={<LanguageIcon />}
+                  title={t('settings.language.selectLanguage')}
+                  description="Choose your preferred language for POS buttons, categories, and printing receipts."
+                  control={
+                    <FormControl sx={{ minWidth: 140 }}>
+                      <Select
+                        value={language}
+                        onChange={(e) => setLanguage(e.target.value as any)}
+                        size="small"
+                        sx={{ borderRadius: 2 }}
+                      >
+                        <MenuItem value="en">{t('settings.language.languages.en')}</MenuItem>
+                        <MenuItem value="de">{t('settings.language.languages.de')}</MenuItem>
+                        <MenuItem value="tr">{t('settings.language.languages.tr')}</MenuItem>
+                      </Select>
+                    </FormControl>
+                  }
+                  active={true}
+                />
+
+                <SettingCard
+                  icon={<AttachMoneyIcon />}
+                  title="Currency"
+                  description="Choose the active system currency for display, printing, and receipts."
+                  control={
+                    <FormControl sx={{ minWidth: 140 }}>
+                      <Select
+                        value={currency}
+                        onChange={(e) => setCurrency(e.target.value as any)}
+                        size="small"
+                        sx={{ borderRadius: 2 }}
+                      >
+                        <MenuItem value="EUR">Euro (€)</MenuItem>
+                        <MenuItem value="USD">Dollar ($)</MenuItem>
+                        <MenuItem value="TRY">Lira (₺)</MenuItem>
+                      </Select>
+                    </FormControl>
+                  }
+                  active={true}
+                />
+              </Box>
+            )}
+
+            {/* TAB 3: SECURITY & BACKUP */}
+            {activeTab === 3 && (
+              <Box>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 800, mb: 3 }}>
+                  Security & Backup Toggles
+                </Typography>
+
+                <SettingCard
+                  icon={<CodeIcon />}
+                  title={t('settings.developer.devMode')}
+                  description={t('settings.developer.devModeDescription')}
+                  control={
+                    <ModernSwitch
+                      checked={devMode}
+                      onChange={(e) => setDevMode(e.target.checked)}
+                    />
+                  }
+                  active={devMode}
+                  onClick={() => setDevMode(!devMode)}
+                />
+
+                <SettingCard
+                  icon={<NotificationsIcon />}
+                  title={t('settings.notifications.enable')}
+                  description={t('settings.notifications.description')}
+                  control={
+                    <ModernSwitch
+                      checked={notifications}
+                      onChange={(e) => setNotifications(e.target.checked)}
+                    />
+                  }
+                  active={notifications}
+                  onClick={() => setNotifications(!notifications)}
+                />
+
+                <SettingCard
+                  icon={<SecurityIcon />}
+                  title={t('settings.security.enable')}
+                  description={t('settings.security.description')}
+                  control={
+                    <ModernSwitch
+                      checked={security}
+                      onChange={(e) => setSecurity(e.target.checked)}
+                    />
+                  }
+                  active={security}
+                  onClick={() => setSecurity(!security)}
+                />
+
+                <SettingCard
+                  icon={<BackupIcon />}
+                  title={t('settings.backup.autoBackup')}
+                  description={t('settings.backup.description')}
+                  control={
+                    <ModernSwitch
+                      checked={autoBackup}
+                      onChange={(e) => setAutoBackup(e.target.checked)}
+                    />
+                  }
+                  active={autoBackup}
+                  onClick={() => setAutoBackup(!autoBackup)}
+                />
+              </Box>
+            )}
+
+            {/* TAB 4: SYSTEM & ABOUT */}
+            {activeTab === 4 && (
+              <Box>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 800, mb: 3 }}>
+                  {t('settings.about.title')}
+                </Typography>
+
+                {/* About Content */}
+                <Typography variant="body2" paragraph sx={{ lineHeight: 1.6, color: 'text.secondary' }}>
+                  {t('settings.about.description')}
+                </Typography>
+                <Typography variant="body2" paragraph sx={{ mb: 3 }}>
+                  <strong>Support Support Email:</strong>{' '}
+                  <Button
+                    variant="text"
+                    color="primary"
+                    component="a"
+                    href="mailto:talebelergfc@gmail.com?subject=Kermes%20POS%20Support"
+                    sx={{ textTransform: 'none', px: 0.5, py: 0, minWidth: 0, fontWeight: 700 }}
+                  >
+                    talebelergfc@gmail.com
+                  </Button>
+                </Typography>
+
+                <Grid container spacing={3} sx={{ mb: 3 }}>
+                  {/* Info widgets */}
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2.5, display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'rgba(37, 99, 235, 0.06)', color: 'primary.main' }}>
+                        <StorageIcon />
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ fontWeight: 600 }}>
+                          {t('settings.diagnostics.title') || 'System Diagnostics'}
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          {dbStats.productsCount} Products | {dbStats.transactionsCount} Sales
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Approx size: {(dbStats.estimatedBytes / 1024).toFixed(1)} KB
+                        </Typography>
+                      </Box>
+                    </Paper>
+                  </Grid>
+
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Paper 
+                      variant="outlined" 
+                      sx={{ 
+                        p: 2.5, 
+                        borderRadius: 2.5, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 2,
+                        borderColor: updateAvailable ? 'warning.main' : 'divider',
+                        bgcolor: updateAvailable ? 'rgba(237, 108, 2, 0.02)' : 'transparent'
+                      }}
+                    >
+                      <Box sx={{ 
+                        p: 1.5, 
+                        borderRadius: 2, 
+                        bgcolor: updateAvailable ? 'rgba(237, 108, 2, 0.08)' : 'rgba(0, 0, 0, 0.03)', 
+                        color: updateAvailable ? 'warning.main' : 'text.secondary' 
+                      }}>
+                        <SystemUpdateIcon />
+                      </Box>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ fontWeight: 600 }}>
+                          {t('settings.about.version') || 'Version'}
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          v{require('../../package.json').version || 'Unknown'}
+                        </Typography>
+                        {updateAvailable && (
+                          <Chip 
+                            label={`v${updateVersion} Available`} 
+                            size="small" 
+                            color="warning" 
+                            sx={{ mt: 0.5, height: 20, fontSize: '0.65rem', fontWeight: 700 }} 
+                          />
+                        )}
+                      </Box>
+                      {updateAvailable ? (
+                        <Button 
+                          variant="contained" 
+                          color="warning" 
+                          size="small" 
+                          onClick={handleOpenUpdate}
+                          sx={{ borderRadius: 1.5, px: 2 }}
+                        >
+                          Update
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="outlined" 
+                          size="small" 
+                          onClick={handleOpenUpdate}
+                          sx={{ borderRadius: 1.5, px: 2 }}
+                        >
+                          Check
+                        </Button>
+                      )}
+                    </Paper>
+                  </Grid>
+                </Grid>
+
+                <Divider sx={{ my: 3 }} />
+
+                {/* Actions */}
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
+                  Administrative Actions
+                </Typography>
+                
+                <Stack direction="row" spacing={2}>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<SettingsBackupRestoreIcon />}
+                    onClick={handleFactoryReset}
+                    sx={{ borderRadius: 2 }}
+                  >
+                    {t('settings.factoryReset.button') || 'Reset All Settings'}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    endIcon={<OpenInNewIcon />}
+                    component="a"
+                    href="/customer-menu.html"
+                    target="_blank"
+                    rel="noopener"
+                    sx={{ borderRadius: 2 }}
+                  >
+                    Open Customer Menu
+                  </Button>
+                </Stack>
+              </Box>
+            )}
+          </Paper>
+        </Grid>
+      </Grid>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%', borderRadius: 2 }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -17,6 +17,8 @@ import HotkeySettings from '../HotkeySettings';
 import PaymentsIcon from '@mui/icons-material/Payments';         // cash
 import CreditCardIcon from '@mui/icons-material/CreditCard';    // card
 
+import { useSettings } from '../../context/SettingsContext';
+
 interface CartFooterProps {
   total: number;
   onPrint: () => void;
@@ -39,6 +41,7 @@ const CartFooter: React.FC<CartFooterProps> = ({
   onPaymentMethodChange,
 }) => {
   const { t } = useLanguage();
+  const { formatPrice } = useSettings();
   const formatHotkey = (h: string) => {
     if (!h) return 'Space';
     const parts = h.split('+').map(p => p.trim()).filter(Boolean);
@@ -69,7 +72,7 @@ const CartFooter: React.FC<CartFooterProps> = ({
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, minHeight: 48 }}>
         <Typography variant="h6" gutterBottom sx={{ m: 0, flex: 1, fontWeight: 700, fontSize: 18, color: 'text.primary' }}>
-          {t('app.cart.total')}: {total.toFixed(2).replace('.', ',')}€
+          {t('app.cart.total')}: {formatPrice(total)}
         </Typography>
         <Box sx={{ flexShrink: 0, ml: 2 }}>
           <ChangeCalculator total={total} />

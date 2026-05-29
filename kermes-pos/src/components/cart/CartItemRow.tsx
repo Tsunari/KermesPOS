@@ -12,6 +12,8 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { CartItem } from '../../types/index';
 
+import { useSettings } from '../../context/SettingsContext';
+
 interface CartItemRowProps {
   item: CartItem;
   onIncrement: (id: string, quantity: number) => void;
@@ -25,11 +27,13 @@ const CartItemRow: React.FC<CartItemRowProps> = ({
   onDecrement, 
   onRemove,
 }) => {
+  const { formatPrice } = useSettings();
+
   return (
     <ListItem>
       <ListItemText
         primary={item.product.name}
-        secondary={`${item.product.price.toFixed(2).replace('.', ',')}€ x ${item.quantity}`}
+        secondary={`${formatPrice(item.product.price)} x ${item.quantity}`}
       />
       <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mr: 0.5 }}>

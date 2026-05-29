@@ -3,6 +3,7 @@ import { InputAdornment, TextField, Typography, Box, Button } from '@mui/materia
 import CalculateIcon from '@mui/icons-material/Calculate';
 import ReactDOM from 'react-dom';
 import { useLanguage } from '../../context/LanguageContext';
+import { useSettings } from '../../context/SettingsContext';
 
 interface ChangeCalculatorProps {
   total: number;
@@ -13,8 +14,16 @@ const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({ total }) => {
   const [given, setGiven] = React.useState('');
   const [focused, setFocused] = React.useState(false);
   const iconButtonRef = React.useRef<HTMLButtonElement>(null);
+  const { formatPrice, currency } = useSettings();
   const change = given && !isNaN(Number(given)) ? Number(given) - total : 0;
   const { t } = useLanguage();
+
+  const currencySymbols: Record<string, string> = {
+    EUR: '€',
+    USD: '$',
+    TRY: '₺'
+  };
+  const currencySymbol = currencySymbols[currency] || '€';
 
   // Portal for floating panel
   const panel = (
@@ -24,7 +33,7 @@ const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({ total }) => {
         top: iconButtonRef.current ? iconButtonRef.current.getBoundingClientRect().top - 100 : 20,
         left: iconButtonRef.current ? iconButtonRef.current.getBoundingClientRect().right + 12 : 200,
         zIndex: 2000,
-        width: 340,
+        width: 380,
         maxWidth: '90vw',
         boxShadow: 6,
         p: 2,
@@ -45,14 +54,14 @@ const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({ total }) => {
             variant="outlined"
             color="primary"
             size="small"
-            sx={{ minWidth: 44, fontWeight: 700, borderRadius: 2, mb: 0.5 }}
+            sx={{ flex: 1, fontWeight: 700, borderRadius: 2, px: 0 }}
             onClick={() => setGiven((prev) => {
               // If input is empty, set to amount. If not, add to current value.
               const prevNum = parseFloat(prev.replace(',', '.')) || 0;
               return (prevNum + amount).toString();
             })}
           >
-            {amount}€
+            {currency === 'USD' ? `${currencySymbol}${amount}` : `${amount}${currencySymbol}`}
           </Button>
         ))}
       </Box>
@@ -89,7 +98,6 @@ const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({ total }) => {
                   minWidth: 0,
                   height: '32px',
                   p: 2,
-                  // mr: 0.5,
                   color: 'error.main',
                   borderRadius: '8px',
                   boxShadow: 1,
@@ -99,14 +107,11 @@ const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({ total }) => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   lineHeight: 1.2,
-                  // whiteSpace: 'nowrap',
-                  // '&:hover': { background: 'rgba(255,255,255,1)' }
                 }}
               >
-                {/*✕*/}
                 Clear
               </Button>
-              <InputAdornment position="end">€</InputAdornment>
+              <InputAdornment position="end">{currencySymbol}</InputAdornment>
             </>
           ),
           sx: { fontSize: 20, fontWeight: 600, borderRadius: 2 },
@@ -123,10 +128,10 @@ const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({ total }) => {
       />
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-          {t('app.cart.total')}: <span style={{ color: '#1976d2', fontWeight: 700 }}>{total.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</span>
+          {t('app.cart.total')}: <span style={{ color: '#1976d2', fontWeight: 700 }}>{formatPrice(total)}</span>
         </Typography>
         <Typography variant="subtitle2" sx={{ fontWeight: 600, color: change < 0 ? 'error.main' : 'success.main' }}>
-          {t('app.changeCalculator.change')}: <span style={{ fontWeight: 700 }}>{change >= 0 ? change.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} €</span>
+          {t('app.changeCalculator.change')}: <span style={{ fontWeight: 700 }}>{change >= 0 ? formatPrice(change) : formatPrice(0)}</span>
         </Typography>
       </Box>
     </Box>

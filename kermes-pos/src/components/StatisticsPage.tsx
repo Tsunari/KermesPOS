@@ -8,6 +8,7 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import LocalBarIcon from '@mui/icons-material/LocalBar';
 import { useLanguage } from '../context/LanguageContext';
+import { useSettings } from '../context/SettingsContext';
 import { Product } from '../types/index';
 import { Session } from '../types/session';
 import { cartTransactionService, ProductStats, DateRangeStats } from '../services/cartTransactionService';
@@ -53,6 +54,15 @@ interface CartTransaction {
 
 const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) => {
   const { t } = useLanguage();
+  const { formatPrice, currency } = useSettings();
+  
+  const currencySymbols: Record<string, string> = {
+    EUR: '€',
+    USD: '$',
+    TRY: '₺'
+  };
+  const currencySymbol = currencySymbols[currency] || '€';
+
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
   const [categoryStats, setCategoryStats] = useState<CategoryStats[]>([]);
   const [topProducts, setTopProducts] = useState<ProductStats[]>([]);
@@ -279,7 +289,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
       return;
     }
 
-    const header = ['Product', 'Category', 'Quantity Sold', 'Revenue (€)'];
+    const header = ['Product', 'Category', 'Quantity Sold', `Revenue (${currencySymbol})`];
     const rows = dateRangeStats.productStats.map(stat => [
       stat.product.name,
       stat.product.category,
@@ -362,7 +372,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
             <GridViewIcon fontSize="small" />
           </IconButton>
           <Typography variant="h6" color="text.secondary">{t('app.statistics.todaySales')}</Typography>
-          <Typography variant="h3" color="primary">{todayStats.total_revenue.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€</Typography>
+          <Typography variant="h3" color="primary">{formatPrice(todayStats.total_revenue)}</Typography>
         </Paper>
         
         <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -372,7 +382,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
 
         <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Typography variant="h6" color="text.secondary">{t('app.statistics.averageOrder')}</Typography>
-          <Typography variant="h3" color="primary">{Number(averageOrderValue).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€</Typography>
+          <Typography variant="h3" color="primary">{formatPrice(Number(averageOrderValue))}</Typography>
         </Paper>
       </Box>
 
@@ -431,7 +441,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                 <Paper key={productStat.product.id} sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1, minWidth: '200px' }}>
                   <Typography variant="subtitle1">{productStat.product.name}</Typography>
                   <Typography variant="body2" color="text.secondary">{t('app.statistics.sold')}: {productStat.count} {t('app.statistics.units')}</Typography>
-                  <Typography variant="body2" color="primary">{t('app.statistics.revenue')}: {productStat.revenue.toFixed(2)}€</Typography>
+                  <Typography variant="body2" color="primary">{t('app.statistics.revenue')}: {formatPrice(productStat.revenue)}</Typography>
                 </Paper>
               ))
             ) : (
@@ -530,10 +540,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                   {t('app.statistics.totalRevenue') || 'Total Revenue'}
                 </Typography>
                 <Typography variant="h4" color="success.main" sx={{ fontWeight: 600 }}>
-                  {dateRangeStats.totalRevenue.toLocaleString('de-DE', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  })}€
+                  {formatPrice(dateRangeStats.totalRevenue)}
                 </Typography>
               </Paper>
               <Paper sx={{ p: 2 }}>
@@ -542,11 +549,8 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                 </Typography>
                 <Typography variant="h4" color="primary" sx={{ fontWeight: 600 }}>
                   {dateRangeStats.transactionCount > 0
-                    ? (dateRangeStats.totalRevenue / dateRangeStats.transactionCount).toLocaleString('de-DE', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })
-                    : '0.00'}€
+                    ? formatPrice(dateRangeStats.totalRevenue / dateRangeStats.transactionCount)
+                    : formatPrice(0)}
                 </Typography>
               </Paper>
             </Box>
@@ -616,7 +620,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                 return (
                   <Paper key={category} sx={{ p: 2, bgcolor: `${categoryColor}.light`, color: `${categoryColor}.contrastText`, minWidth: '200px' }}>
                     <Typography variant="subtitle1">{t(`app.product.categories.${category}`)}</Typography>
-                    <Typography variant="h6">{revenue.toFixed(2)}€</Typography>
+                    <Typography variant="h6">{formatPrice(revenue)}</Typography>
                     <Typography variant="body2">{percentage}% {t('app.statistics.ofTotal')}</Typography>
                   </Paper>
                 );
@@ -689,7 +693,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
               >
                 <Typography variant="subtitle1">{productStat.product.name}</Typography>
                 <Typography variant="body2" color="text.secondary">{t('app.statistics.sold')}: {productStat.count} {t('app.statistics.units')}</Typography>
-                <Typography variant="body2" color="primary">{t('app.statistics.revenue')}: {productStat.revenue.toFixed(2)}€</Typography>
+                <Typography variant="body2" color="primary">{t('app.statistics.revenue')}: {formatPrice(productStat.revenue)}</Typography>
               </Paper>
             ))}
           </Box>
@@ -782,7 +786,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                               {t('sales.title')}: {txs.length} 
                             </Typography>
                           </Typography>
-                          <Typography variant="body2" color="" sx={{ fontWeight: 500, mr: 1 }}>{totalRevenue.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€</Typography>
+                          <Typography variant="body2" color="" sx={{ fontWeight: 500, mr: 1 }}>{formatPrice(totalRevenue)}</Typography>
                         </Box>
                       </AccordionSummary>
                       <AccordionDetails sx={{ p: 0 }}>
@@ -819,7 +823,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                                     primary={
                                       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
                                         <Typography variant="body2" sx={{ fontWeight: 500 }} color="">
-                                          {t('app.statistics.revenue')}: {tx.total_amount.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€
+                                          {t('app.statistics.revenue')}: {formatPrice(tx.total_amount)}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
                                           {t('app.statistics.itemsSold')}: {tx.items_count}
@@ -902,7 +906,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                                                 {t('app.statistics.quantity') || 'Qty'}: {item.quantity}
                                               </Typography>
                                               <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
-                                                {t('app.statistics.price') || 'Price'}: {product ? product.price.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}€
+                                                {t('app.statistics.price') || 'Price'}: {product ? formatPrice(product.price) : '-'}
                                               </Typography>
                                               {/* <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
                                                 {t('app.statistics.total') || 'Total'}: {(product ? product.price * item.quantity : 0).toFixed(2)}€ 
@@ -930,7 +934,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
         {transactions && transactions.length > 0 && (
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', p: 2, pt: 0, mr: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-              {t('app.statistics.totalRevenue') || 'Total Revenue'}: {transactions.reduce((sum, tx) => sum + tx.total_amount, 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€
+              {t('app.statistics.totalRevenue') || 'Total Revenue'}: {formatPrice(transactions.reduce((sum, tx) => sum + tx.total_amount, 0))}
             </Typography>
           </Box>
         )}
@@ -943,7 +947,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
           <Typography>{t('app.statistics.confirmDeleteText') || 'Are you sure you want to delete this transaction?'}</Typography>
           {transactionToDelete && (
             <Box sx={{ mt: 2 }}>
-              <Typography variant="body2">{t('app.statistics.revenue')}: {transactionToDelete.total_amount.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€</Typography>
+              <Typography variant="body2">{t('app.statistics.revenue')}: {formatPrice(transactionToDelete.total_amount)}</Typography>
               <Typography variant="body2">{t('app.statistics.itemsSold')}: {transactionToDelete.items_count}</Typography>
               <Typography variant="caption" color="text.disabled">{new Date(transactionToDelete.transaction_date).toLocaleString('de-DE')}</Typography>
             </Box>
@@ -993,7 +997,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                   </>
                 }>
                   <Typography sx={{ minWidth: 120 }}>{product ? product.name : (item.product?.name || t('app.statistics.unknownProduct'))}</Typography>
-                  <Typography sx={{ ml: 2 }}>{t('app.statistics.price')}: {product ? product.price.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}€</Typography>
+                  <Typography sx={{ ml: 2 }}>{t('app.statistics.price')}: {product ? formatPrice(product.price) : '-'}</Typography>
                 </ListItem>
               );
             })}

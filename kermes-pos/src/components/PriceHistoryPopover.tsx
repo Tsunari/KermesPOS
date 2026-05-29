@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { PricePoint } from '../services/cartTransactionService';
+import { useSettings } from '../context/SettingsContext';
 
 interface PriceHistoryPopoverProps {
   priceHistory?: PricePoint[];
@@ -27,6 +28,7 @@ const PriceHistoryPopover: React.FC<PriceHistoryPopoverProps> = ({
   onClose,
 }) => {
   const theme = useTheme();
+  const { formatPrice } = useSettings();
 
   if (!priceHistory || priceHistory.length === 0) return null;
 
@@ -76,11 +78,11 @@ const PriceHistoryPopover: React.FC<PriceHistoryPopoverProps> = ({
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mt: 0.5 }}>
             <Typography variant="h6" sx={{ fontWeight: 700, color: 'success.main' }}>
-              €{minPrice.toFixed(2)}
+              {formatPrice(minPrice)}
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>to</Typography>
             <Typography variant="h6" sx={{ fontWeight: 700, color: 'error.main' }}>
-              €{maxPrice.toFixed(2)}
+              {formatPrice(maxPrice)}
             </Typography>
           </Box>
           {hasPriceVariation && (
@@ -113,7 +115,7 @@ const PriceHistoryPopover: React.FC<PriceHistoryPopoverProps> = ({
                       color: isLowest ? 'success.main' : isHighest ? 'error.main' : 'primary.main',
                     }}
                   >
-                    €{pricePoint.price.toFixed(2)}
+                    {formatPrice(pricePoint.price)}
                   </Typography>
                   <Chip
                     label={`${pricePoint.quantity} unit${pricePoint.quantity > 1 ? 's' : ''}`}

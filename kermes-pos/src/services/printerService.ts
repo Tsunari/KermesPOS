@@ -31,9 +31,33 @@ const FONT_SIZE_XLARGE = GS + "!" + "\x22";
 const CUT_PAPER = GS + "V" + "\x41" + "\x00";
 const EXIT = ESC + "@"; // Exit command to reset printer
 
-// Format price with currency symbol
+// Format price with currency symbol from settings in localStorage
 const formatPrice = (price: number): string => {
-  return price.toFixed(2) + "€";
+  let currency = "EUR";
+  try {
+    const savedSettings = localStorage.getItem("settings");
+    if (savedSettings) {
+      const parsed = JSON.parse(savedSettings);
+      if (parsed.currency) {
+        currency = parsed.currency;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to parse settings for print format", e);
+  }
+
+  const currencyLocales: Record<string, string> = {
+    EUR: "de-DE",
+    USD: "en-US",
+    TRY: "tr-TR"
+  };
+  const locale = currencyLocales[currency] || "de-DE";
+  return price.toLocaleString(locale, { 
+    style: "currency", 
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
 };
 
 export const generateReceiptContent = (
@@ -68,11 +92,7 @@ export const generateReceiptContent = (
       groupedItems[category].forEach((item) => {
         receiptContent += `
     ${item.product.name}
-      ${item.quantity} x ${item.product.price
-          .toFixed(2)
-          .replace(".", ",")}€ = ${(item.product.price * item.quantity)
-          .toFixed(2)
-          .replace(".", ",")}€
+      ${item.quantity} x ${formatPrice(item.product.price)} = ${formatPrice(item.product.price * item.quantity)}
       `;
       });
 
@@ -83,7 +103,7 @@ export const generateReceiptContent = (
   });
 
   receiptContent += `
-    TOTAL: ${total.toFixed(2).replace(".", ",")}€
+    TOTAL: ${formatPrice(total)}
     =================
     Thank you for your purchase!
   `;

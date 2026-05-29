@@ -29,10 +29,12 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useVariableContext } from '../../context/VariableContext';
 import { cartTransactionService, CartTransaction } from '../../services/cartTransactionService';
 import { CartItem, Product } from '../../types/index';
+import { useSettings } from '../../context/SettingsContext';
 
 const RecentOrdersPanel: React.FC = () => {
   const { t } = useLanguage();
   const theme = useTheme();
+  const { formatPrice, currency } = useSettings();
   
   // Retrieve docking and editing states from VariableContext
   const {
@@ -136,6 +138,7 @@ const RecentOrdersPanel: React.FC = () => {
           price: item.product.price,
         })),
         total: tx.total_amount,
+        currency,
       };
 
       if (window.electronAPI) {
@@ -215,6 +218,7 @@ const RecentOrdersPanel: React.FC = () => {
             price: item.product.price,
           })),
           total: calculatedTotal,
+          currency,
         };
         if (window.electronAPI) {
           const selectedPrinter = localStorage.getItem('selectedPrinter') || '';
@@ -367,13 +371,13 @@ const RecentOrdersPanel: React.FC = () => {
                       {item.product.name}
                     </Typography>
                     <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                      {(item.quantity * item.product.price).toFixed(2).replace('.', ',')}€
+                      {formatPrice(item.quantity * item.product.price)}
                     </Typography>
                   </Box>
 
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="caption" color="text.secondary">
-                      {item.product.price.toFixed(2).replace('.', ',')}€ / {t('app.statistics.quantity') || 'Qty'}
+                      {formatPrice(item.product.price)} / {t('app.statistics.quantity') || 'Qty'}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <IconButton
@@ -478,7 +482,7 @@ const RecentOrdersPanel: React.FC = () => {
                   {t('app.cart.total') || 'Total'}
                 </Typography>
                 <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main' }}>
-                  {calculatedTotal.toFixed(2).replace('.', ',')}€
+                  {formatPrice(calculatedTotal)}
                 </Typography>
               </Box>
 
@@ -586,7 +590,7 @@ const RecentOrdersPanel: React.FC = () => {
                 {/* Price and Action Buttons */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'text.primary' }}>
-                    {tx.total_amount.toFixed(2).replace('.', ',')}€
+                    {formatPrice(tx.total_amount)}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <Tooltip title={t('app.cart.reprintReceipt') || 'Reprint Receipt'}>

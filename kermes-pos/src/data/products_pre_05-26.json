@@ -1,0 +1,228 @@
+{
+  "products": [
+    {
+      "id": "1001",
+      "name": "Döner",
+      "price": 8.00,
+      "category": "food",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "1002",
+      "name": "Döner Dürüm",
+      "price": 9.00,
+      "category": "food",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "1003",
+      "name": "Döner Tabak",
+      "price": 13.00,
+      "category": "food",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "1004",
+      "name": "Adana",
+      "price": 8.00,
+      "category": "food",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "1005",
+      "name": "Balik",
+      "price": 10.00,
+      "category": "food",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "1006",
+      "name": "Balik Ekmek",
+      "price": 8.00,
+      "category": "food",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "1007",
+      "name": "Tantuni",
+      "price": 8.00,
+      "category": "food",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "1008",
+      "name": "Tantuni Tabak",
+      "price": 13.00,
+      "category": "food",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "1009",
+      "name": "Köfte Ekmek",
+      "price": 8.00,
+      "category": "food",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "1010",
+      "name": "Köfte Tabak",
+      "price": 10.00,
+      "category": "food",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "1011",
+      "name": "1/2 Yarim Tavuk",
+      "price": 8.00,
+      "category": "food",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "1012",
+      "name": "1 Tam Tavuk",
+      "price": 15.00,
+      "category": "food",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "1013",
+      "name": "Hamsi Tava",
+      "price": 10.00,
+      "category": "food",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "1014",
+      "name": "Kumpir",
+      "price": 8.00,
+      "category": "food",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "1015",
+      "name": "Talebe Yemek",
+      "price": 5.00,
+      "category": "food",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "2001",
+      "name": "Cay",
+      "price": 1.00,
+      "category": "drink",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "2002",
+      "name": "Kahve",
+      "price": 2.00,
+      "category": "drink",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "2003",
+      "name": "Su",
+      "price": 1.50,
+      "category": "drink",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "2004",
+      "name": "Ayran",
+      "price": 1.50,
+      "category": "drink",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "2005",
+      "name": "Acik Yayik Ayran",
+      "price": 2.00,
+      "category": "drink",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "2006",
+      "name": "Mesrubat",
+      "price": 2.00,
+      "category": "drink",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "2007",
+      "name": "Spezi",
+      "price": 2.00,
+      "category": "drink",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "2008",
+      "name": "Iskembe Corba",
+      "price": 6.00,
+      "category": "drink",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "2009",
+      "name": "Mercimek Corba",
+      "price": 5.00,
+      "category": "drink",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "3001",
+      "name": "Pommes",
+      "price": 3.00,
+      "category": "dessert",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "3002",
+      "name": "Lahmacun",
+      "price": 3.00,
+      "category": "dessert",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "3003",
+      "name": "Gözleme",
+      "price": 3.00,
+      "category": "dessert",
+      "description": "",
+      "inStock": true
+    },
+    {
+      "id": "3004",
+      "name": "Katmer",
+      "price": 3.00,
+      "category": "dessert",
+      "description": "",
+      "inStock": true
+    }
+  ]
+} 

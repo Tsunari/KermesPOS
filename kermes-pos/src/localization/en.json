@@ -101,7 +101,58 @@
     },
     "menu": {
       "description": "Description"
+    },
+    "tabs": {
+      "appearance": "Appearance",
+      "behavior": "Behavior",
+      "language": "Language",
+      "security": "Security & Backup",
+      "system": "System & About"
+    },
+    "diagnostics": {
+      "title": "System Diagnostics",
+      "dbSize": "Database Statistics",
+      "totalProducts": "Total Active Products",
+      "totalTransactions": "Total Transaction Logs",
+      "storageUsed": "Estimated Local Storage"
+    },
+    "factoryReset": {
+      "title": "Factory Reset Settings",
+      "button": "Reset All Settings",
+      "confirm": "Are you sure you want to reset all settings to their factory defaults?",
+      "success": "All settings have been successfully reset to defaults."
     }
+  },
+  "importExport": {
+    "title": "Import/Export Products",
+    "exportTitle": "Export & Backup",
+    "exportDesc": "Save your current products catalog as a JSON backup file to your system.",
+    "importTitle": "Import & Restore",
+    "importDesc": "Drag and drop or paste product data in JSON format to update your catalog.",
+    "dropzoneActive": "Drop the JSON file here...",
+    "dropzoneIdle": "Drag & drop a products.json file here, or click to choose from system",
+    "orPaste": "or paste raw JSON below",
+    "validateSuccess": "JSON syntax and structure are valid!",
+    "validateErrorSyntax": "Syntax Error: {error} at line {line}",
+    "validateErrorSchema": "Schema Error: {error}",
+    "dryRunTitle": "Import Dry-Run Preview",
+    "dryRunDesc": "Verify the products to be imported before applying them to your database.",
+    "dryRunChecklist": "Import Integrity Check",
+    "dryRunSuccess": "All products passed database compatibility checks!",
+    "totalProducts": "Total Products",
+    "categoryBreakdown": "Category Breakdown",
+    "modeLabel": "Import Strategy",
+    "modeOverwrite": "Complete Overwrite (Deletes current list)",
+    "modeMerge": "Smart Merge (Appends new items, updates matching IDs)",
+    "actionApply": "Apply Import & Update Catalog",
+    "actionCancel": "Cancel Import Preview",
+    "snapshotsTitle": "Database Time Machine (Local Snapshots)",
+    "snapshotsDesc": "Kermes automatically takes snapshots before destructive import operations. Restore a past state instantly.",
+    "snapshotRestoreConfirm": "Are you sure you want to restore your product database to this snapshot? Current list will be backed up.",
+    "snapshotRestoreSuccess": "Database restored successfully!",
+    "noSnapshots": "No local snapshots found.",
+    "itemsCount": "{count} products",
+    "exampleTemplate": "Copy example JSON structure"
   },
   "products": {
     "title": "Products",

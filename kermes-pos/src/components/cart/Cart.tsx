@@ -56,7 +56,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
   const { t } = useLanguage();
   const dispatch = useDispatch();
   const theme = useTheme();
-  const { showScrollbars } = useSettings();
+  const { showScrollbars, formatPrice, currency } = useSettings();
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const total = useSelector((state: RootState) => state.cart.total);
   const [printerSettingsOpen, setPrinterSettingsOpen] = useState(false);
@@ -141,6 +141,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
         price: item.product.price,
       })),
       total,
+      currency,
     };
 
     try {
@@ -707,7 +708,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
                 <Box key={item.productId} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 0.9, border: '1px solid', borderColor: 'divider', borderRadius: 1.5, bgcolor: 'background.paper' }}>
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 700 }}>{item.name}</Typography>
-                    <Typography variant="caption" color="text.secondary">€{Number(item.price).toFixed(2)}</Typography>
+                    <Typography variant="caption" color="text.secondary">{formatPrice(Number(item.price))}</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
                     <Button size="small" variant="outlined" onClick={() => handleEditItemQuantity(item.productId, -1)}>-</Button>
@@ -720,7 +721,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.25 }}>
               <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>{t('sales.total')}</Typography>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'primary.main' }}>€{onlineEditTotal.toFixed(2)}</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'primary.main' }}>{formatPrice(onlineEditTotal)}</Typography>
             </Box>
 
             <Box sx={{ display: 'flex', gap: 1 }}>
@@ -1023,7 +1024,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
                         {item.quantity}x {item.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13 }}>
-                        €{(item.price * item.quantity).toFixed(2)}
+                        {formatPrice(item.price * item.quantity)}
                       </Typography>
                     </Box>
                   ))}
@@ -1037,7 +1038,7 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
                       {t('sales.total')}
                     </Typography>
                     <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'primary.main' }}>
-                      €{order.total.toFixed(2)}
+                      {formatPrice(order.total)}
                     </Typography>
                   </Box>
 
