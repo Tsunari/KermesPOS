@@ -61,10 +61,26 @@
     "language": {
       "title": "Dil Ayarları",
       "selectLanguage": "Dil Seç",
+      "description": "POS düğmeleri, kategoriler ve fişler için tercih ettiğiniz dili seçin.",
       "languages": {
         "en": "İngilizce",
         "de": "Almanca",
         "tr": "Türkçe"
+      }
+    },
+    "menu": {
+      "configuratorTitle": "Menü Yapılandırıcısı",
+      "configuratorDescription": "Müşteri ekranı için menü sütunlarını, başlığı ve para birimini özelleştirin.",
+      "description": "Açıklama"
+    },
+    "currency": {
+      "title": "Para Birimi",
+      "description": "Görüntüleme, yazdırma ve fişler için aktif sistem para birimini seçin.",
+      "cloudManagedHint": "Oturum açmış POS para birimini admin yapılandırmasından eşitler.",
+      "options": {
+        "eur": "Euro (€)",
+        "usd": "Dolar ($)",
+        "try": "Lira (₺)"
       }
     },
     "notifications": {
@@ -97,10 +113,10 @@
     "about": {
       "title": "Hakkında",
       "description": "Kermes POS, ürünleri yönetmek, satışları işlemek ve raporlar oluşturmak için bir kasa sistemi.",
-      "version": "Sürüm"
-    },
-    "menu": {
-      "description": "Açıklama"
+      "version": "Sürüm",
+      "supportEmail": "Destek E-postası",
+      "administrativeActions": "Yönetici İşlemleri",
+      "openCustomerMenu": "Müşteri Menüsünü Aç"
     },
     "tabs": {
       "appearance": "Görünüm",
@@ -114,7 +130,10 @@
       "dbSize": "Veritabanı İstatistikleri",
       "totalProducts": "Toplam Aktif Ürün",
       "totalTransactions": "Toplam İşlem Günlüğü",
-      "storageUsed": "Tahmini Yerel Depolama"
+      "storageUsed": "Tahmini Yerel Depolama",
+      "products": "Ürünler",
+      "sales": "Satışlar",
+      "approxSize": "Yaklaşık boyut"
     },
     "factoryReset": {
       "title": "Fabrika Ayarları",

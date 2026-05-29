@@ -61,10 +61,26 @@
     "language": {
       "title": "Spracheinstellungen",
       "selectLanguage": "Sprache auswählen",
+      "description": "Wählen Sie Ihre bevorzugte Sprache für POS-Buttons, Kategorien und Belege.",
       "languages": {
         "en": "Englisch",
         "de": "Deutsch",
         "tr": "Türkisch"
+      }
+    },
+    "menu": {
+      "configuratorTitle": "Menükonfigurator",
+      "configuratorDescription": "Passen Sie Spalten, Titel und Währung für die Kundenansicht an.",
+      "description": "Beschreibung"
+    },
+    "currency": {
+      "title": "Währung",
+      "description": "Wählen Sie die aktive Systemwährung für Anzeige, Druck und Belege.",
+      "cloudManagedHint": "Angemeldeter POS synchronisiert die Währung aus der Admin-Konfiguration.",
+      "options": {
+        "eur": "Euro (€)",
+        "usd": "Dollar ($)",
+        "try": "Lira (₺)"
       }
     },
     "notifications": {
@@ -97,10 +113,10 @@
     "about": {
       "title": "Über",
       "description": "Kermes POS ist ein Kassensystem zur Verwaltung von Produkten, Verarbeitung von Verkäufen und Erstellung von Berichten.",
-      "version": "Version"
-    },
-    "menu": {
-      "description": "Beschreibung"
+      "version": "Version",
+      "supportEmail": "Support-E-Mail",
+      "administrativeActions": "Administrative Aktionen",
+      "openCustomerMenu": "Kundenmenü öffnen"
     },
     "tabs": {
       "appearance": "Erscheinungsbild",
@@ -114,7 +130,10 @@
       "dbSize": "Datenbankstatistik",
       "totalProducts": "Aktive Produkte Gesamt",
       "totalTransactions": "Transaktionsprotokolle Gesamt",
-      "storageUsed": "Geschätzter lokaler Speicher"
+      "storageUsed": "Geschätzter lokaler Speicher",
+      "products": "Produkte",
+      "sales": "Verkäufe",
+      "approxSize": "Ungefähre Größe"
     },
     "factoryReset": {
       "title": "Werkseinstellungen",

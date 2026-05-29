@@ -61,10 +61,26 @@
     "language": {
       "title": "Language Settings",
       "selectLanguage": "Select Language",
+      "description": "Choose your preferred language for POS buttons, categories, and receipts.",
       "languages": {
         "en": "English",
         "de": "German",
         "tr": "Turkish"
+      }
+    },
+    "menu": {
+      "configuratorTitle": "Menu Configurator",
+      "configuratorDescription": "Customize menu presentation columns, title, and currency for the customer screen.",
+      "description": "Description"
+    },
+    "currency": {
+      "title": "Currency",
+      "description": "Choose the active system currency for display, printing, and receipts.",
+      "cloudManagedHint": "Signed-in POS syncs currency from admin configuration.",
+      "options": {
+        "eur": "Euro (€)",
+        "usd": "Dollar ($)",
+        "try": "Lira (₺)"
       }
     },
     "notifications": {
@@ -97,10 +113,10 @@
     "about": {
       "title": "About",
       "description": "Kermes POS is a point-of-sale system designed for managing products, processing sales, and generating reports.",
-      "version": "Version"
-    },
-    "menu": {
-      "description": "Description"
+      "version": "Version",
+      "supportEmail": "Support Email",
+      "administrativeActions": "Administrative Actions",
+      "openCustomerMenu": "Open Customer Menu"
     },
     "tabs": {
       "appearance": "Appearance",
@@ -114,7 +130,10 @@
       "dbSize": "Database Statistics",
       "totalProducts": "Total Active Products",
       "totalTransactions": "Total Transaction Logs",
-      "storageUsed": "Estimated Local Storage"
+      "storageUsed": "Estimated Local Storage",
+      "products": "Products",
+      "sales": "Sales",
+      "approxSize": "Approx size"
     },
     "factoryReset": {
       "title": "Factory Reset Settings",
