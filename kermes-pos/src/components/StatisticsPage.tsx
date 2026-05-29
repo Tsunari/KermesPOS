@@ -1,46 +1,83 @@
-import React, { useEffect, useState } from 'react';
-import { Autocomplete, Box, Typography, Paper, ToggleButton, ToggleButtonGroup, IconButton, Dialog, DialogTitle, DialogContent, Tooltip, Button, Stack, DialogActions, TextField, Accordion, AccordionSummary, AccordionDetails, List, ListItem, ListItemText, ListItemIcon, Divider, Chip } from '@mui/material';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import {
+  Autocomplete,
+  Box,
+  Typography,
+  Paper,
+  ToggleButton,
+  ToggleButtonGroup,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Tooltip,
+  Button,
+  Stack,
+  DialogActions,
+  TextField,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Divider,
+  Chip,
+  Grid,
+  Card,
+  CardContent,
+  InputAdornment,
+  Collapse,
+  Menu,
+  MenuItem,
+  ListSubheader,
+  Avatar
+} from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
+
+// Icon imports
 import GridViewIcon from '@mui/icons-material/GridView';
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import LocalBarIcon from '@mui/icons-material/LocalBar';
+import EuroIcon from '@mui/icons-material/Euro';
+import FoodBankIcon from '@mui/icons-material/FoodBank';
+import CoffeeIcon from '@mui/icons-material/Coffee';
+import CookieIcon from '@mui/icons-material/Cookie';
+import MiscellaneousServicesIcon from '@mui/icons-material/MiscellaneousServices';
+import BlockIcon from '@mui/icons-material/Block';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import EditIcon from '@mui/icons-material/Edit';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import SearchIcon from '@mui/icons-material/Search';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import PrintIcon from '@mui/icons-material/Print';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
+import CloseIcon from '@mui/icons-material/Close';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import CategoryIcon from '@mui/icons-material/Category';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import LeaderboardIcon from '@mui/icons-material/Leaderboard';
+import RemoveIcon from '@mui/icons-material/Remove';
+
+// Contexts & services
 import { useLanguage } from '../context/LanguageContext';
 import { useSettings } from '../context/SettingsContext';
-import { Product } from '../types/index';
+import { useVariableContext } from '../context/VariableContext';
+import { Product, CartItem } from '../types/index';
 import { Session } from '../types/session';
-import { cartTransactionService, ProductStats, DateRangeStats } from '../services/cartTransactionService';
+import { cartTransactionService, ProductStats } from '../services/cartTransactionService';
 import { sessionService } from '../services/sessionService';
 import { generateSummaryPDF } from '../services/summary';
 import { exampleTransactions } from '../services/exampleTransactions';
-import { useVariableContext } from '../context/VariableContext';
-import { Block, Coffee, Cookie, Euro, FoodBank, MiscellaneousServices, Payments } from '@mui/icons-material';
-import Collapse from '@mui/material/Collapse';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import EditIcon from '@mui/icons-material/Edit';
-import MenuItem from '@mui/material/MenuItem';
-import ListSubheader from '@mui/material/ListSubheader';
-import TimeRangePicker, { TimeRange } from './TimeRangePicker';
+import { printCart } from '../services/printerService';
 import ProductStatsTable from './ProductStatsTable';
 
 interface StatisticsPageProps {
   products: Product[];
   devMode: boolean;
-}
-
-interface DailyStats {
-  date: string;
-  transaction_count: number;
-  total_revenue: number;
-  total_items: number;
-}
-
-interface CategoryStats {
-  categories: string;
-  count: number;
-  revenue: number;
 }
 
 interface CartTransaction {
@@ -50,260 +87,599 @@ interface CartTransaction {
   items_count: number;
   items_data: string;
   payment_method: string;
+  session_id?: string;
 }
 
+type TimeRangePreset = 'today' | 'yesterday' | 'thisWeek' | 'lastWeek' | 'thisMonth' | 'allTime' | 'custom';
+
+interface TimeRange {
+  startDate: Date;
+  endDate: Date;
+  preset: TimeRangePreset;
+}
+
+interface ExtendedProductStats extends ProductStats {
+  contributionPercent: string;
+}
+
+const getDateRange = (preset: TimeRangePreset, customStart?: Date, customEnd?: Date): { startDate: Date; endDate: Date } => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  switch (preset) {
+    case 'today':
+      return {
+        startDate: today,
+        endDate: new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1)
+      };
+    
+    case 'yesterday': {
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      return {
+        startDate: yesterday,
+        endDate: new Date(yesterday.getTime() + 24 * 60 * 60 * 1000 - 1)
+      };
+    }
+    
+    case 'thisWeek': {
+      const dayOfWeek = today.getDay();
+      const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Monday start
+      const monday = new Date(today);
+      monday.setDate(monday.getDate() + diff);
+      return {
+        startDate: monday,
+        endDate: new Date(now.getTime())
+      };
+    }
+    
+    case 'lastWeek': {
+      const dayOfWeek = today.getDay();
+      const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const thisMonday = new Date(today);
+      thisMonday.setDate(thisMonday.getDate() + diff);
+      const lastMonday = new Date(thisMonday);
+      lastMonday.setDate(lastMonday.getDate() - 7);
+      const lastSunday = new Date(thisMonday);
+      lastSunday.setDate(lastSunday.getDate() - 1);
+      lastSunday.setHours(23, 59, 59, 999);
+      return {
+        startDate: lastMonday,
+        endDate: lastSunday
+      };
+    }
+    
+    case 'thisMonth': {
+      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+      return {
+        startDate: firstDay,
+        endDate: new Date(now.getTime())
+      };
+    }
+    
+    case 'allTime': {
+      return {
+        startDate: new Date(0),
+        endDate: new Date(now.getTime() + 10 * 365 * 24 * 60 * 60 * 1000) // far future
+      };
+    }
+
+    case 'custom':
+      return {
+        startDate: customStart || today,
+        endDate: customEnd || new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1)
+      };
+    
+    default:
+      return {
+        startDate: today,
+        endDate: new Date(now.getTime())
+      };
+  }
+};
+
 const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) => {
+  const theme = useTheme();
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const { formatPrice, currency } = useSettings();
-  
-  const currencySymbols: Record<string, string> = {
-    EUR: '€',
-    USD: '$',
-    TRY: '₺'
-  };
-  const currencySymbol = currencySymbols[currency] || '€';
+  const { kursName, sessions, setSessions } = useVariableContext();
 
-  const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
-  const [categoryStats, setCategoryStats] = useState<CategoryStats[]>([]);
-  const [topProducts, setTopProducts] = useState<ProductStats[]>([]);
-  const [sortBy, setSortBy] = useState<'revenue' | 'units'>('revenue');
+  const auditLogRef = useRef<HTMLDivElement>(null);
+
+  const isDarkMode = theme.palette.mode === 'dark';
+
+  // Core Data States
+  const [allTransactions, setAllTransactions] = useState<CartTransaction[]>([]);
+  
+  // Selected Filter Configs
+  const [selectedSessionIds, setSelectedSessionIds] = useState<string[]>([]);
+  const [timePreset, setTimePreset] = useState<TimeRangePreset>('today');
+  const [customStartDate, setCustomStartDate] = useState<string>(() => {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+  });
+  const [customEndDate, setCustomEndDate] = useState<string>(() => {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+  });
+  const [showCustomDatePicker, setShowCustomDatePicker] = useState<boolean>(false);
+
+  // Search & Interactivity filters
+  const [logSearchQuery, setLogSearchQuery] = useState<string>('');
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState<string | null>(null);
+
+  // Dialog management states
   const [showAllProducts, setShowAllProducts] = useState(false);
-  const [allProductStats, setAllProductStats] = useState<ProductStats[]>([]);
-  const [transactions, setTransactions] = useState<CartTransaction[]>([]);
+  const [sortBy, setSortBy] = useState<'revenue' | 'units'>('revenue');
   const [signersDialogOpen, setSignersDialogOpen] = useState(false);
-  const [salesDialogOpen, setSalesDialogOpen] = useState(false);
   const [signers, setSigners] = useState([
-    { name: 'Test Isim', surname: 'Test Soyisim' },
     { name: 'Test Isim', surname: 'Test Soyisim' },
     { name: 'Test Isim', surname: 'Test Soyisim' },
   ]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<CartTransaction | null>(null);
   const [expandedTxId, setExpandedTxId] = useState<number | null>(null);
-  const { kursName } = useVariableContext();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [transactionToEdit, setTransactionToEdit] = useState<CartTransaction | null>(null);
   const [editItems, setEditItems] = useState<any[]>([]);
   const [editAddProductId, setEditAddProductId] = useState<number | null>(null);
   const [editAddProductQty, setEditAddProductQty] = useState<number>(1);
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [selectedSessionIds, setSelectedSessionIds] = useState<string[]>([]);
+  const [loadingData, setLoadingData] = useState<boolean>(true);
 
-  // Product Analytics state
-  const [timeRange, setTimeRange] = useState<TimeRange>(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1);
-    return {
-      startDate: today,
-      endDate: endOfDay,
-      preset: 'today'
-    };
-  });
-  const [dateRangeStats, setDateRangeStats] = useState<DateRangeStats | null>(null);
-  const [previousPeriodStats, setPreviousPeriodStats] = useState<ProductStats[]>([]);
+  // Pagination for logs
+  const [logPage, setLogPage] = useState<number>(1);
+  const itemsPerLogPage = 5;
 
-  // Move loadData outside useEffect so it can be called after deletion
-  const loadData = React.useCallback(async () => {
+  // Hourly Graph Hover Tooltip State
+  const [hoveredTimelinePoint, setHoveredTimelinePoint] = useState<{
+    label: string;
+    revenue: number;
+    count: number;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  // Category Donut Hover Tooltip State
+  const [hoveredCategoryIndex, setHoveredCategoryIndex] = useState<number | null>(null);
+
+  // Load primary data from service
+  const loadData = useCallback(async () => {
     try {
-      const [dailyStatsData, categoryStatsData, transactionsData] = await Promise.all([
-        cartTransactionService.getDailyStats(),
-        cartTransactionService.getCategoryStats(),
-        cartTransactionService.getTransactions()
-      ]);
-      setDailyStats(dailyStatsData);
+      setLoadingData(true);
+      const transactionsData = await cartTransactionService.getTransactions();
       if (devMode) {
-        setTransactions(exampleTransactions);
-        // log exampleTransactions for debugging
-        console.log('Example transactions:', exampleTransactions);
-        
+        setAllTransactions(exampleTransactions);
       } else {
-        setTransactions(transactionsData);
+        setAllTransactions(transactionsData);
       }
-      
-      // Use the correct transactions array for statistics calculations
-      const usedTransactions = devMode ? exampleTransactions : transactionsData;
 
-      // Calculate revenue for each category
-      const categoryStatsWithRevenue = categoryStatsData.map(stat => {
-        const product = products.find(p => p.category === stat.categories);
-        return {
-          ...stat,
-          revenue: (product?.price || 0) * stat.count
-        };
+      const loadedSessions = await sessionService.getAllSessions();
+      const sortedSessions = [...loadedSessions].sort((a, b) => {
+        const aTime = new Date(a.createdAt || a.startDate || 0).getTime();
+        const bTime = new Date(b.createdAt || b.startDate || 0).getTime();
+        return bTime - aTime;
       });
-      
-      setCategoryStats(categoryStatsWithRevenue);
-
-      // Calculate product-level statistics
-      const productStats = new Map<string, ProductStats>();
-      usedTransactions.forEach(transaction => {
-        try {
-          const items = JSON.parse(transaction.items_data);
-          items.forEach((item: any) => {
-            if (item?.product?.id) {
-              const product = products.find(p => p.id === item.product.id);
-              if (product) {
-                // Use the price from the transaction item (historical price), not the current product price
-                const itemPrice = item.product.price || product.price;
-                const itemRevenue = (item.quantity || 0) * itemPrice;
-                const existing = productStats.get(product.id);
-                if (existing) {
-                  existing.count += item.quantity || 0;
-                  existing.revenue += itemRevenue;
-                  
-                  // Track price history
-                  if (!existing.priceHistory) {
-                    existing.priceHistory = [];
-                  }
-                  const existingPrice = existing.priceHistory.find(p => p.price === itemPrice);
-                  if (existingPrice) {
-                    existingPrice.quantity += item.quantity || 0;
-                  } else {
-                    existing.priceHistory.push({ price: itemPrice, quantity: item.quantity || 0 });
-                  }
-                } else {
-                  productStats.set(product.id, {
-                    product,
-                    count: item.quantity || 0,
-                    revenue: itemRevenue,
-                    priceHistory: [{ price: itemPrice, quantity: item.quantity || 0 }]
-                  });
-                }
-              }
-            }
-          });
-        } catch (error) {
-          console.error('Error parsing transaction items:', error);
-        }
-      });
-
-      // Convert to array and filter valid products
-      const allProductsData = Array.from(productStats.values())
-        .filter(stat => stat.product && stat.count > 0)
-        .sort((a, b) => sortBy === 'revenue' ? b.revenue - a.revenue : b.count - a.count);
-
-      setAllProductStats(allProductsData);
-      setTopProducts(allProductsData.slice(0, 4));
+      setSessions(sortedSessions);
     } catch (error) {
-      console.error('Error loading statistics:', error);
+      console.error('Error loading statistics data:', error);
+    } finally {
+      setLoadingData(false);
     }
-  }, [products, devMode, sortBy]);
+  }, [devMode]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  // Load available sessions once for analytics filtering
-  useEffect(() => {
-    const loadSessions = async () => {
-      try {
-        const loadedSessions = await sessionService.getAllSessions();
-        const sorted = [...loadedSessions].sort((a, b) => {
-          const aTime = new Date(a.createdAt || a.startDate || 0).getTime();
-          const bTime = new Date(b.createdAt || b.startDate || 0).getTime();
-          return bTime - aTime;
+  // Derive precise Date Range
+  const derivedDateRange = useMemo<TimeRange>(() => {
+    if (timePreset === 'custom') {
+      const start = new Date(customStartDate + 'T00:00:00');
+      const end = new Date(customEndDate + 'T23:59:59');
+      return { startDate: start, endDate: end, preset: 'custom' };
+    }
+    const range = getDateRange(timePreset);
+    return { ...range, preset: timePreset };
+  }, [timePreset, customStartDate, customEndDate]);
+
+  // Unified Reactive Filter Logic for Transactions
+  const filteredTransactions = useMemo(() => {
+    let txs = allTransactions;
+
+    // 1. Session Filter (If selected, this bounds the transactions)
+    if (selectedSessionIds.length > 0) {
+      txs = txs.filter(tx => {
+        if (tx.session_id) {
+          return selectedSessionIds.includes(tx.session_id);
+        }
+        // Fallback to session date bounds if transaction lacks session ID
+        const txTime = new Date(tx.transaction_date).getTime();
+        return selectedSessionIds.some(sid => {
+          const s = sessions.find(sess => sess.id === sid);
+          if (!s) return false;
+          const sStart = new Date(s.startDate).getTime();
+          const sEnd = s.endDate ? new Date(s.endDate).getTime() : Date.now() + 1000 * 60 * 60;
+          return txTime >= sStart && txTime <= sEnd;
         });
-        setSessions(sorted);
+      });
+    } else {
+      // 2. Date Range Filter (Only applies if no explicit sessions are selected to prevent filtering conflicts)
+      const startMs = derivedDateRange.startDate.getTime();
+      const endMs = derivedDateRange.endDate.getTime();
+      txs = txs.filter(tx => {
+        const txTime = new Date(tx.transaction_date).getTime();
+        return txTime >= startMs && txTime <= endMs;
+      });
+    }
 
-        // Default filter: active session, if present and no selection yet
-        if (selectedSessionIds.length === 0) {
-          const activeSession = sorted.find(session => session.status === 'active');
-          if (activeSession) {
-            setSelectedSessionIds([activeSession.id]);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading sessions:', error);
+    return txs;
+  }, [allTransactions, selectedSessionIds, derivedDateRange, sessions]);
+
+  // Compute stats on active transactions list
+  const activeMetrics = useMemo(() => {
+    const totalRevenue = filteredTransactions.reduce((sum, tx) => sum + tx.total_amount, 0);
+    const totalTransactions = filteredTransactions.length;
+    const avgOrderValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
+    const totalUnits = filteredTransactions.reduce((sum, tx) => sum + tx.items_count, 0);
+
+    return { totalRevenue, totalTransactions, avgOrderValue, totalUnits };
+  }, [filteredTransactions]);
+
+  // Baseline Comparison calculation (Yesterday / Prior Period) for subtle trend indicators
+  const trendMetrics = useMemo(() => {
+    if (selectedSessionIds.length > 0) {
+      // If we are filtering by session, find a prior session to compare against
+      const firstSelectedIdx = sessions.findIndex(s => s.id === selectedSessionIds[0]);
+      const priorSession = firstSelectedIdx !== -1 && firstSelectedIdx + 1 < sessions.length 
+        ? sessions[firstSelectedIdx + 1] 
+        : null;
+
+      if (!priorSession) return null;
+
+      // Extract prior transactions
+      const priorTxs = allTransactions.filter(tx => {
+        if (tx.session_id) return tx.session_id === priorSession.id;
+        const txTime = new Date(tx.transaction_date).getTime();
+        const sStart = new Date(priorSession.startDate).getTime();
+        const sEnd = priorSession.endDate ? new Date(priorSession.endDate).getTime() : Date.now();
+        return txTime >= sStart && txTime <= sEnd;
+      });
+
+      const priorRev = priorTxs.reduce((sum, tx) => sum + tx.total_amount, 0);
+      const priorCount = priorTxs.length;
+
+      const revDiff = priorRev > 0 ? ((activeMetrics.totalRevenue - priorRev) / priorRev) * 100 : 0;
+      const countDiff = priorCount > 0 ? ((activeMetrics.totalTransactions - priorCount) / priorCount) * 100 : 0;
+
+      return {
+        revenuePercent: revDiff.toFixed(1),
+        transactionsPercent: countDiff.toFixed(1),
+        compareText: t('app.statistics.fromYesterday') || 'vs. prior session'
+      };
+    } else {
+      // Compare by date ranges
+      const duration = derivedDateRange.endDate.getTime() - derivedDateRange.startDate.getTime();
+      const priorStart = new Date(derivedDateRange.startDate.getTime() - duration);
+      const priorEnd = new Date(derivedDateRange.startDate.getTime() - 1);
+
+      const priorTxs = allTransactions.filter(tx => {
+        const txTime = new Date(tx.transaction_date).getTime();
+        return txTime >= priorStart.getTime() && txTime <= priorEnd.getTime();
+      });
+
+      const priorRev = priorTxs.reduce((sum, tx) => sum + tx.total_amount, 0);
+      const priorCount = priorTxs.length;
+
+      const revDiff = priorRev > 0 ? ((activeMetrics.totalRevenue - priorRev) / priorRev) * 100 : 0;
+      const countDiff = priorCount > 0 ? ((activeMetrics.totalTransactions - priorCount) / priorCount) * 100 : 0;
+
+      return {
+        revenuePercent: revDiff.toFixed(1),
+        transactionsPercent: countDiff.toFixed(1),
+        compareText: timePreset === 'today' 
+          ? t('app.statistics.fromYesterday') || 'vs. yesterday'
+          : 'vs. prior period'
+      };
+    }
+  }, [allTransactions, selectedSessionIds, derivedDateRange, sessions, activeMetrics, timePreset, t]);
+
+  // Timeline Graph Grouping Data Engine
+  const timelineData = useMemo(() => {
+    if (filteredTransactions.length === 0) {
+      return [];
+    }
+
+    let minTime = Math.min(...filteredTransactions.map(tx => new Date(tx.transaction_date).getTime()));
+    let maxTime = Math.max(...filteredTransactions.map(tx => new Date(tx.transaction_date).getTime()));
+
+    if (maxTime - minTime <= 36 * 60 * 60 * 1000) {
+      const minHourDate = new Date(minTime);
+      minHourDate.setMinutes(0, 0, 0);
+      const startHour = Math.max(0, minHourDate.getHours() - 1);
+      
+      const maxHourDate = new Date(maxTime);
+      maxHourDate.setMinutes(59, 59, 999);
+      const endHour = Math.min(23, maxHourDate.getHours() + 1);
+
+      const hoursList: { label: string; hour: number; revenue: number; count: number }[] = [];
+      for (let h = startHour; h <= endHour; h++) {
+        hoursList.push({
+          label: `${String(h).padStart(2, '0')}:00`,
+          hour: h,
+          revenue: 0,
+          count: 0
+        });
       }
-    };
 
-    loadSessions();
-  }, []);
+      filteredTransactions.forEach(tx => {
+        const hour = new Date(tx.transaction_date).getHours();
+        const bucket = hoursList.find(b => b.hour === hour);
+        if (bucket) {
+          bucket.revenue += tx.total_amount;
+          bucket.count += tx.items_count;
+        }
+      });
 
-  // Load date range stats when time range changes
-  useEffect(() => {
-    const loadDateRangeStats = async () => {
+      return hoursList;
+    } else {
+      const dailyMap = new Map<string, { revenue: number; count: number }>();
+      
+      filteredTransactions.forEach(tx => {
+        const dStr = new Date(tx.transaction_date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+        const existing = dailyMap.get(dStr) || { revenue: 0, count: 0 };
+        existing.revenue += tx.total_amount;
+        existing.count += tx.items_count;
+        dailyMap.set(dStr, existing);
+      });
+
+      return Array.from(dailyMap.entries())
+        .map(([label, val]) => ({
+          label,
+          revenue: val.revenue,
+          count: val.count
+        }))
+        .slice(-10); // Display last 10 days for clarity
+    }
+  }, [filteredTransactions]);
+
+  // Category Breakdown calculations
+  const categoryBreakdown = useMemo(() => {
+    const counts = { food: 0, drink: 0, dessert: 0, other: 0 };
+    const revenues = { food: 0, drink: 0, dessert: 0, other: 0 };
+
+    filteredTransactions.forEach(tx => {
       try {
-        if (timeRange.preset === 'allTime') {
-          const stats = await cartTransactionService.getProductStatsByDateRange(
-            new Date(0),
-            new Date(),
-            products,
-            undefined,
-            selectedSessionIds
-          );
-          setDateRangeStats(stats);
-          setPreviousPeriodStats([]);
-        } else {
-          const stats = await cartTransactionService.getProductStatsByDateRange(
-            timeRange.startDate,
-            timeRange.endDate,
-            products,
-            undefined,
-            selectedSessionIds
-          );
-          setDateRangeStats(stats);
+        const items = JSON.parse(tx.items_data) as CartItem[];
+        items.forEach(item => {
+          const category = (item.product?.category || 'other').toLowerCase() as keyof typeof counts;
+          const price = item.product?.price || 0;
+          const qty = item.quantity || 0;
 
-          // Load previous period for comparison
-          const periodDuration = timeRange.endDate.getTime() - timeRange.startDate.getTime();
-          const prevStartDate = new Date(timeRange.startDate.getTime() - periodDuration);
-          const prevEndDate = new Date(timeRange.startDate.getTime() - 1);
-
-          const prevStats = await cartTransactionService.getProductStatsByDateRange(
-            prevStartDate,
-            prevEndDate,
-            products,
-            undefined,
-            selectedSessionIds
-          );
-          setPreviousPeriodStats(prevStats.productStats);
-        }
-      } catch (error) {
-        console.error('Error loading date range stats:', error);
+          if (counts[category] !== undefined) {
+            counts[category] += qty;
+            revenues[category] += qty * price;
+          } else {
+            counts.other += qty;
+            revenues.other += qty * price;
+          }
+        });
+      } catch (e) {
+        console.error('Error calculating category breakdown', e);
       }
-    };
+    });
 
-    loadDateRangeStats();
-  }, [timeRange, products, selectedSessionIds]);
+    const totalRev = Object.values(revenues).reduce((a, b) => a + b, 0);
 
-  const todayStats = dailyStats[0] || { total_revenue: 0, total_items: 0, transaction_count: 0 };
-  const yesterdayStats = dailyStats[1] || { total_revenue: 0, total_items: 0 };
-  
-  const revenueChange = yesterdayStats.total_revenue 
-    ? ((todayStats.total_revenue - yesterdayStats.total_revenue) / yesterdayStats.total_revenue * 100).toFixed(1)
-    : '0.0';
+    return [
+      { name: 'food', label: t('app.categories.food') || 'Food', value: revenues.food, count: counts.food, color: '#8F9BFF' },
+      { name: 'drink', label: t('app.categories.drink') || 'Drink', value: revenues.drink, count: counts.drink, color: '#4CC3FF' },
+      { name: 'dessert', label: t('app.categories.dessert') || 'Dessert', value: revenues.dessert, count: counts.dessert, color: '#F098FF' },
+      { name: 'other', label: t('app.statistics.unknownProduct') || 'Other', value: revenues.other, count: counts.other, color: '#90A4AE' }
+    ].map(cat => ({
+      ...cat,
+      percent: totalRev > 0 ? ((cat.value / totalRev) * 100).toFixed(0) : '0'
+    }));
+  }, [filteredTransactions, t]);
 
-  const itemsChange = yesterdayStats.total_items
-    ? ((todayStats.total_items - yesterdayStats.total_items) / yesterdayStats.total_items * 100).toFixed(1)
-    : '0.0';
+  // Item Analytics Leaderboard and Dialog full list
+  const itemLeaderboard = useMemo<ExtendedProductStats[]>(() => {
+    const statsMap = new Map<string, { product: Product; count: number; revenue: number; priceHistory?: any[] }>();
 
-  const averageOrderValue = todayStats.transaction_count
-    ? (todayStats.total_revenue / todayStats.transaction_count).toFixed(2)
-    : '0.00';
+    filteredTransactions.forEach(tx => {
+      try {
+        const items = JSON.parse(tx.items_data) as CartItem[];
+        items.forEach(item => {
+          if (!item?.product?.id) return;
+          const prod = products.find(p => p.id === item.product.id) || item.product;
+          const price = item.product.price || prod.price || 0;
+          const revenue = item.quantity * price;
 
-  // Export product analytics as CSV
-  const exportProductAnalytics = () => {
-    if (!dateRangeStats || !dateRangeStats.productStats.length) {
-      alert('No data to export');
+          const existing = statsMap.get(prod.id);
+          if (existing) {
+            existing.count += item.quantity;
+            existing.revenue += revenue;
+
+            if (!existing.priceHistory) {
+              existing.priceHistory = [];
+            }
+            const existingPrice = existing.priceHistory.find(p => p.price === price);
+            if (existingPrice) {
+              existingPrice.quantity += item.quantity;
+            } else {
+              existing.priceHistory.push({ price, quantity: item.quantity });
+            }
+          } else {
+            statsMap.set(prod.id, {
+              product: prod,
+              count: item.quantity,
+              revenue: revenue,
+              priceHistory: [{ price, quantity: item.quantity }]
+            });
+          }
+        });
+      } catch (e) {
+        console.error('Leaderboard calculation parsing error', e);
+      }
+    });
+
+    const totalRev = Array.from(statsMap.values()).reduce((sum, item) => sum + item.revenue, 0);
+
+    return Array.from(statsMap.values())
+      .map(item => ({
+        product: item.product,
+        count: item.count,
+        revenue: item.revenue,
+        priceHistory: item.priceHistory,
+        contributionPercent: totalRev > 0 ? ((item.revenue / totalRev) * 100).toFixed(1) : '0.0'
+      }))
+      .sort((a, b) => sortBy === 'revenue' ? b.revenue - a.revenue : b.count - a.count);
+  }, [filteredTransactions, products, sortBy]);
+
+  // Previous Period Stats specifically calculated for Table comparisons
+  const previousPeriodStats = useMemo(() => {
+    let priorTxs: CartTransaction[] = [];
+    if (selectedSessionIds.length > 0) {
+      const firstSelectedIdx = sessions.findIndex(s => s.id === selectedSessionIds[0]);
+      const priorSession = firstSelectedIdx !== -1 && firstSelectedIdx + 1 < sessions.length 
+        ? sessions[firstSelectedIdx + 1] 
+        : null;
+
+      if (priorSession) {
+        priorTxs = allTransactions.filter(tx => {
+          if (tx.session_id) return tx.session_id === priorSession.id;
+          const txTime = new Date(tx.transaction_date).getTime();
+          const sStart = new Date(priorSession.startDate).getTime();
+          const sEnd = priorSession.endDate ? new Date(priorSession.endDate).getTime() : Date.now();
+          return txTime >= sStart && txTime <= sEnd;
+        });
+      }
+    } else {
+      const duration = derivedDateRange.endDate.getTime() - derivedDateRange.startDate.getTime();
+      const priorStart = new Date(derivedDateRange.startDate.getTime() - duration);
+      const priorEnd = new Date(derivedDateRange.startDate.getTime() - 1);
+      priorTxs = allTransactions.filter(tx => {
+        const txTime = new Date(tx.transaction_date).getTime();
+        return txTime >= priorStart.getTime() && txTime <= priorEnd.getTime();
+      });
+    }
+
+    const statsMap = new Map<string, { product: Product; count: number; revenue: number }>();
+    priorTxs.forEach(tx => {
+      try {
+        const items = JSON.parse(tx.items_data) as CartItem[];
+        items.forEach(item => {
+          if (!item?.product?.id) return;
+          const prod = products.find(p => p.id === item.product.id) || item.product;
+          const price = item.product.price || prod.price || 0;
+          const revenue = item.quantity * price;
+
+          const existing = statsMap.get(prod.id);
+          if (existing) {
+            existing.count += item.quantity;
+            existing.revenue += revenue;
+          } else {
+            statsMap.set(prod.id, {
+              product: prod,
+              count: item.quantity,
+              revenue: revenue
+            });
+          }
+        });
+      } catch (e) {}
+    });
+
+    return Array.from(statsMap.values()).map(item => ({
+      product: item.product,
+      count: item.count,
+      revenue: item.revenue
+    }));
+  }, [allTransactions, selectedSessionIds, derivedDateRange, sessions, products]);
+
+  // Live Audited & Filtered Logs (Bottom Section)
+  const auditedTransactions = useMemo(() => {
+    let txs = filteredTransactions;
+
+    // Apply Live Text Search (Transaction ID, Product name)
+    if (logSearchQuery.trim() !== '') {
+      const query = logSearchQuery.toLowerCase();
+      txs = txs.filter(tx => {
+        const matchesId = String(tx.id).includes(query);
+        const matchesMethod = tx.payment_method.toLowerCase().includes(query);
+        let matchesProduct = false;
+        try {
+          const items = JSON.parse(tx.items_data);
+          matchesProduct = items.some((item: any) => 
+            (item.product?.name || '').toLowerCase().includes(query)
+          );
+        } catch (e) {}
+
+        return matchesId || matchesMethod || matchesProduct;
+      });
+    }
+
+    // Apply Category segments filter
+    if (activeCategoryFilter) {
+      txs = txs.filter(tx => {
+        try {
+          const items = JSON.parse(tx.items_data);
+          return items.some((item: any) => 
+            (item.product?.category || '').toLowerCase() === activeCategoryFilter.toLowerCase()
+          );
+        } catch (e) {
+          return false;
+        }
+      });
+    }
+
+    // Sort by Date descending (newest first)
+    return [...txs].sort((a, b) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime());
+  }, [filteredTransactions, logSearchQuery, activeCategoryFilter]);
+
+  // Pagination calculations for log auditing
+  const paginatedLogs = useMemo(() => {
+    const startIdx = (logPage - 1) * itemsPerLogPage;
+    return auditedTransactions.slice(startIdx, startIdx + itemsPerLogPage);
+  }, [auditedTransactions, logPage]);
+
+  const totalLogPages = Math.ceil(auditedTransactions.length / itemsPerLogPage);
+
+  // Reprint Receipt Dispatch spooler
+  const handleReprintReceipt = async (tx: CartTransaction) => {
+    try {
+      let items: CartItem[] = [];
+      try {
+        items = JSON.parse(tx.items_data);
+      } catch (e) {
+        console.error('Failed to parse items for reprint', e);
+        return;
+      }
+
+      const success = await printCart(items, tx.total_amount);
+      if (success) {
+        alert(t('app.cart.printSuccess') || 'Receipt spooled successfully!');
+      } else {
+        alert(t('app.cart.printFailed') || 'Failed to print receipt.');
+      }
+    } catch (error) {
+      console.error('Error in handleReprintReceipt', error);
+    }
+  };
+
+  // CSV Report exporter
+  const handleExportProductAnalytics = () => {
+    if (!filteredTransactions.length) {
+      alert('No statistics recorded to download');
       return;
     }
 
-    const header = ['Product', 'Category', 'Quantity Sold', `Revenue (${currencySymbol})`];
-    const rows = dateRangeStats.productStats.map(stat => [
-      stat.product.name,
-      stat.product.category,
-      stat.count,
-      stat.revenue.toFixed(2)
-    ]);
-
-    // Add summary row
-    rows.push([]);
-    rows.push([
-      'TOTAL',
-      '',
-      dateRangeStats.totalItems,
-      dateRangeStats.totalRevenue.toFixed(2)
+    const header = ['Transaction Date', 'Order ID', 'Total Amount', 'Items Count', 'Payment Method'];
+    const rows = filteredTransactions.map(tx => [
+      new Date(tx.transaction_date).toLocaleString(),
+      tx.id,
+      tx.total_amount.toFixed(2),
+      tx.items_count,
+      tx.payment_method
     ]);
 
     const csvContent = [header, ...rows]
@@ -314,400 +690,1427 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-
-    const getLocalDateString = (d: Date) => {
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}`;
-    };
-    const startDate = getLocalDateString(timeRange.startDate);
-    const endDate = getLocalDateString(timeRange.endDate);
-    a.download = `product_analytics_${startDate}_to_${endDate}.csv`;
+    a.download = `statistics_report_${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  // Calculate all-time stats (sum over all used transactions)
-  // const usedTransactions = devMode ? exampleTransactions : transactions;
-  // const allStats = usedTransactions.reduce((acc, tx) => {
-  //   acc.total_revenue += tx.total_amount;
-  //   acc.total_items += tx.items_count;
-  //   acc.transaction_count += 1;
-  //   return acc;
-  // }, { total_revenue: 0, total_items: 0, transaction_count: 0 });
-  // const allAverageOrderValue = allStats.transaction_count
-  //   ? (allStats.total_revenue / allStats.transaction_count).toFixed(2)
-  //   : '0.00';
+  // Clean confirm database clear trigger
+  const handleClearDatabase = async () => {
+    await cartTransactionService.clearAllTransactions();
+  };
+
+  // Responsive SVG line coordinates mapper
+  const svgTimelineContent = useMemo(() => {
+    if (timelineData.length < 2) return null;
+
+    const width = 600;
+    const height = 220;
+    const margin = { top: 20, right: 30, bottom: 40, left: 55 };
+
+    const revenues = timelineData.map(d => d.revenue);
+    const maxVal = Math.max(...revenues, 10);
+    const minVal = 0;
+    const range = maxVal - minVal;
+
+    const points = timelineData.map((d, index) => {
+      const x = margin.left + (index / (timelineData.length - 1)) * (width - margin.left - margin.right);
+      const y = margin.top + (1 - (d.revenue - minVal) / range) * (height - margin.top - margin.bottom);
+      return { x, y, label: d.label, revenue: d.revenue, count: d.count };
+    });
+
+    let pathD = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 1; i < points.length; i++) {
+      pathD += ` L ${points[i].x} ${points[i].y}`;
+    }
+
+    const areaD = `${pathD} L ${points[points.length - 1].x} ${height - margin.bottom} L ${points[0].x} ${height - margin.bottom} Z`;
+
+    return { width, height, margin, points, pathD, areaD, maxVal };
+  }, [timelineData]);
+
+  // Clean confirm database clear trigger
+  const donutCenterText = useMemo(() => {
+    if (hoveredCategoryIndex !== null) {
+      const hovered = categoryBreakdown[hoveredCategoryIndex];
+      return {
+        subtitle: hovered.label,
+        value: `${hovered.percent}%`,
+        subText: formatPrice(hovered.value)
+      };
+    }
+
+    return {
+      subtitle: t('app.statistics.totalRevenue') || 'Total Sales',
+      value: formatPrice(activeMetrics.totalRevenue),
+      subText: `${activeMetrics.totalTransactions} ${t('sales.title') || 'Orders'}`
+    };
+  }, [activeMetrics, categoryBreakdown, hoveredCategoryIndex, formatPrice, t]);
+
+  // Donut Slices Center typography font scale sizing
+  const valueFontSize = useMemo(() => {
+    const len = donutCenterText.value.length;
+    if (len > 12) return '1.05rem';
+    if (len > 8) return '1.22rem';
+    return '1.45rem';
+  }, [donutCenterText.value]);
+
+  // Dynamic Graph Tooltip Transform positioning to ensure it stays in visible borders
+  const tooltipTransform = useMemo(() => {
+    if (!hoveredTimelinePoint) return 'translate(-50%, -105%)';
+    const { x, y } = hoveredTimelinePoint;
+    
+    let translateX = '-50%';
+    let translateY = '-105%';
+
+    // Proximity to left edge
+    if (x < 120) {
+      translateX = '0%';
+    } 
+    // Proximity to right edge
+    else if (x > 480) {
+      translateX = '-100%';
+    }
+
+    // Proximity to top edge (flip tooltip downward)
+    if (y < 60) {
+      translateY = '15%';
+    }
+
+    return `translate(${translateX}, ${translateY})`;
+  }, [hoveredTimelinePoint]);
 
   return (
-    <Box sx={{ p: 3 }}>
-      {devMode && (
-        <Typography variant="body2" color="warning.main" sx={{ mb: 2, fontWeight: 'bold' }}>
-          ⚠️ Example statistics are being used (DEV MODE)
-        </Typography>
-      )}
-      <Typography variant="h4" gutterBottom>{t('app.statistics.title')}</Typography>
-      <Typography variant="body1" paragraph>
-        {t('app.statistics.description')}
-      </Typography>
+    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: 'background.default', color: 'text.primary', pb: 12 }}>
       
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 3, mt: 3 }}>
-        <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1, position: 'relative' }}>
-          <IconButton
-            size="small"
-            sx={{ 
-                  position: 'absolute', top: 8, right: 8,
-                  color: 'primary.main',
-                  '&:hover': {
-                    bgcolor: 'primary.light',
-                    color: 'primary.dark'
+      {/* Dev mode warning banner */}
+      {devMode && (
+        <Paper 
+          elevation={0}
+          sx={{ 
+            p: 1.5, 
+            mb: 3, 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1, 
+            bgcolor: 'warning.light', 
+            color: 'warning.dark',
+            border: '1.5px solid',
+            borderColor: 'warning.main',
+            borderRadius: 2
+          }}
+        >
+          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+            ⚠️ {t('app.devMode.enableToUse') || 'Example mock statistics are active (DEV MODE)'}
+          </Typography>
+        </Paper>
+      )}
+
+      {/* STICKY HORIZONTAL CONTROL BAR */}
+      <Paper
+        elevation={0}
+        sx={{
+          p: 2,
+          mb: 3,
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
+          bgcolor: 'background.paper',
+          border: '1.5px solid',
+          borderColor: 'divider',
+          borderRadius: 3,
+          boxShadow: isDarkMode ? '0 8px 30px 0 rgba(0,0,0,0.3)' : '0 8px 30px 0 rgba(0,0,0,0.03)'
+        }}
+      >
+        <Grid container spacing={2} alignItems="center">
+          {/* Title block */}
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <AssessmentIcon color="primary" />
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: '-0.5px' }}>
+                  {t('app.statistics.title')}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {t('app.statistics.description')}
+                </Typography>
+              </Box>
+            </Stack>
+          </Grid>
+
+          {/* Session selection Bar */}
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <Autocomplete
+              multiple
+              options={sessions}
+              getOptionLabel={(option) => option.name || option.id}
+              size="small"
+              value={sessions.filter(session => selectedSessionIds.includes(session.id))}
+              onChange={(_, value) => {
+                setSelectedSessionIds(value.map(session => session.id));
+                setLogPage(1); // reset page
+              }}
+              filterSelectedOptions
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => (
+                  <Chip
+                    {...getTagProps({ index })}
+                    key={option.id}
+                    label={option.name || option.id}
+                    size="small"
+                    variant="outlined"
+                    sx={{
+                      borderRadius: 1.5,
+                      borderColor: 'divider',
+                      fontWeight: 500,
+                      bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'
+                    }}
+                  />
+                ))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={t('app.statistics.sessionFilter') || 'Filter by sessions'}
+                  placeholder={
+                    selectedSessionIds.length
+                      ? undefined
+                      : t('app.statistics.allSessions') || 'Cumulative All Sessions'
                   }
+                  InputLabelProps={{
+                    sx: { fontSize: '0.85rem' }
+                  }}
+                />
+              )}
+              noOptionsText={t('app.statistics.noSessions') || 'No sessions available'}
+            />
+          </Grid>
+
+          {/* Date range filter segmented control */}
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <ToggleButtonGroup
+                value={timePreset}
+                exclusive
+                onChange={(_, newVal) => {
+                  if (!newVal) return;
+                  setTimePreset(newVal);
+                  if (newVal === 'custom') {
+                    setShowCustomDatePicker(true);
+                  } else {
+                    setShowCustomDatePicker(false);
+                  }
+                  setLogPage(1); // reset log index
                 }}
-            onClick={() => setSalesDialogOpen(true)}
-            aria-label="Show all sales"
-          >
-            <GridViewIcon fontSize="small" />
-          </IconButton>
-          <Typography variant="h6" color="text.secondary">{t('app.statistics.todaySales')}</Typography>
-          <Typography variant="h3" color="primary">{formatPrice(todayStats.total_revenue)}</Typography>
-        </Paper>
-        
-        <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <Typography variant="h6" color="text.secondary">{t('app.statistics.itemsSold')}</Typography>
-          <Typography variant="h3" color="primary">{todayStats.total_items.toLocaleString('de-DE')}</Typography>
-        </Paper>
-
-        <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <Typography variant="h6" color="text.secondary">{t('app.statistics.averageOrder')}</Typography>
-          <Typography variant="h3" color="primary">{formatPrice(Number(averageOrderValue))}</Typography>
-        </Paper>
-      </Box>
-
-      <Box sx={{ mt: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="h5">{t('app.statistics.topSelling')}</Typography>
-            <Tooltip title={t('app.statistics.viewAll')}>
-              <IconButton 
-                onClick={() => setShowAllProducts(true)
-                }
-                sx={{ 
-                  color: 'primary.main',
-                  '&:hover': {
-                    bgcolor: 'primary.light',
-                    color: 'primary.dark'
+                size="small"
+                sx={{
+                  border: '1.5px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  '& .MuiToggleButtonGroup-grouped': {
+                    border: 0,
+                    textTransform: 'none',
+                    px: 1.5,
+                    py: 0.75,
+                    fontWeight: 600,
+                    borderRadius: 1.5,
+                    '&.Mui-selected': {
+                      bgcolor: 'primary.main',
+                      color: 'primary.contrastText',
+                      '&:hover': { bgcolor: 'primary.dark' }
+                    }
                   }
                 }}
               >
-                <GridViewIcon />
-              </IconButton>
-            </Tooltip>
+                <ToggleButton value="today">{t('app.statistics.today') || 'Today'}</ToggleButton>
+                <ToggleButton value="thisWeek">{t('app.statistics.thisWeek') || 'Week'}</ToggleButton>
+                <ToggleButton value="thisMonth">{t('app.statistics.thisMonth') || 'Month'}</ToggleButton>
+                <ToggleButton value="allTime">{t('app.statistics.allTime') || 'All Time'}</ToggleButton>
+                <ToggleButton value="custom">
+                  <CalendarTodayIcon sx={{ fontSize: '1rem' }} />
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Stack>
+          </Grid>
+        </Grid>
+
+        {/* Custom date range collapsible panel */}
+        <Collapse in={showCustomDatePicker}>
+          <Divider sx={{ my: 2 }} />
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+              {t('app.statistics.customRange') || 'Custom Period'}:
+            </Typography>
+            <TextField
+              type="date"
+              size="small"
+              label={t('app.statistics.from') || 'Start Date'}
+              value={customStartDate}
+              onChange={(e) => {
+                setCustomStartDate(e.target.value);
+                setLogPage(1);
+              }}
+              InputLabelProps={{ shrink: true }}
+              sx={{ minWidth: 160 }}
+            />
+            <TextField
+              type="date"
+              size="small"
+              label={t('app.statistics.to') || 'End Date'}
+              value={customEndDate}
+              onChange={(e) => {
+                setCustomEndDate(e.target.value);
+                setLogPage(1);
+              }}
+              InputLabelProps={{ shrink: true }}
+              sx={{ minWidth: 160 }}
+            />
+            <IconButton size="small" onClick={() => setShowCustomDatePicker(false)}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
           </Box>
-          <ToggleButtonGroup
-            value={sortBy}
-            exclusive
-            onChange={(_, newValue) => newValue && setSortBy(newValue)}
-            size="small"
+        </Collapse>
+      </Paper>
+
+      {/* Session Onboarding Guide */}
+      <Paper
+        elevation={0}
+        sx={{
+          p: 3,
+          mb: 4,
+          borderRadius: 3,
+          border: '1.5px dashed',
+          borderColor: 'primary.main',
+          bgcolor: isDarkMode ? 'rgba(143,155,255,0.03)' : 'rgba(143,155,255,0.01)',
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: { xs: 'flex-start', md: 'center' },
+          justifyContent: 'space-between',
+          gap: 3,
+        }}
+      >
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: 2.5,
+              bgcolor: 'primary.light',
+              color: 'primary.main',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mt: 0.5
+            }}
+          >
+            <LightbulbOutlinedIcon />
+          </Box>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 0.5 }}>
+              {t('app.statistics.sessionGuideTitle') || 'Unlock Kermes Event Tracking'}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 700, lineHeight: 1.6 }}>
+              {t('app.statistics.sessionGuideDesc') || 
+                'Create a session on the Sessions page to group your sales by event, enable shift comparisons, and generate printable PDF summaries.'}
+            </Typography>
+          </Box>
+        </Box>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate('/sessions')}
+          sx={{
+            borderRadius: 2,
+            textTransform: 'none',
+            fontWeight: 700,
+            px: 3,
+            py: 1.2,
+            whiteSpace: 'nowrap',
+            boxShadow: '0 4px 14px 0 rgba(143,155,255,0.4)',
+          }}
+        >
+          {t('app.statistics.goToSessions') || 'Go to Sessions'}
+        </Button>
+      </Paper>
+
+      {/* METRICS ROW (4 INTERACTIVE KPI CARDS) */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {/* KPI 1: Revenue */}
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Card 
+            elevation={0}
             sx={{ 
-              '& .MuiToggleButton-root': {
-                textTransform: 'none',
-                px: 2,
-                py: 1,
-                '&.Mui-selected': {
-                  bgcolor: 'primary.main',
-                  color: 'primary.contrastText',
-                  '&:hover': {
-                    bgcolor: 'primary.dark',
-                  }
-                }
+              borderRadius: 3, 
+              border: '1.5px solid', 
+              borderColor: 'divider',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                borderColor: 'primary.main',
+                boxShadow: isDarkMode ? '0 6px 20px 0 rgba(143,155,255,0.1)' : '0 6px 20px 0 rgba(0,0,0,0.03)'
               }
             }}
           >
-            <ToggleButton value="revenue">
-              {t('app.statistics.byRevenue')}
-            </ToggleButton>
-            <ToggleButton value="units">
-              {t('app.statistics.byUnits')}
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </Box>
-        <Paper sx={{ p: 2, width: 'fit-content' }}>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            {topProducts.length > 0 ? (
-              topProducts.map((productStat) => (
-                <Paper key={productStat.product.id} sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1, minWidth: '200px' }}>
-                  <Typography variant="subtitle1">{productStat.product.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">{t('app.statistics.sold')}: {productStat.count} {t('app.statistics.units')}</Typography>
-                  <Typography variant="body2" color="primary">{t('app.statistics.revenue')}: {formatPrice(productStat.revenue)}</Typography>
-                </Paper>
-              ))
-            ) : (
-              <Typography variant="body1" color="text.secondary" sx={{ p: 2 }}>
-                {t('app.statistics.noData')}
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {t('app.statistics.totalRevenue') || 'Total Revenue'}
               </Typography>
-            )}
-          </Box>
-        </Paper>
-      </Box>
-
-      {/* Product Analytics Section */}
-      <Box sx={{ mt: 6, mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            {t('app.statistics.productAnalytics') || 'Product Analytics'}
-          </Typography>
-          <Button
-            variant="outlined"
-            startIcon={<DownloadIcon />}
-            onClick={exportProductAnalytics}
-            disabled={!dateRangeStats || !dateRangeStats.productStats.length}
-            size="small"
-          >
-            {t('app.statistics.exportData') || 'Export Data'}
-          </Button>
-        </Box>
-
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
-            <Box sx={{ flex: 2, display: 'flex', alignItems: 'center' }}>
-              <TimeRangePicker value={timeRange} onChange={setTimeRange} />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              {/* <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                {t('app.statistics.sessionFilterHint') || 'Pick sessions to filter stats'}
-              </Typography> */}
-              <Autocomplete
-                multiple
-                options={sessions}
-                getOptionLabel={(option) => option.name || option.id}
-                size="small"
-                sx={{ minWidth: 240, mt: 3.5 }}
-                value={sessions.filter(session => selectedSessionIds.includes(session.id))}
-                onChange={(_, value) => setSelectedSessionIds(value.map(session => session.id))}
-                filterSelectedOptions
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip
-                      {...getTagProps({ index })}
-                      key={option.id}
-                      label={option.name || option.id}
-                      size="small"
-                    />
-                  ))
-                }
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label={t('app.statistics.sessionFilter') || 'Filter by sessions'}
-                    placeholder={
-                      selectedSessionIds.length
-                        ? undefined
-                        : t('app.statistics.allSessions') || 'All sessions'
-                    }
-                  />
-                )}
-                noOptionsText={t('app.statistics.noSessions') || 'No sessions available'}
-              />
-            </Box>
-          </Stack>
-        </Paper>
-
-        {dateRangeStats && (
-          <>
-            {/* Summary Cards */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2, mb: 3 }}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="caption" color="text.secondary">
-                  {t('app.statistics.transactions') || 'Transactions'}
-                </Typography>
-                <Typography variant="h4" color="primary" sx={{ fontWeight: 600 }}>
-                  {dateRangeStats.transactionCount}
-                </Typography>
-              </Paper>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="caption" color="text.secondary">
-                  {t('app.statistics.itemsSold') || 'Items Sold'}
-                </Typography>
-                <Typography variant="h4" color="primary" sx={{ fontWeight: 600 }}>
-                  {dateRangeStats.totalItems.toLocaleString('de-DE')}
-                </Typography>
-              </Paper>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="caption" color="text.secondary">
-                  {t('app.statistics.totalRevenue') || 'Total Revenue'}
-                </Typography>
-                <Typography variant="h4" color="success.main" sx={{ fontWeight: 600 }}>
-                  {formatPrice(dateRangeStats.totalRevenue)}
-                </Typography>
-              </Paper>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="caption" color="text.secondary">
-                  {t('app.statistics.averageOrder') || 'Avg. Order'}
-                </Typography>
-                <Typography variant="h4" color="primary" sx={{ fontWeight: 600 }}>
-                  {dateRangeStats.transactionCount > 0
-                    ? formatPrice(dateRangeStats.totalRevenue / dateRangeStats.transactionCount)
-                    : formatPrice(0)}
-                </Typography>
-              </Paper>
-            </Box>
-
-            {/* Product Stats Table */}
-            <ProductStatsTable
-              productStats={dateRangeStats.productStats}
-              previousPeriodStats={previousPeriodStats}
-              showComparison={timeRange.preset !== 'custom' && timeRange.preset !== 'allTime'}
-            />
-          </>
-        )}
-
-        {!dateRangeStats && (
-          <Paper sx={{ p: 4, textAlign: 'center' }}>
-            <Typography variant="body1" color="text.secondary">
-              {t('app.statistics.loading') || 'Loading statistics...'}
-            </Typography>
-          </Paper>
-        )}
-      </Box>
-
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h5" gutterBottom>{t('app.statistics.salesByCategory')}</Typography>
-        <Paper sx={{ p: 2, width: 'fit-content' }}>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            {(() => {
-              // Calculate revenue for each category from transactions
-              const categoryRevenues = new Map<string, number>();
+              <Typography variant="h3" sx={{ fontWeight: 800, mt: 1, mb: 1, letterSpacing: '-1px' }}>
+                {formatPrice(activeMetrics.totalRevenue)}
+              </Typography>
               
-              // Process all transactions to get actual revenue per category
-              transactions.forEach(transaction => {
-                try {
-                  const items = JSON.parse(transaction.items_data);
-                  items.forEach((item: any) => {
-                    if (item?.product?.id) {
-                      const product = products.find(p => p.id === item.product.id);
-                      if (product && product.category) {
-                        const revenue = (item.quantity || 0) * product.price;
-                        const currentRevenue = categoryRevenues.get(product.category) || 0;
-                        categoryRevenues.set(product.category, currentRevenue + revenue);
-                      }
-                    }
-                  });
-                } catch (error) {
-                  console.error('Error parsing transaction items:', error);
-                }
-              });
-
-              // Calculate total revenue
-              const totalRevenue = Array.from(categoryRevenues.values()).reduce((sum, revenue) => sum + revenue, 0);
-
-              // Create array of category stats with correct revenue
-              const categoryStatsArray = Array.from(categoryRevenues.entries());
-              if (categoryStatsArray.length === 0) {
-                return (
-                  <Typography variant="body1" color="text.secondary" sx={{ p: 2 }}>
-                    {t('app.statistics.noData')}
+              {trendMetrics && (
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  {Number(trendMetrics.revenuePercent) >= 0 ? (
+                    <TrendingUpIcon sx={{ color: 'success.main', fontSize: '1.1rem' }} />
+                  ) : (
+                    <TrendingDownIcon sx={{ color: 'error.main', fontSize: '1.1rem' }} />
+                  )}
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      fontWeight: 700, 
+                      color: Number(trendMetrics.revenuePercent) >= 0 ? 'success.main' : 'error.main' 
+                    }}
+                  >
+                    {Number(trendMetrics.revenuePercent) >= 0 ? '+' : ''}{trendMetrics.revenuePercent}%
                   </Typography>
-                );
-              }
-              return categoryStatsArray.map(([category, revenue]) => {
-                const percentage = totalRevenue > 0 ? ((revenue / totalRevenue) * 100).toFixed(0) : '0';
-                const categoryColor = category === 'food' ? 'primary' : 
-                                    category === 'drink' ? 'info' : 'secondary';
-                
-                return (
-                  <Paper key={category} sx={{ p: 2, bgcolor: `${categoryColor}.light`, color: `${categoryColor}.contrastText`, minWidth: '200px' }}>
-                    <Typography variant="subtitle1">{t(`app.product.categories.${category}`)}</Typography>
-                    <Typography variant="h6">{formatPrice(revenue)}</Typography>
-                    <Typography variant="body2">{percentage}% {t('app.statistics.ofTotal')}</Typography>
-                  </Paper>
-                );
-              });
-            })()}
-          </Box>
-        </Paper>
-      </Box>
+                  <Typography variant="caption" color="text.secondary">
+                    {trendMetrics.compareText}
+                  </Typography>
+                </Stack>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
 
-      <Dialog 
-        open={showAllProducts} 
-        onClose={() => setShowAllProducts(false)}
-        maxWidth="lg"
-        fullWidth
+        {/* KPI 2: Transaction Count */}
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Card 
+            elevation={0}
+            sx={{ 
+              borderRadius: 3, 
+              border: '1.5px solid', 
+              borderColor: 'divider',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                borderColor: 'primary.main',
+                boxShadow: isDarkMode ? '0 6px 20px 0 rgba(143,155,255,0.1)' : '0 6px 20px 0 rgba(0,0,0,0.03)'
+              }
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {t('app.statistics.transactions') || 'Orders Processed'}
+              </Typography>
+              <Typography variant="h3" sx={{ fontWeight: 800, mt: 1, mb: 1, letterSpacing: '-1px' }}>
+                {activeMetrics.totalTransactions.toLocaleString()}
+              </Typography>
+
+              {trendMetrics && (
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  {Number(trendMetrics.transactionsPercent) >= 0 ? (
+                    <TrendingUpIcon sx={{ color: 'success.main', fontSize: '1.1rem' }} />
+                  ) : (
+                    <TrendingDownIcon sx={{ color: 'error.main', fontSize: '1.1rem' }} />
+                  )}
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      fontWeight: 700, 
+                      color: Number(trendMetrics.transactionsPercent) >= 0 ? 'success.main' : 'error.main' 
+                    }}
+                  >
+                    {Number(trendMetrics.transactionsPercent) >= 0 ? '+' : ''}{trendMetrics.transactionsPercent}%
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {trendMetrics.compareText}
+                  </Typography>
+                </Stack>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* KPI 3: Average Order Value */}
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Card 
+            elevation={0}
+            sx={{ 
+              borderRadius: 3, 
+              border: '1.5px solid', 
+              borderColor: 'divider',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                borderColor: 'primary.main',
+                boxShadow: isDarkMode ? '0 6px 20px 0 rgba(143,155,255,0.1)' : '0 6px 20px 0 rgba(0,0,0,0.03)'
+              }
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {t('app.statistics.averageOrder') || 'Average Order Value'}
+              </Typography>
+              <Typography variant="h3" sx={{ fontWeight: 800, mt: 1, mb: 1, letterSpacing: '-1px' }}>
+                {formatPrice(activeMetrics.avgOrderValue)}
+              </Typography>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <EuroIcon sx={{ color: 'text.disabled', fontSize: '1rem' }} />
+                <Typography variant="caption" color="text.secondary">
+                  {t('app.statistics.average') || 'Per receipt basket size'}
+                </Typography>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* KPI 4: Total Units Sold */}
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Card 
+            elevation={0}
+            sx={{ 
+              borderRadius: 3, 
+              border: '1.5px solid', 
+              borderColor: 'divider',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                borderColor: 'primary.main',
+                boxShadow: isDarkMode ? '0 6px 20px 0 rgba(143,155,255,0.1)' : '0 6px 20px 0 rgba(0,0,0,0.03)'
+              }
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {t('app.statistics.itemsSold') || 'Units Sold'}
+              </Typography>
+              <Typography variant="h3" sx={{ fontWeight: 800, mt: 1, mb: 1, letterSpacing: '-1px' }}>
+                {activeMetrics.totalUnits.toLocaleString()}
+              </Typography>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <CategoryIcon sx={{ color: 'text.disabled', fontSize: '1rem' }} />
+                <Typography variant="caption" color="text.secondary">
+                  {t('app.statistics.units') || 'Individual items logged'}
+                </Typography>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* ANALYTICAL VISUALIZATIONS ROW */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        
+        {/* Timeline Graph */}
+        <Grid size={{ xs: 12, lg: 8 }}>
+          <Paper 
+            elevation={0}
+            sx={{ 
+              p: 3, 
+              borderRadius: 3, 
+              border: '1.5px solid', 
+              borderColor: 'divider', 
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AssessmentIcon color="action" />
+                {t('app.statistics.salesVolumeTimeline') || 'Sales Performance Timeline'}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {selectedSessionIds.length > 0 ? 'Selected Session Duration' : 'Filtered Period Curve'}
+              </Typography>
+            </Stack>
+
+            {svgTimelineContent ? (
+              <Box sx={{ width: '100%', overflowX: 'auto', flexGrow: 1, display: 'flex', alignItems: 'center', position: 'relative' }}>
+                <svg 
+                  viewBox={`0 0 ${svgTimelineContent.width} ${svgTimelineContent.height}`} 
+                  width="100%" 
+                  height={220}
+                  style={{ overflow: 'visible' }}
+                >
+                  <defs>
+                    <linearGradient id="timeline-area-gradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#8F9BFF" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#8F9BFF" stopOpacity="0.00" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Horizontal Grid lines */}
+                  {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+                    const y = svgTimelineContent.margin.top + ratio * (svgTimelineContent.height - svgTimelineContent.margin.top - svgTimelineContent.margin.bottom);
+                    const gridVal = svgTimelineContent.maxVal - ratio * svgTimelineContent.maxVal;
+                    return (
+                      <g key={i}>
+                        <line 
+                          x1={svgTimelineContent.margin.left} 
+                          y1={y} 
+                          x2={svgTimelineContent.width - svgTimelineContent.margin.right} 
+                          y2={y} 
+                          stroke="rgba(128,128,128,0.08)" 
+                          strokeDasharray="4 4"
+                        />
+                        <text 
+                          x={svgTimelineContent.margin.left - 10} 
+                          y={y + 4} 
+                          fill="gray" 
+                          fontSize="9" 
+                          textAnchor="end"
+                          fontWeight={500}
+                        >
+                          {formatPrice(gridVal)}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  {/* Semi-transparent Area Gradient filled graph */}
+                  <path 
+                    d={svgTimelineContent.areaD} 
+                    fill="url(#timeline-area-gradient)" 
+                  />
+
+                  {/* Precise Curved Graph line on top */}
+                  <path 
+                    d={svgTimelineContent.pathD} 
+                    fill="none" 
+                    stroke="#8F9BFF" 
+                    strokeWidth="2.5" 
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+
+                  {/* Interactive circular markers & interactive grid hitboxes */}
+                  {svgTimelineContent.points.map((pt, idx) => (
+                    <g key={idx}>
+                      {/* Vertical line indicator */}
+                      {hoveredTimelinePoint?.label === pt.label && (
+                        <line 
+                          x1={pt.x} 
+                          y1={svgTimelineContent.margin.top} 
+                          x2={pt.x} 
+                          y2={svgTimelineContent.height - svgTimelineContent.margin.bottom} 
+                          stroke="rgba(143,155,255,0.4)" 
+                          strokeWidth="1" 
+                          strokeDasharray="2 2"
+                        />
+                      )}
+                      
+                      {/* Point dot marker */}
+                      <circle 
+                        cx={pt.x} 
+                        cy={pt.y} 
+                        r={hoveredTimelinePoint?.label === pt.label ? 6 : 4} 
+                        fill={hoveredTimelinePoint?.label === pt.label ? '#8F9BFF' : (isDarkMode ? '#1e1e24' : '#fff')} 
+                        stroke="#8F9BFF" 
+                        strokeWidth={hoveredTimelinePoint?.label === pt.label ? 3 : 2}
+                        style={{ transition: 'all 0.15s ease' }}
+                      />
+
+                      {/* Giant invisible hover capture hitbox */}
+                      <rect
+                        x={pt.x - 15}
+                        y={svgTimelineContent.margin.top}
+                        width={30}
+                        height={svgTimelineContent.height - svgTimelineContent.margin.top - svgTimelineContent.margin.bottom}
+                        fill="transparent"
+                        style={{ cursor: 'pointer' }}
+                        onMouseEnter={(e) => {
+                          setHoveredTimelinePoint({
+                            label: pt.label,
+                            revenue: pt.revenue,
+                            count: pt.count,
+                            x: pt.x,
+                            y: pt.y - 10
+                          });
+                        }}
+                        onMouseLeave={() => setHoveredTimelinePoint(null)}
+                      />
+                    </g>
+                  ))}
+
+                  {/* X Axis Labels */}
+                  {svgTimelineContent.points.map((pt, idx) => {
+                    const showLabel = svgTimelineContent.points.length <= 10 || idx % Math.ceil(svgTimelineContent.points.length / 8) === 0;
+                    if (!showLabel) return null;
+                    return (
+                      <text 
+                        key={idx}
+                        x={pt.x} 
+                        y={svgTimelineContent.height - svgTimelineContent.margin.bottom + 20} 
+                        fill="gray" 
+                        fontSize="9.5" 
+                        textAnchor="middle"
+                        fontWeight={600}
+                      >
+                        {pt.label}
+                      </text>
+                    );
+                  })}
+                </svg>
+
+                {/* Floating Boundary-Safe Tooltip Div */}
+                {hoveredTimelinePoint && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      left: `${(hoveredTimelinePoint.x / 600) * 100}%`,
+                      top: `${(hoveredTimelinePoint.y / 220) * 100}%`,
+                      transform: tooltipTransform,
+                      pointerEvents: 'none',
+                      zIndex: 10,
+                      bgcolor: 'background.paper',
+                      border: '1.5px solid',
+                      borderColor: 'primary.light',
+                      p: 1.5,
+                      borderRadius: 2,
+                      boxShadow: 4,
+                      minWidth: 120,
+                      transition: 'transform 0.1s ease-out'
+                    }}
+                  >
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>
+                      {hoveredTimelinePoint.label}
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 800, color: 'primary.main', mt: 0.5 }}>
+                      {formatPrice(hoveredTimelinePoint.revenue)}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                      {hoveredTimelinePoint.count} {t('app.statistics.items') || 'units sold'}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexGrow: 1, py: 4 }}>
+                <AssessmentIcon sx={{ fontSize: 48, color: 'text.disabled', opacity: 0.4, mb: 1.5 }} />
+                <Typography variant="body2" color="text.secondary">
+                  {t('app.statistics.noData') || 'No timeline data for the selected period'}
+                </Typography>
+              </Box>
+            )}
+          </Paper>
+        </Grid>
+
+        {/* Category Breakdown Donut */}
+        <Grid size={{ xs: 12, lg: 4 }}>
+          <Paper 
+            elevation={0}
+            sx={{ 
+              p: 3, 
+              borderRadius: 3, 
+              border: '1.5px solid', 
+              borderColor: 'divider',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CategoryIcon color="action" />
+                {t('app.statistics.salesByCategory') || 'Sales by Category'}
+              </Typography>
+              {activeCategoryFilter && (
+                <Chip
+                  label={t(`app.categories.${activeCategoryFilter}`) || activeCategoryFilter}
+                  size="small"
+                  onDelete={() => {
+                    setActiveCategoryFilter(null);
+                    setLogPage(1);
+                  }}
+                  color="primary"
+                  sx={{ borderRadius: 1.5, fontWeight: 600 }}
+                />
+              )}
+            </Stack>
+
+            {activeMetrics.totalRevenue > 0 ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexGrow: 1 }}>
+                {/* SVG Donut Circle Canvas with increased sizes for perfect word spacing */}
+                <Box sx={{ position: 'relative', width: 220, height: 220, mb: 3 }}>
+                  <svg viewBox="0 0 200 200" width="100%" height="100%">
+                    {(() => {
+                      const radius = 65;
+                      const circumference = 2 * Math.PI * radius; // 408.4
+                      let accumulatedPercentage = 0;
+
+                      return categoryBreakdown.map((cat, index) => {
+                        const val = cat.value;
+                        const pct = val / activeMetrics.totalRevenue;
+                        if (pct === 0) return null;
+
+                        const strokeDash = pct * circumference;
+                        const strokeOffset = -accumulatedPercentage * circumference;
+                        
+                        accumulatedPercentage += pct;
+
+                        const isHovered = hoveredCategoryIndex === index;
+
+                        return (
+                          <circle
+                            key={cat.name}
+                            cx="100"
+                            cy="100"
+                            r={radius}
+                            fill="none"
+                            stroke={cat.color}
+                            strokeWidth={isHovered ? 22 : 16}
+                            strokeDasharray={`${strokeDash} ${circumference}`}
+                            strokeDashoffset={strokeOffset}
+                            transform="rotate(-90 100 100)"
+                            style={{ 
+                              transition: 'stroke-width 0.25s cubic-bezier(0.4, 0, 0.2, 1), filter 0.2s ease',
+                              cursor: 'pointer',
+                              filter: isHovered ? 'drop-shadow(0px 0px 4px rgba(0,0,0,0.15))' : 'none'
+                            }}
+                            onMouseEnter={() => setHoveredCategoryIndex(index)}
+                            onMouseLeave={() => setHoveredCategoryIndex(null)}
+                            onClick={() => {
+                              setActiveCategoryFilter(activeCategoryFilter === cat.name ? null : cat.name);
+                              setLogPage(1);
+                            }}
+                          />
+                        );
+                      });
+                    })()}
+                  </svg>
+
+                  {/* Absolute Center summary values with dynamic scaling font sizes */}
+                  <Box 
+                    sx={{ 
+                      position: 'absolute', 
+                      top: '50%', 
+                      left: '50%', 
+                      transform: 'translate(-50%, -50%)', 
+                      textAlign: 'center',
+                      pointerEvents: 'none',
+                      width: '85%',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textTransform: 'uppercase', fontWeight: 700, fontSize: '0.7rem', letterSpacing: '0.5px', mb: 0.2 }}>
+                      {donutCenterText.subtitle}
+                    </Typography>
+                    <Typography sx={{ fontWeight: 800, color: 'text.primary', my: 0.2, fontSize: valueFontSize, transition: 'font-size 0.2s', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                      {donutCenterText.value}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600, fontSize: '0.72rem' }}>
+                      {donutCenterText.subText}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Legend Row */}
+                <Grid container spacing={1} sx={{ width: '100%' }}>
+                  {categoryBreakdown.map((cat, idx) => {
+                    const isSelected = activeCategoryFilter === cat.name;
+                    return (
+                      <Grid size={{ xs: 6 }} key={cat.name}>
+                        <Box 
+                          sx={{ 
+                            p: 1, 
+                            borderRadius: 2, 
+                            border: '1.5px solid', 
+                            borderColor: isSelected ? cat.color : 'transparent',
+                            bgcolor: isSelected ? `${cat.color}15` : 'transparent',
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: 1, 
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              bgcolor: isSelected ? `${cat.color}25` : 'action.hover'
+                            }
+                          }}
+                          onClick={() => {
+                            setActiveCategoryFilter(activeCategoryFilter === cat.name ? null : cat.name);
+                            setLogPage(1);
+                          }}
+                          onMouseEnter={() => setHoveredCategoryIndex(idx)}
+                          onMouseLeave={() => setHoveredCategoryIndex(null)}
+                        >
+                          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: cat.color }} />
+                          <Box sx={{ overflow: 'hidden' }}>
+                            <Typography variant="body2" noWrap sx={{ fontWeight: 700, fontSize: '0.78rem' }}>
+                              {cat.label}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.68rem' }}>
+                              {formatPrice(cat.value)} ({cat.percent}%)
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Grid>
+                    );
+                  })}
+                </Grid>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexGrow: 1, py: 4 }}>
+                <CategoryIcon sx={{ fontSize: 48, color: 'text.disabled', opacity: 0.4, mb: 1.5 }} />
+                <Typography variant="body2" color="text.secondary">
+                  {t('app.statistics.noData') || 'No sales recorded'}
+                </Typography>
+              </Box>
+            )}
+          </Paper>
+        </Grid>
+      </Grid>
+
+      {/* LEADERBOARD SECTION */}
+      <Paper 
+        elevation={0}
+        sx={{ 
+          p: 3, 
+          mb: 4, 
+          borderRadius: 3, 
+          border: '1.5px solid', 
+          borderColor: 'divider' 
+        }}
       >
-        <DialogTitle>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">{t('app.statistics.allSoldItems')}</Typography>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} sx={{ mb: 3 }}>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <LeaderboardIcon color="action" />
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              {t('app.statistics.topSelling') || 'Item Performance Leaderboard'}
+            </Typography>
+          </Stack>
+          
+          <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
+            {/* SorBy Toggle Controls */}
             <ToggleButtonGroup
               value={sortBy}
               exclusive
-              onChange={(_, newValue) => newValue && setSortBy(newValue)}
+              onChange={(_, newVal) => newVal && setSortBy(newVal)}
               size="small"
-              sx={{ 
-                '& .MuiToggleButton-root': {
+              sx={{
+                border: '1.5px solid',
+                borderColor: 'divider',
+                borderRadius: 2,
+                '& .MuiToggleButtonGroup-grouped': {
+                  border: 0,
                   textTransform: 'none',
-                  px: 2,
-                  py: 1,
+                  px: 1.5,
+                  py: 0.5,
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  borderRadius: 1.5,
                   '&.Mui-selected': {
                     bgcolor: 'primary.main',
                     color: 'primary.contrastText',
-                    '&:hover': {
-                      bgcolor: 'primary.dark',
-                    }
+                    '&:hover': { bgcolor: 'primary.dark' }
                   }
                 }
               }}
             >
-              <ToggleButton value="revenue">
-                {t('app.statistics.byRevenue')}
-              </ToggleButton>
-              <ToggleButton value="units">
-                {t('app.statistics.byUnits')}
-              </ToggleButton>
+              <ToggleButton value="revenue">{t('app.statistics.byRevenue') || 'By Revenue'}</ToggleButton>
+              <ToggleButton value="units">{t('app.statistics.byUnits') || 'By Units'}</ToggleButton>
             </ToggleButtonGroup>
-          </Box>
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
-            gap: 2,
-            p: 2
-          }}>
-            {allProductStats.map((productStat) => (
-              <Paper 
-                key={productStat.product.id} 
-                sx={{ 
-                  p: 2, 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  boxShadow: 3,
-                  gap: 1,
-                  transition: 'transform 0.2s',
-                  '&:hover': {
-                    transform: 'scale(1.02)',
-                    boxShadow: 4
-                  }
-                }}
-              >
-                <Typography variant="subtitle1">{productStat.product.name}</Typography>
-                <Typography variant="body2" color="text.secondary">{t('app.statistics.sold')}: {productStat.count} {t('app.statistics.units')}</Typography>
-                <Typography variant="body2" color="primary">{t('app.statistics.revenue')}: {formatPrice(productStat.revenue)}</Typography>
-              </Paper>
-            ))}
-          </Box>
-        </DialogContent>
-      </Dialog>
 
-      <Dialog open={signersDialogOpen} onClose={() => setSignersDialogOpen(false)}>
-        <DialogTitle>{t('app.signers.setSigners')}</DialogTitle>
+            {/* View All Details Dialog trigger */}
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<GridViewIcon />}
+              onClick={() => setShowAllProducts(true)}
+              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 2, py: 0.6 }}
+            >
+              {t('app.statistics.viewAll') || 'View All'}
+            </Button>
+          </Stack>
+        </Stack>
+
+        {itemLeaderboard.length > 0 ? (
+          <Grid container spacing={3}>
+            {itemLeaderboard.slice(0, 4).map((item, index) => (
+              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={item.product.id}>
+                <Card 
+                  elevation={0} 
+                  sx={{ 
+                    borderRadius: 2.5, 
+                    border: '1px solid', 
+                    borderColor: 'divider',
+                    bgcolor: isDarkMode ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.005)',
+                    p: 2 
+                  }}
+                >
+                  <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5 }}>
+                    <Avatar 
+                      sx={{ 
+                        width: 32, 
+                        height: 32, 
+                        fontSize: '0.85rem', 
+                        fontWeight: 'bold', 
+                        bgcolor: 'primary.light', 
+                        color: 'primary.dark' 
+                      }}
+                    >
+                      #{index + 1}
+                    </Avatar>
+                    <Box sx={{ overflow: 'hidden', width: '100%' }}>
+                      <Typography variant="body2" noWrap sx={{ fontWeight: 700 }}>
+                        {item.product.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {t(`app.product.categories.${item.product.category}`) || item.product.category}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <Divider sx={{ my: 1 }} />
+                  <Grid container spacing={1}>
+                    <Grid size={{ xs: 6 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                        {t('app.statistics.sold') || 'Qty Sold'}
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        {item.count} {t('app.statistics.units') || 'units'}
+                      </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                        {t('app.statistics.revenue') || 'Sales'}
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                        {formatPrice(item.revenue)}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+
+                  <Box sx={{ mt: 1.5 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                      <Typography variant="caption" color="text.secondary">
+                        {t('app.statistics.ofTotal') || 'Wallet Share'}
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                        {item.contributionPercent}%
+                      </Typography>
+                    </Box>
+                    <Box sx={{ width: '100%', height: 6, bgcolor: 'action.hover', borderRadius: 3, overflow: 'hidden' }}>
+                      <Box 
+                        sx={{ 
+                          width: `${item.contributionPercent}%`, 
+                          height: '100%', 
+                          bgcolor: 'primary.main', 
+                          borderRadius: 3 
+                        }} 
+                      />
+                    </Box>
+                  </Box>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+            {t('app.statistics.noData') || 'No top products found for this query.'}
+          </Typography>
+        )}
+      </Paper>
+
+      {/* UPGRADED INTERACTIVE AUDIT LOG SECTION */}
+      <Paper 
+        ref={auditLogRef}
+        elevation={0}
+        sx={{ 
+          p: 3, 
+          borderRadius: 3, 
+          border: '1.5px solid', 
+          borderColor: 'divider' 
+        }}
+      >
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <ReceiptIcon color="action" />
+          {t('app.statistics.totalSales') || 'Transaction Audit History'}
+        </Typography>
+
+        {/* Live Filter / Search inputs bar */}
+        <Grid container spacing={2} sx={{ mb: 3 }} alignItems="center">
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField
+              fullWidth
+              size="small"
+              placeholder={t('app.statistics.searchProduct') || 'Search Order ID, product names, cash/card...'}
+              value={logSearchQuery}
+              onChange={(e) => {
+                setLogSearchQuery(e.target.value);
+                setLogPage(1);
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="disabled" />
+                  </InputAdornment>
+                ),
+                endAdornment: logSearchQuery && (
+                  <InputAdornment position="end">
+                    <IconButton size="small" onClick={() => setLogSearchQuery('')}>
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', gap: 1, justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+            <Chip 
+              label={t('app.statistics.allCategories') || 'All Sales'} 
+              onClick={() => {
+                setActiveCategoryFilter(null);
+                setLogPage(1);
+              }} 
+              variant={activeCategoryFilter === null ? 'filled' : 'outlined'}
+              color={activeCategoryFilter === null ? 'primary' : 'default'}
+              sx={{ borderRadius: 2 }}
+            />
+            {['food', 'drink', 'dessert'].map(cat => (
+              <Chip
+                key={cat}
+                label={t(`app.categories.${cat}`) || cat}
+                onClick={() => {
+                  setActiveCategoryFilter(activeCategoryFilter === cat ? null : cat);
+                  setLogPage(1);
+                }}
+                variant={activeCategoryFilter === cat ? 'filled' : 'outlined'}
+                color={activeCategoryFilter === cat ? 'primary' : 'default'}
+                sx={{ borderRadius: 2 }}
+              />
+            ))}
+          </Grid>
+        </Grid>
+
+        {/* Audit Log Paginated list layout */}
+        {auditedTransactions.length > 0 ? (
+          <Stack spacing={1.5} sx={{ mb: 3 }}>
+            {paginatedLogs.map((tx, idx) => {
+              const isExpanded = expandedTxId === tx.id;
+              const txDate = new Date(tx.transaction_date);
+
+              const isCard = tx.payment_method && tx.payment_method.toLowerCase().includes('card');
+
+              return (
+                <Card 
+                  key={tx.id || idx} 
+                  elevation={0}
+                  sx={{ 
+                    borderRadius: 2.5, 
+                    border: '1px solid', 
+                    borderColor: isExpanded ? 'primary.light' : 'divider',
+                    bgcolor: isExpanded ? (isDarkMode ? 'rgba(143,155,255,0.03)' : 'rgba(143,155,255,0.01)') : 'background.paper',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <ListItem 
+                    sx={{ 
+                      py: 2, 
+                      px: { xs: 1.5, sm: 3 }, 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: { xs: 'flex-start', sm: 'center' },
+                      gap: 2,
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s',
+                      '&:hover': {
+                        bgcolor: isDarkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)'
+                      }
+                    }}
+                    onClick={() => setExpandedTxId(isExpanded ? null : tx.id)}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedTxId(isExpanded ? null : tx.id);
+                        }}
+                        sx={{ color: 'primary.main' }}
+                      >
+                        <ChevronRightIcon 
+                          sx={{ 
+                            transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.2s'
+                          }} 
+                        />
+                      </IconButton>
+                      
+                      <Chip
+                        icon={isCard ? <CreditCardIcon fontSize="small" /> : <EuroIcon fontSize="small" />}
+                        label={isCard ? (t('sales.card') || 'Card') : (t('sales.cash') || 'Cash')}
+                        size="small"
+                        sx={{
+                          borderRadius: 1.5,
+                          fontWeight: 700,
+                          fontSize: '0.72rem',
+                          bgcolor: isCard ? 'rgba(76,195,255,0.12)' : 'rgba(143,255,155,0.12)',
+                          color: isCard ? '#29B6F6' : '#66BB6A',
+                          border: '1px solid',
+                          borderColor: isCard ? 'rgba(76,195,255,0.2)' : 'rgba(143,255,155,0.2)'
+                        }}
+                      />
+                    </Box>
+ 
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
+                        <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                          Order #{tx.id}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {txDate.toLocaleDateString('de-DE')} • {txDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled">
+                          ({tx.items_count} {t('app.statistics.items') || 'units'})
+                        </Typography>
+                      </Stack>
+                    </Box>
+ 
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: { xs: '100%', sm: 'auto' }, justifyContent: 'space-between' }}>
+                      <Typography variant="body1" sx={{ fontWeight: 800, color: 'text.primary', mr: 2 }}>
+                        {formatPrice(tx.total_amount)}
+                      </Typography>
+ 
+                      <Stack direction="row" spacing={1}>
+                        <Tooltip title={t('app.cart.reprintReceipt') || 'Reprint Receipt'}>
+                          <IconButton 
+                            size="small" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReprintReceipt(tx);
+                            }}
+                            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}
+                          >
+                            <PrintIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+ 
+                        <Tooltip title={t('app.statistics.editTransaction') || 'Edit Sale'}>
+                          <IconButton 
+                            size="small" 
+                            color="primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTransactionToEdit(tx);
+                              try { 
+                                setEditItems(JSON.parse(tx.items_data)); 
+                              } catch { 
+                                setEditItems([]); 
+                              }
+                              setEditDialogOpen(true);
+                            }}
+                            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+ 
+                        <Tooltip title={t('app.statistics.deleteTransaction')}>
+                          <IconButton 
+                            size="small" 
+                            color="error"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTransactionToDelete(tx);
+                              setDeleteDialogOpen(true);
+                            }}
+                            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}
+                          >
+                            <DeleteForeverIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </Box>
+                  </ListItem>
+
+                  <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                    <Box sx={{ px: { xs: 2, sm: 6 }, pb: 2 }}>
+                      <Divider sx={{ mb: 1.5 }} />
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 1, textTransform: 'uppercase' }}>
+                        Purchased Items:
+                      </Typography>
+                      <List dense disablePadding>
+                        {(() => {
+                          let items: CartItem[] = [];
+                          try {
+                            items = JSON.parse(tx.items_data);
+                          } catch (e) {}
+
+                          if (!items.length) {
+                            return (
+                              <Typography variant="body2" color="text.secondary">
+                                {t('app.statistics.noProducts') || 'No products details logged'}
+                              </Typography>
+                            );
+                          }
+
+                          return items.map((item, i) => {
+                            const prod = products.find(p => p.id === item.product?.id);
+                            
+                            let catIcon = <BlockIcon fontSize="small" color="disabled" />;
+                            if (prod?.category || item.product?.category) {
+                              const cat = (prod?.category || item.product?.category || '').toLowerCase();
+                              if (cat === 'food') catIcon = <FoodBankIcon fontSize="small" color="info" />;
+                              else if (cat === 'drink') catIcon = <CoffeeIcon fontSize="small" color="info" />;
+                              else if (cat === 'dessert') catIcon = <CookieIcon fontSize="small" color="info" />;
+                              else catIcon = <MiscellaneousServicesIcon fontSize="small" color="warning" />;
+                            }
+
+                            const itemPrice = item.product?.price || prod?.price || 0;
+
+                            return (
+                              <ListItem key={i} disableGutters sx={{ py: 0.5 }}>
+                                <ListItemIcon sx={{ minWidth: 32 }}>
+                                  {catIcon}
+                                </ListItemIcon>
+                                <ListItemText
+                                  primary={
+                                    <Stack direction="row" spacing={2} justifyContent="space-between">
+                                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                        {prod ? prod.name : (item.product?.name || t('app.statistics.unknownProduct'))}
+                                      </Typography>
+                                      <Typography variant="body2" color="text.secondary">
+                                        {item.quantity} x {formatPrice(itemPrice)} = {formatPrice(item.quantity * itemPrice)}
+                                      </Typography>
+                                    </Stack>
+                                  }
+                                />
+                              </ListItem>
+                            );
+                          });
+                        })()}
+                      </List>
+                    </Box>
+                  </Collapse>
+                </Card>
+              );
+            })}
+          </Stack>
+        ) : (
+          <Box sx={{ py: 6, textAlign: 'center', border: '1px dashed', borderColor: 'divider', borderRadius: 3 }}>
+            <ReceiptIcon sx={{ fontSize: 48, color: 'text.disabled', opacity: 0.4, mb: 1.5 }} />
+            <Typography variant="body2" color="text.secondary">
+              {t('app.statistics.noData') || 'No matching transactions logged in this session range.'}
+            </Typography>
+          </Box>
+        )}
+
+        {totalLogPages > 1 && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="outlined"
+                size="small"
+                disabled={logPage === 1}
+                onClick={() => {
+                  setLogPage(prev => Math.max(1, prev - 1));
+                  auditLogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }}
+                sx={{ borderRadius: 1.5, textTransform: 'none' }}
+              >
+                {t('common.previous') || 'Previous'}
+              </Button>
+              <Typography variant="body2" sx={{ px: 2, display: 'flex', alignItems: 'center', fontWeight: 700 }}>
+                {logPage} / {totalLogPages}
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                disabled={logPage === totalLogPages}
+                onClick={() => {
+                  setLogPage(prev => Math.min(totalLogPages, prev + 1));
+                  auditLogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }}
+                sx={{ borderRadius: 1.5, textTransform: 'none' }}
+              >
+                {t('common.next') || 'Next'}
+              </Button>
+            </Stack>
+          </Box>
+        )}
+      </Paper>
+
+      {/* STICKY ACTION BUTTONS AT BOTTOM RIGHT PANEL */}
+      <Box 
+        sx={{
+          position: 'fixed',
+          right: 0,
+          bottom: 0,
+          left: 'auto',
+          width: 'auto',
+          maxWidth: { xs: '100vw', sm: 'calc(100vw - 240px)' },
+          bgcolor: 'background.paper',
+          zIndex: 1100,
+          boxShadow: '0 -8px 30px 0 rgba(0,0,0,0.1)',
+          py: 2,
+          px: { xs: 2, sm: 4 },
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          borderTopLeftRadius: 16,
+          borderTopRightRadius: 0,
+          borderBottomLeftRadius: 0,
+          borderBottomRightRadius: 0,
+          border: '1.5px solid',
+          borderColor: 'divider',
+          borderBottom: 0,
+          borderRight: 0
+        }}
+      >
+        <Stack direction="row" spacing={2}>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<DownloadIcon />}
+            onClick={handleExportProductAnalytics}
+            disabled={!filteredTransactions.length}
+            sx={{ fontWeight: 'bold', borderRadius: 2, px: 2.5 }}
+          >
+            {t('app.statistics.exportTransactions') || 'Export Data (CSV)'}
+          </Button>
+
+          <Button
+            variant="outlined"
+            startIcon={<DownloadIcon />}
+            disabled={!filteredTransactions.length}
+            onClick={() => setSignersDialogOpen(true)}
+            sx={{ fontWeight: 'bold', borderRadius: 2, px: 2.5 }}
+          >
+            {t('app.statistics.downloadSummary') || 'PDF Summary'}
+          </Button>
+
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteForeverIcon />}
+            onClick={handleClearDatabase}
+            sx={{ fontWeight: 'bold', borderRadius: 2, px: 2.5 }}
+          >
+            {t('app.statistics.clearDatabase') || 'Reset DB'}
+          </Button>
+        </Stack>
+      </Box>
+
+      {/* PDF SIGNERS SETTINGS DRAWER DIALOG */}
+      <Dialog 
+        open={signersDialogOpen} 
+        onClose={() => setSignersDialogOpen(false)}
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800 }}>{t('app.signers.setSigners')}</DialogTitle>
         <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Assign names to receiver and deliverer fields for Kermes legal printable sheets.
+          </Typography>
           {signers.map((signer, idx) => (
-            <Box key={idx} sx={{ display: 'flex', gap: 2, mb: 2, mt: 2, alignItems: 'center' }}>
+            <Box key={idx} sx={{ display: 'flex', gap: 2, mb: 2.5, alignItems: 'center' }}>
               <TextField
-                label={t('app.signers.name')}
+                label={t('app.signers.name') || `Name (${idx + 1})`}
                 value={signer.name}
+                size="small"
                 onChange={e => {
                   const newSigners = [...signers];
                   newSigners[idx].name = e.target.value;
@@ -716,8 +2119,9 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                 fullWidth
               />
               <TextField
-                label={t('app.signers.surname')}
+                label={t('app.signers.surname') || `Surname (${idx + 1})`}
                 value={signer.surname}
+                size="small"
                 onChange={e => {
                   const newSigners = [...signers];
                   newSigners[idx].surname = e.target.value;
@@ -725,294 +2129,148 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                 }}
                 fullWidth
               />
-              <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
-                {idx === 0 ? t('app.signers.receiver') : t('app.signers.deliverer')}
+              <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap', minWidth: 80, fontWeight: 700 }}>
+                {idx === 0 ? t('app.signers.receiver') || 'Receiver' : t('app.signers.deliverer') || 'Deliverer'}
               </Typography>
             </Box>
           ))}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSignersDialogOpen(false)}>{t('common.cancel')}</Button>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setSignersDialogOpen(false)} sx={{ borderRadius: 1.5 }}>
+            {t('common.cancel')}
+          </Button>
           <Button
             variant="contained"
             onClick={async () => {
-              const transactions = await cartTransactionService.getTransactions();
               generateSummaryPDF({
-                transactions,
+                transactions: filteredTransactions,
                 signers,
                 kursName: kursName,
                 date: new Date().toLocaleDateString('de-DE'),
               });
               setSignersDialogOpen(false);
             }}
+            sx={{ borderRadius: 1.5 }}
           >
-            {t('app.signers.generate')}
+            {t('app.signers.generate') || 'Generate PDF'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={salesDialogOpen} onClose={() => setSalesDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ fontWeight: 'bold' }}>{t('app.statistics.totalSales')}</DialogTitle>
+      {/* INTERACTIVE DELETE TRANSACTION CONFIRM DIALOG */}
+      <Dialog 
+        open={deleteDialogOpen} 
+        onClose={() => setDeleteDialogOpen(false)}
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800 }}>{t('app.statistics.confirmDeleteTitle')}</DialogTitle>
         <DialogContent>
-          {transactions && transactions.length > 0 ? (
-            <Box>
-              {/* Group transactions by date */}
-              {Object.entries(
-                transactions.reduce((acc, tx) => {
-                  const date = new Date(tx.transaction_date).toLocaleDateString('de-DE');
-                  if (!acc[date]) acc[date] = [];
-                  acc[date].push(tx);
-                  return acc;
-                }, {} as Record<string, CartTransaction[]>)
-              )
-                // Sort by date descending (most recent first)
-                .sort((a, b) => {
-                  // Parse date strings as dd.mm.yyyy or dd/mm/yyyy or dd-mm-yyyy
-                  const parse = (s: string) => {
-                    const [day, month, year] = s.split(/[./-]/).map(Number);
-                    return new Date(year, month - 1, day).getTime();
-                  };
-                  return parse(b[0]) - parse(a[0]);
-                })
-                .map(([date, txs]) => {
-                  const totalRevenue = txs.reduce((sum, tx) => sum + tx.total_amount, 0);
-                  return (
-                    <Accordion key={date} defaultExpanded={txs.length > 0 && date === new Date().toLocaleDateString('de-DE')} sx={{ boxShadow: 4, mb: 0, borderRadius: 2 }}>
-                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%', justifyContent: 'space-between' }}>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mr: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                            {date}
-                            <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-                              {t('sales.title')}: {txs.length} 
-                            </Typography>
-                          </Typography>
-                          <Typography variant="body2" color="" sx={{ fontWeight: 500, mr: 1 }}>{formatPrice(totalRevenue)}</Typography>
-                        </Box>
-                      </AccordionSummary>
-                      <AccordionDetails sx={{ p: 0 }}>
-                        <List dense>
-                          {txs
-                            .slice()
-                            .sort((a, b) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime())
-                            .map((tx, idx) => (
-                              <React.Fragment key={tx.id || idx}>
-                                <ListItem alignItems="flex-start" sx={{ py: 1, px: 2 }}>
-                                  {/* Expand/collapse button for transaction details */}
-                                  <IconButton
-                                    edge="start"
-                                    size="small"
-                                    aria-label={t('app.statistics.showProducts') || 'Show products'}
-                                    onClick={() => setExpandedTxId(expandedTxId === tx.id ? null : tx.id)}
-                                    sx={{ mr: 1 }}
-                                  >
-                                    <ChevronRightIcon
-                                      sx={{
-                                        transform: expandedTxId === tx.id ? 'rotate(90deg)' : 'rotate(0deg)',
-                                        transition: 'transform 0.2s',
-                                      }}
-                                    />
-                                  </IconButton>
-                                  <ListItemIcon>
-                                    {tx.payment_method && tx.payment_method.toLowerCase().includes('card') ? (
-                                      <CreditCardIcon color="primary" fontSize="small" />
-                                    ) : (
-                                      <Euro color="primary" fontSize="small" />
-                                    )}
-                                  </ListItemIcon>
-                                  <ListItemText
-                                    primary={
-                                      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-                                        <Typography variant="body2" sx={{ fontWeight: 500 }} color="">
-                                          {t('app.statistics.revenue')}: {formatPrice(tx.total_amount)}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                          {t('app.statistics.itemsSold')}: {tx.items_count}
-                                        </Typography>
-                                        <Typography variant="caption" color="text.disabled">
-                                          {new Date(tx.transaction_date).toLocaleTimeString('de-DE')}
-                                        </Typography>
-                                      </Box>
-                                    }
-                                  />
-                                  {/* Edit and delete buttons at the end of the list item */}
-                                  <IconButton
-                                    edge="end"
-                                    color="primary"
-                                    aria-label={t('app.statistics.editTransaction') || 'Edit Transaction'}
-                                    onClick={() => {
-                                      setTransactionToEdit(tx);
-                                      try { setEditItems(JSON.parse(tx.items_data)); } catch { setEditItems([]); }
-                                      setEditDialogOpen(true);
-                                    }}
-                                    sx={{  }}
-                                  >
-                                    <EditIcon />
-                                  </IconButton>
-                                  <IconButton
-                                    edge="end"
-                                    color="error"
-                                    aria-label={t('app.statistics.deleteTransaction')}
-                                    onClick={() => {
-                                      setTransactionToDelete(tx);
-                                      setDeleteDialogOpen(true);
-                                    }}
-                                    sx={{ ml: 2 }}
-                                  >
-                                    <DeleteForeverIcon />
-                                  </IconButton>
-                                </ListItem>
-                                {/* Collapsible product details for this transaction */}
-                                <Collapse in={expandedTxId === tx.id} timeout="auto" unmountOnExit>
-                                  <Box sx={{ pl: 7, pr: 2, pb: 1 }}>
-                                    <List dense disablePadding>
-                                      {(() => {
-                                        let items: any[] = [];
-                                        try {
-                                          items = JSON.parse(tx.items_data);
-                                        } catch (e) {}
-                                        if (!items.length) {
-                                          return (
-                                            <ListItem disableGutters>
-                                              <Typography variant="body2" color="text.secondary">{t('app.statistics.noProducts') || 'No products'}</Typography>
-                                            </ListItem>
-                                          );
-                                        }
-                                        return items.map((item, i) => {
-                                          const product = products.find(p => p.id === item.product?.id);
-                                          // Choose icon based on category
-                                          let icon = null;
-                                          if (product && product.category) {
-                                            if (product.category === 'food') {
-                                              icon = <FoodBank color="info" fontSize="small" sx={{ mr: 1 }} />;
-                                            } else if (product.category === 'drink') {
-                                              icon = <Coffee color="info" fontSize="small" sx={{ mr: 1 }} />;
-                                            } else if (product.category === 'dessert') {
-                                              icon = <Cookie color="info" fontSize="small" sx={{ mr: 1 }} />;
-                                            } else if (product.category === 'other') {
-                                              icon = <MiscellaneousServices color="warning" fontSize="small" sx={{ mr: 1 }} />;
-                                            } else {
-                                              icon = <Block color="disabled" fontSize="small" sx={{ mr: 1 }} />;
-                                            }
-                                          } else {
-                                            icon = <Block color="disabled" fontSize="small" sx={{ mr: 1 }} />;
-                                          }
-                                          return (
-                                            <ListItem key={i} disableGutters sx={{ py: 0.5 }}>
-                                              {icon}
-                                              <Typography variant="body2" sx={{ minWidth: 120, fontWeight: 500 }}>
-                                                {product ? product.name : (item.product?.name || t('app.statistics.unknownProduct'))}
-                                              </Typography>
-                                              <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
-                                                {t('app.statistics.quantity') || 'Qty'}: {item.quantity}
-                                              </Typography>
-                                              <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
-                                                {t('app.statistics.price') || 'Price'}: {product ? formatPrice(product.price) : '-'}
-                                              </Typography>
-                                              {/* <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
-                                                {t('app.statistics.total') || 'Total'}: {(product ? product.price * item.quantity : 0).toFixed(2)}€ 
-                                              </Typography> */}
-                                            </ListItem>
-                                          );
-                                        });
-                                      })()}
-                                    </List>
-                                  </Box>
-                                </Collapse>
-                              </React.Fragment>
-                            ))}
-                        </List>
-                      </AccordionDetails>
-                    </Accordion>
-                  );
-                })}
-            </Box>
-          ) : (
-            <Typography>{t('app.statistics.noData')}</Typography>
-          )}
-        </DialogContent>
-        {/* Sum of all daily total revenues */}
-        {transactions && transactions.length > 0 && (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', p: 2, pt: 0, mr: 2 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-              {t('app.statistics.totalRevenue') || 'Total Revenue'}: {formatPrice(transactions.reduce((sum, tx) => sum + tx.total_amount, 0))}
-            </Typography>
-          </Box>
-        )}
-      </Dialog>
-
-      {/* Delete transaction confirmation dialog */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>{t('app.statistics.confirmDeleteTitle') || 'Delete Transaction?'}</DialogTitle>
-        <DialogContent>
-          <Typography>{t('app.statistics.confirmDeleteText') || 'Are you sure you want to delete this transaction?'}</Typography>
+          <Typography>{t('app.statistics.confirmDeleteText')}</Typography>
           {transactionToDelete && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="body2">{t('app.statistics.revenue')}: {formatPrice(transactionToDelete.total_amount)}</Typography>
-              <Typography variant="body2">{t('app.statistics.itemsSold')}: {transactionToDelete.items_count}</Typography>
-              <Typography variant="caption" color="text.disabled">{new Date(transactionToDelete.transaction_date).toLocaleString('de-DE')}</Typography>
+            <Box sx={{ mt: 3, p: 2, bgcolor: 'action.hover', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>Order ID: #{transactionToDelete.id}</Typography>
+              <Typography variant="body2">Revenue: {formatPrice(transactionToDelete.total_amount)}</Typography>
+              <Typography variant="body2">Items Count: {transactionToDelete.items_count} units</Typography>
+              <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.5 }}>
+                {new Date(transactionToDelete.transaction_date).toLocaleString()}
+              </Typography>
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>{t('common.cancel') || 'Cancel'}</Button>
-          <Button color="error" variant="contained" onClick={async () => {
-            if (transactionToDelete) {
-              await cartTransactionService.deleteTransaction(transactionToDelete.id);
-              await loadData();
-            }
-            setDeleteDialogOpen(false);
-            setTransactionToDelete(null);
-          }}>{t('common.delete') || 'Delete'}</Button>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setDeleteDialogOpen(false)} sx={{ borderRadius: 1.5 }}>
+            {t('common.cancel')}
+          </Button>
+          <Button 
+            color="error" 
+            variant="contained" 
+            onClick={async () => {
+              if (transactionToDelete) {
+                await cartTransactionService.deleteTransaction(transactionToDelete.id);
+                await loadData();
+              }
+              setDeleteDialogOpen(false);
+              setTransactionToDelete(null);
+            }}
+            sx={{ borderRadius: 1.5 }}
+          >
+            {t('common.delete')}
+          </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Edit Sale Dialog */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{t('app.statistics.editSale') || 'Edit Sale'}</DialogTitle>
+      {/* EDIT SALE DIALOG */}
+      <Dialog 
+        open={editDialogOpen} 
+        onClose={() => setEditDialogOpen(false)} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800 }}>{t('app.statistics.editSale')}</DialogTitle>
         <DialogContent>
-          {/* List current products in sale */}
-          <List>
+          <List sx={{ mt: 1 }}>
             {editItems.map((item, idx) => {
               const product = products.find(p => p.id === item.product?.id);
               return (
-                <ListItem key={idx} secondaryAction={
-                  <>
-                    <TextField
-                      type="number"
-                      size="small"
-                      value={item.quantity}
-                      inputProps={{ min: 1, style: { width: 60 } }}
-                      onChange={e => {
-                        const newItems = [...editItems];
-                        newItems[idx].quantity = Math.max(1, Number(e.target.value));
-                        setEditItems(newItems);
-                      }}
-                      sx={{ mr: 1 }}
-                    />
-                    <IconButton color="error" onClick={() => {
-                      setEditItems(editItems.filter((_, i) => i !== idx));
-                    }}>
-                      <DeleteForeverIcon />
-                    </IconButton>
-                  </>
-                }>
-                  <Typography sx={{ minWidth: 120 }}>{product ? product.name : (item.product?.name || t('app.statistics.unknownProduct'))}</Typography>
-                  <Typography sx={{ ml: 2 }}>{t('app.statistics.price')}: {product ? formatPrice(product.price) : '-'}</Typography>
+                <ListItem 
+                  key={idx} 
+                  sx={{ 
+                    border: '1px solid', 
+                    borderColor: 'divider', 
+                    borderRadius: 2, 
+                    mb: 1,
+                    py: 1, 
+                    px: 2 
+                  }}
+                  secondaryAction={
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <TextField
+                        type="number"
+                        size="small"
+                        value={item.quantity}
+                        inputProps={{ min: 1, style: { width: 50, textAlign: 'center' } }}
+                        onChange={e => {
+                          const newItems = [...editItems];
+                          newItems[idx].quantity = Math.max(1, Number(e.target.value));
+                          setEditItems(newItems);
+                        }}
+                        sx={{ mr: 1 }}
+                      />
+                      <IconButton 
+                        color="error" 
+                        size="small"
+                        onClick={() => {
+                          setEditItems(editItems.filter((_, i) => i !== idx));
+                        }}
+                      >
+                        <DeleteForeverIcon fontSize="small" />
+                      </IconButton>
+                    </Stack>
+                  }
+                >
+                  <ListItemText
+                    primary={product ? product.name : (item.product?.name || t('app.statistics.unknownProduct'))}
+                    secondary={`Price: ${product ? formatPrice(product.price) : '-'}`}
+                  />
                 </ListItem>
               );
             })}
           </List>
-          {/* Add new product */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, gap: 2 }}>
+          
+          <Divider sx={{ my: 2.5 }} />
+
+          {/* Add new product panel selector */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
             <TextField
               select
-              label={t('app.statistics.addProduct') || 'Add Product'}
+              size="small"
+              label={t('app.statistics.addProduct')}
               value={editAddProductId !== null ? String(editAddProductId) : ''}
               onChange={e => setEditAddProductId(e.target.value ? Number(e.target.value) : null)}
-              sx={{ minWidth: 300 }}
+              sx={{ minWidth: 200, flexGrow: 1 }}
             >
-              <MenuItem value="">{t('app.statistics.selectProduct') || 'Select product'}</MenuItem>
-              {/* Group products by category */}
+              <MenuItem value="">{t('app.statistics.selectProduct')}</MenuItem>
               {Object.entries(
                 products
                   .filter(p => !editItems.some(it => String(it.product?.id) === String(p.id)))
@@ -1030,10 +2288,11 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
             </TextField>
             <TextField
               type="number"
-              label={t('app.statistics.quantity') || 'Qty'}
+              size="small"
+              label={t('app.statistics.quantity')}
               value={editAddProductQty}
               onChange={e => setEditAddProductQty(Math.max(1, Number(e.target.value)))}
-              inputProps={{ min: 1, style: { width: 60 } }}
+              inputProps={{ min: 1, style: { width: 50, textAlign: 'center' } }}
             />
             <Button
               variant="contained"
@@ -1041,43 +2300,40 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
               onClick={() => {
                 const prod = products.find(p => String(p.id) === String(editAddProductId));
                 if (prod) {
-                  // Check if product already exists in editItems
                   const existingIdx = editItems.findIndex(it => String(it.product?.id) === String(prod.id));
                   if (existingIdx !== -1) {
-                    // If exists, increment quantity
                     const newItems = [...editItems];
-                    newItems[existingIdx] = {
-                      ...newItems[existingIdx],
-                      quantity: newItems[existingIdx].quantity + editAddProductQty,
-                      product: { id: prod.id, name: prod.name, price: prod.price, category: prod.category }
-                    };
+                    newItems[existingIdx].quantity += editAddProductQty;
                     setEditItems(newItems);
                   } else {
-                    // If not, add with full product info
                     setEditItems([
                       ...editItems,
-                      { product: { id: prod.id, name: prod.name, price: prod.price, category: prod.category }, quantity: editAddProductQty }
+                      { 
+                        product: { id: prod.id, name: prod.name, price: prod.price, category: prod.category }, 
+                        quantity: editAddProductQty 
+                      }
                     ]);
                   }
                   setEditAddProductId(null);
                   setEditAddProductQty(1);
                 }
               }}
+              sx={{ borderRadius: 1.5 }}
             >
-              {t('common.add') || 'Add'}
+              {t('common.add')}
             </Button>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setEditDialogOpen(false)} sx={{ borderRadius: 1.5 }}>
+            {t('common.cancel')}
+          </Button>
           <Button
             variant="contained"
             onClick={async () => {
               if (transactionToEdit) {
                 try {
-                  // Always use the latest product info for each item
                   const fixedEditItems = editItems.map(item => {
-                    // Always get the full product object from products list
                     const prod = products.find(p => p.id === item.product?.id);
                     if (prod) {
                       return {
@@ -1091,23 +2347,20 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                           inStock: prod.inStock
                         }
                       };
-                    } else {
-                      // fallback: keep whatever is there
-                      return item;
                     }
+                    return item;
                   });
+
                   const itemsData = JSON.stringify(fixedEditItems);
                   const itemsCount = fixedEditItems.reduce((count, item) => count + item.quantity, 0);
                   const totalAmount = fixedEditItems.reduce((sum, item) => {
                     return sum + (item.product && typeof item.product.price === 'number' ? item.product.price * item.quantity : 0);
                   }, 0);
-                  // Save with the same structure as saveTransaction
+
                   await cartTransactionService.updateTransaction(transactionToEdit.id, {
                     items_data: itemsData,
                     items_count: itemsCount,
                     total_amount: totalAmount,
-                    // Optionally update transaction_date to now, or keep original
-                    // transaction_date: new Date().toISOString(),
                   });
                   await loadData();
                 } catch (error) {
@@ -1120,63 +2373,39 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
               setEditAddProductId(null);
               setEditAddProductQty(1);
             }}
+            sx={{ borderRadius: 1.5 }}
           >
             {t('common.save')}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Sticky action buttons at the bottom */}
-      <Box sx={{
-        position: 'fixed',
-        right: 0,
-        left: 'auto',
-        bottom: 0,
-        width: 'auto',
-        maxWidth: { xs: '100vw', sm: 'calc(100vw - 240px)' }, // 240px for typical MUI drawer/appbar
-        bgcolor: 'background.paper',
-        zIndex: 1201,
-        boxShadow: 8,
-        py: 2,
-        px: { xs: 1, sm: 4 },
-        display: 'flex',
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-        borderTopLeftRadius: 16,
-        borderTopRightRadius: 0,
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0,
-        m: 0,
-      }}>
-        <Stack direction="row" spacing={2}>
-          <Button
-            variant="outlined"
-            color="primary"
-            startIcon={<DownloadIcon />}
-            onClick={() => cartTransactionService.exportTransactionsAsCSV()}
-            sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
-          >
-            {t('app.statistics.exportTransactions')}
+      {/* FULL DETAILED INVENTORY ANALYTICS DIALOG */}
+      <Dialog 
+        open={showAllProducts} 
+        onClose={() => setShowAllProducts(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800 }}>
+          {t('app.statistics.allSoldItems') || 'All Sold Products Analytics'}
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 1 }}>
+            <ProductStatsTable
+              productStats={itemLeaderboard}
+              previousPeriodStats={previousPeriodStats}
+              showComparison={selectedSessionIds.length === 0 && timePreset !== 'custom' && timePreset !== 'allTime'}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setShowAllProducts(false)} sx={{ borderRadius: 1.5 }} variant="outlined">
+            {t('common.cancel') || 'Close'}
           </Button>
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<DeleteForeverIcon />}
-            onClick={() => cartTransactionService.clearAllTransactions()}
-            sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
-          >
-            {t('app.statistics.clearDatabase')}
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<DownloadIcon />}
-            sx={{ fontWeight: 'bold', borderRadius: 2, boxShadow: 2 }}
-            onClick={() => setSignersDialogOpen(true)}
-          >
-            {t('app.statistics.downloadSummary')}
-          </Button>
-        </Stack>
-      </Box>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

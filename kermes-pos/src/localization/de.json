@@ -319,7 +319,10 @@
       "noSessions": "Keine Sessions vorhanden",
       "thisYear": "Dieses Jahr",
       "lastYear": "Letztes Jahr",
-      "allTime": "Alle Zeit"
+      "allTime": "Alle Zeit",
+      "sessionGuideTitle": "Kermes-Event-Verfolgung freischalten",
+      "sessionGuideDesc": "Richten Sie Ihre Kermes-Events auf der Sitzungsseite ein, um Transaktionen zu segmentieren, die Leistung zu vergleichen und PDF-Zusammenfassungen zu erstellen.",
+      "goToSessions": "Zu den Sitzungen"
     },
     "cart": {
       "total": "Gesamt",
@@ -451,7 +454,16 @@
       "cannotEditCompleted": "Abgeschlossene Sitzungen können nicht bearbeitet werden.",
       "dateOverlapError": "Zeitraum überschneidet sich mit einer bestehenden Sitzung:\n\n\"{name}\"\n{start} - {end}\n\nBitte wählen Sie andere Daten.",
       "pausedAt": "Pausiert am",
-      "completedAt": "Abgeschlossen am"
+      "completedAt": "Abgeschlossen am",
+      "hideGuide": "Anleitung ausblenden",
+      "showGuide": "Konzept-Anleitung",
+      "conceptGuideTitle": "POS-Sitzungen & Arbeitsablauf verstehen",
+      "whatIsSession": "Was ist eine Sitzung?",
+      "whatIsSessionDesc": "Eine Sitzung dient als aktiver Rahmen für ein komplettes Kermes-Event oder einen bestimmten Verkaufstag. Anstatt alle Verkäufe in einer Liste zu vermischen, können Sie Transaktionen für jede einzelne Veranstaltung sauber isolieren und archivieren.",
+      "whyItHelps": "Wie es Ihnen hilft",
+      "whyItHelpsDesc": "• Verkäufe für jedes Kermes-Event isolieren und archivieren\n• Umsatz, Kartenzahlungen vs. Bargeld und verkaufte Einheiten über mehrere Jahre/Events hinweg vergleichen\n• Rechtssichere PDF-Übergabeprotokolle pro Kermes-Event generieren\n• Saubere vergleichende Trendlinien im Statistik-Dashboard freischalten.",
+      "recommendedUse": "Empfohlener Arbeitsablauf",
+      "recommendedUseDesc": "1. Event-Einrichtung: Klicken Sie zum Start eines neuen Kermes-Events auf \"Neue Sitzung\" und benennen Sie diese (z. B. \"Kermes Frühling 2026\").\n2. Transaktionen erfassen: Alle Kassen-Umsätze werden automatisch dieser Veranstaltung zugeordnet.\n3. Event-Abschluss: Schließen Sie die Sitzung am Ende des Events ab, um Daten zu sperren, PDF-Tutanaks zu drucken und Kennzahlen mit früheren Kermes-Events zu vergleichen."
     },
     "devMode": {
       "enableToUse": "Aktivieren Sie den Entwicklermodus, um diese Funktion zu nutzen",

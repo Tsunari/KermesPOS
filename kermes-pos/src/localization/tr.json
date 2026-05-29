@@ -319,7 +319,10 @@
       "noSessions": "Oturum bulunamadı",
       "thisYear": "Bu Yıl",
       "lastYear": "Geçen sene",
-      "allTime": "Tüm Zamanlar"
+      "allTime": "Tüm Zamanlar",
+      "sessionGuideTitle": "Kermes Etkinlik Takibini Açın",
+      "sessionGuideDesc": "Satışları gruplamak, performansı karşılaştırmak ve PDF tutanakları oluşturmak için Oturumlar sayfasından kermes etkinliği oluşturun.",
+      "goToSessions": "Oturumlara Git"
     },
     "cart": {
       "total": "Toplam",
@@ -451,7 +454,16 @@
       "cannotEditCompleted": "Tamamlanmış oturumlar düzenlenemez.",
       "dateOverlapError": "Tarih aralığı mevcut oturumla çakışıyor:\n\n\"{name}\"\n{start} - {end}\n\nLütfen farklı tarihler seçin.",
       "pausedAt": "Duraklatılma",
-      "completedAt": "Tamamlanma"
+      "completedAt": "Tamamlanma",
+      "hideGuide": "Rehberi Gizle",
+      "showGuide": "Konsept Rehberi",
+      "conceptGuideTitle": "POS Oturumlarını ve İş Akışını Anlamak",
+      "whatIsSession": "Oturum Nedir?",
+      "whatIsSessionDesc": "Bir Oturum, eksiksiz bir Kermes etkinliği veya belirli bir satış günü için kapsayıcı görevi görür. Tüm satışları tek bir listede karıştırmak yerine, işlemleri her bir farklı etkinlik için temiz bir şekilde yalıtıp arşivlemenizi sağlar.",
+      "whyItHelps": "Nasıl Yardımcı Olur?",
+      "whyItHelpsDesc": "• Her Kermes etkinliği için satışları yalıtın ve arşivleyin\n• Birden fazla yıl/etkinlik arasında gelir, kart-nakit dengesi ve satılan adetleri karşılaştırın\n• Her Kermes etkinliği için yasal PDF imza tutanakları oluşturun\n• İstatistik panelinde geçmiş etkinliklerle temiz karşılaştırmalı grafikler açın.",
+      "recommendedUse": "Önerilen İş Akışı",
+      "recommendedUseDesc": "1. Etkinlik Kurulumu: Yeni bir Kermes etkinliği başlarken \"Yeni Oturum\"a tıklayın ve isimlendirin (örn. \"Kermes Bahar 2026\").\n2. Satışları Kaydedin: Tüm POS işlemleri otomatik olarak bu etkinliğin kimliğiyle damgalanacaktır.\n3. Etkinliği Kapatın: Verileri kilitlemek, PDF tutanakları yazdırmak ve metrikleri önceki kermeslerle karşılaştırmak için etkinlik bittiğinde oturumu tamamlayın."
     },
     "devMode": {
       "enableToUse": "Bu özelliği kullanmak için Geliştirici Modunu etkinleştirin",

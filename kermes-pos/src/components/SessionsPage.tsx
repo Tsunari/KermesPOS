@@ -19,6 +19,7 @@ import {
   Divider,
   useTheme,
   Collapse,
+  Grid,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -33,6 +34,11 @@ import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import CloseIcon from '@mui/icons-material/Close';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';
+import FlashOnOutlinedIcon from '@mui/icons-material/FlashOnOutlined';
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import { useLanguage } from '../context/LanguageContext';
 import { useSettings } from '../context/SettingsContext';
 import { Session } from '../types/session';
@@ -52,6 +58,14 @@ const SessionsPage: React.FC = () => {
   const { formatPrice } = useSettings();
 
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [showGuide, setShowGuide] = useState<boolean>(() => {
+    const saved = localStorage.getItem('kermes_sessions_show_guide');
+    return saved !== null ? saved === 'true' : true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('kermes_sessions_show_guide', String(showGuide));
+  }, [showGuide]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -447,21 +461,111 @@ const SessionsPage: React.FC = () => {
             {t('app.sessions.description') || 'Manage and track your Kermes events and activities'}
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setIsCreateDialogOpen(true)}
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Button
+            variant="outlined"
+            startIcon={<HelpOutlineIcon />}
+            onClick={() => setShowGuide(prev => !prev)}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 2.5,
+              py: 1.5,
+            }}
+          >
+            {showGuide ? t('app.sessions.hideGuide') || 'Hide Guide' : t('app.sessions.showGuide') || 'Concept Guide'}
+          </Button>
+
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setIsCreateDialogOpen(true)}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1.5,
+            }}
+          >
+            {t('app.sessions.newSession') || 'New Session'}
+          </Button>
+        </Stack>
+      </Box>
+
+      {/* Collapsible Session Concept Guide */}
+      <Collapse in={showGuide}>
+        <Paper
+          elevation={0}
           sx={{
-            borderRadius: 2,
-            textTransform: 'none',
-            fontWeight: 600,
-            px: 3,
-            py: 1.5,
+            p: 3,
+            mb: 4,
+            borderRadius: 3,
+            border: '1.5px solid',
+            borderColor: 'primary.light',
+            bgcolor: theme.palette.mode === 'dark' ? 'rgba(143,155,255,0.02)' : 'rgba(143,155,255,0.01)',
+            position: 'relative',
+            overflow: 'hidden'
           }}
         >
-          {t('app.sessions.newSession') || 'New Session'}
-        </Button>
-      </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <HelpOutlineIcon color="primary" />
+              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                {t('app.sessions.conceptGuideTitle') || 'Understanding POS Sessions & Workflow'}
+              </Typography>
+            </Stack>
+            <IconButton size="small" onClick={() => setShowGuide(false)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
+
+          <Grid container spacing={3}>
+            {/* Concept Column */}
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Paper elevation={0} sx={{ p: 2, height: '100%', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 2.5 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main' }}>
+                  <LayersOutlinedIcon fontSize="small" />
+                  {t('app.sessions.whatIsSession') || 'What is a Session?'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+                  {t('app.sessions.whatIsSessionDesc') || 
+                    'A Session acts as an active sales wrapper. Instead of treating all sales as one endless list, a session lets you segment transactions by shift, day, or individual kermes event.'}
+                </Typography>
+              </Paper>
+            </Grid>
+
+            {/* Benefits Column */}
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Paper elevation={0} sx={{ p: 2, height: '100%', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 2.5 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, display: 'flex', alignItems: 'center', gap: 1, color: 'success.main' }}>
+                  <FlashOnOutlinedIcon fontSize="small" />
+                  {t('app.sessions.whyItHelps') || 'How It Helps You'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+                  {t('app.sessions.whyItHelpsDesc') || 
+                    '• Isolated metrics per event shift\n• Exact Card vs. Cash checkout balance tracking\n• Generate legal sign-off PDF sheets\n• Compare current performance vs. previous shift statistics.'}
+                </Typography>
+              </Paper>
+            </Grid>
+
+            {/* Recommended Workflow Column */}
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Paper elevation={0} sx={{ p: 2, height: '100%', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 2.5 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, display: 'flex', alignItems: 'center', gap: 1, color: 'warning.main' }}>
+                  <CheckCircleOutlinedIcon fontSize="small" />
+                  {t('app.sessions.recommendedUse') || 'Recommended Workflow'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+                  {t('app.sessions.recommendedUseDesc') || 
+                    '1. Start of day: Click "New Session" (starts in ACTIVE status).\n2. Sell items: Orders are automatically tagged to this session.\n3. End of shift: Click Complete to lock the session range and generate reports.'}
+                </Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Paper>
+      </Collapse>
 
       {/* Sessions Grid */}
       {loading ? (

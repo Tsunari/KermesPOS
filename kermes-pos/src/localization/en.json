@@ -319,7 +319,10 @@
       "noSessions": "No sessions available",
       "thisYear": "This Year",
       "lastYear": "Last Year",
-      "allTime": "All Time"
+      "allTime": "All Time",
+      "sessionGuideTitle": "Unlock Kermes Event Tracking",
+      "sessionGuideDesc": "Create a session on the Sessions page to group your sales by event, enable shift comparisons, and generate printable PDF summaries.",
+      "goToSessions": "Go to Sessions"
     },
     "cart": {
       "total": "Total",
@@ -494,7 +497,16 @@
       "cannotEditCompleted": "Cannot edit completed sessions.",
       "dateOverlapError": "Date range overlaps with existing session:\n\n\"{name}\"\n{start} - {end}\n\nPlease choose different dates.",
       "pausedAt": "Paused At",
-      "completedAt": "Completed At"
+      "completedAt": "Completed At",
+      "hideGuide": "Hide Guide",
+      "showGuide": "Concept Guide",
+      "conceptGuideTitle": "Understanding POS Sessions & Workflow",
+      "whatIsSession": "What is a Session?",
+      "whatIsSessionDesc": "A Session acts as an active sales wrapper for a complete Kermes event or specific sales period. Instead of merging all lifetime sales together, a session allows you to cleanly isolate and archive transaction logs for each distinct event.",
+      "whyItHelps": "How It Helps You",
+      "whyItHelpsDesc": "• Isolate and archive sales lists per individual Kermes event\n• Compare revenue, cash vs. card balance, and units sold across multiple seasonal events or years\n• Generate professional sign-off PDF sheets per Kermes event\n• Unlock clean comparative trendlines in the Statistics dashboard.",
+      "recommendedUse": "Recommended Workflow",
+      "recommendedUseDesc": "1. Event Setup: At the start of a new Kermes event, click \"New Session\" and name it (e.g. \"Kermes Spring 2026\").\n2. Log Transactions: Sell items normally. Orders will automatically stamp and link to this specific event's ID.\n3. Wrap Up & Compare: Complete the session when the event ends to lock records, generate PDF tutanaks, and compare metrics with previous kermeses."
     },
     "sync": {
       "error_loading_sessions": "Error loading sessions. Check browser console.",

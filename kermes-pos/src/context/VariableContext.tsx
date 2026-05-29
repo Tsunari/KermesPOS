@@ -4,6 +4,8 @@ import { CartTransaction } from '../services/cartTransactionService';
 import { firestoreSyncService, PlaceProfile } from '../services/firestoreSyncService';
 import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore';
 import { getDb } from '../firebaseInit';
+import { Session } from '../types/session';
+import { sessionService } from '../services/sessionService';
 
 interface OnlineOrderSummary {
   id: string;
@@ -45,6 +47,9 @@ export interface VariableContextType {
   setImportedOrderId: (id: string | null) => void;
   /** The kermesId from settings/main.activeKermesId — single source of truth for all Firestore paths. */
   activeKermesId: string;
+  // Global Sessions
+  sessions: Session[];
+  setSessions: React.Dispatch<React.SetStateAction<Session[]>>;
 }
 
 const defaultValues: VariableContextType = {
@@ -73,6 +78,8 @@ const defaultValues: VariableContextType = {
   importedOrderId: null,
   setImportedOrderId: () => {},
   activeKermesId: '',
+  sessions: [],
+  setSessions: () => {},
 };
 
 export const VariableContext = createContext<VariableContextType>(defaultValues);
@@ -109,6 +116,25 @@ export const VariableContextProvider: React.FC<{ children: React.ReactNode }> = 
   });
   const [editingOnlineOrderId, setEditingOnlineOrderId] = useState<string | null>(null);
   const [importedOrderId, setImportedOrderId] = useState<string | null>(null);
+  const [sessions, setSessions] = useState<Session[]>([]);
+
+  // Pre-load kermes event sessions list on boot
+  useEffect(() => {
+    const loadSessions = async () => {
+      try {
+        const loadedSessions = await sessionService.getAllSessions();
+        const sortedSessions = [...loadedSessions].sort((a, b) => {
+          const aTime = new Date(a.createdAt || a.startDate || 0).getTime();
+          const bTime = new Date(b.createdAt || b.startDate || 0).getTime();
+          return bTime - aTime;
+        });
+        setSessions(sortedSessions);
+      } catch (error) {
+        console.error('Error loading sessions in global context:', error);
+      }
+    };
+    loadSessions();
+  }, []);
 
   /**
    * activeKermesId is fetched from Firestore settings/main.activeKermesId (set by the admin panel).
@@ -238,6 +264,8 @@ export const VariableContextProvider: React.FC<{ children: React.ReactNode }> = 
       importedOrderId,
       setImportedOrderId,
       activeKermesId,
+      sessions,
+      setSessions,
     }}>
       {children}
     </VariableContext.Provider>
