@@ -620,6 +620,20 @@ export class SessionService {
       throw error;
     }
   }
+
+  async importRawSessions(sessions: Session[]): Promise<void> {
+    await this.ensureDB();
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(this.sessionStoreName, 'readwrite');
+      const store = transaction.objectStore(this.sessionStoreName);
+      store.clear();
+      sessions.forEach(s => {
+        store.add(s);
+      });
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+  }
 }
 
 export const sessionService = new SessionService();

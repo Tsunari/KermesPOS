@@ -28,10 +28,13 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  Stack
+  Stack,
+  Tabs,
+  Tab
 } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { useTheme, alpha } from '@mui/material/styles';
 import { productService } from '../services/productService';
+import { backupService, BackupMetadata } from '../services/backupService';
 import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
 import RestoreIcon from '@mui/icons-material/Restore';
@@ -42,7 +45,7 @@ import ErrorIcon from '@mui/icons-material/Error';
 import HistoryIcon from '@mui/icons-material/History';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { useVariableContext } from '../context/VariableContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useSettings } from '../context/SettingsContext';
@@ -63,13 +66,33 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
   const { setProducts } = useVariableContext();
   const { t } = useLanguage();
   const { formatPrice } = useSettings();
+
+  // Tab State
+  const [activeTab, setActiveTab] = useState<'catalog' | 'system'>(() => {
+    const saved = localStorage.getItem('kermes_pos_active_import_export_tab');
+    return (saved === 'system' || saved === 'catalog') ? saved : 'catalog';
+  });
+
+  const handleTabChange = (val: 'catalog' | 'system') => {
+    setActiveTab(val);
+    localStorage.setItem('kermes_pos_active_import_export_tab', val);
+  };
+
+  // Product Catalog Manager State
   const [importJson, setImportJson] = useState('');
   const [dragActive, setDragActive] = useState(false);
-  const [backups, setBackups] = useState<{ timestamp: number; count: number }[]>([]);
+  const [backups, setBackups] = useState<{ timestamp: number; count: number; isAuto?: boolean }[]>([]);
   const [validation, setValidation] = useState<ValidationResult>({ valid: false });
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [importStrategy, setImportStrategy] = useState<'merge' | 'overwrite'>('merge');
   const [parsedProducts, setParsedProducts] = useState<any[]>([]);
+
+  // Database Time Machine (System) State
+  const [systemBackups, setSystemBackups] = useState<BackupMetadata[]>([]);
+  const [systemImportJson, setSystemImportJson] = useState('');
+  const [systemDragActive, setSystemDragActive] = useState(false);
+  const [systemValidation, setSystemValidation] = useState<{ valid: boolean; error?: string }>({ valid: false });
+  const [isSystemPreviewOpen, setIsSystemPreviewOpen] = useState(false);
   
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -84,9 +107,10 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
   // Load backups history on mount
   useEffect(() => {
     setBackups(productService.getLocalBackups());
+    setSystemBackups(backupService.getLocalFullBackups());
   }, []);
 
-  // Validate JSON on input change
+  // Validate Products JSON
   useEffect(() => {
     if (!importJson.trim()) {
       setValidation({ valid: false });
@@ -107,6 +131,16 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
     }
   }, [importJson]);
 
+  // Validate System JSON
+  useEffect(() => {
+    if (!systemImportJson.trim()) {
+      setSystemValidation({ valid: false });
+      return;
+    }
+    const result = backupService.validateBackupData(systemImportJson);
+    setSystemValidation({ valid: result.valid, error: result.error });
+  }, [systemImportJson]);
+
   const validateJsonSchema = (jsonStr: string): ValidationResult => {
     try {
       const parsed = JSON.parse(jsonStr);
@@ -117,7 +151,6 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
         return { valid: false, error: 'JSON must contain a root "products" array', type: 'schema' };
       }
       
-      // Detailed schema checks
       for (let i = 0; i < parsed.products.length; i++) {
         const p = parsed.products[i];
         const num = i + 1;
@@ -134,7 +167,6 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
     } catch (err: any) {
       let line = undefined;
       const msg = err.message || 'Syntax parsing error';
-      // Estimate line number if possible
       const match = msg.match(/at line (\d+)/i) || msg.match(/position (\d+)/i);
       if (match) {
         line = parseInt(match[1]);
@@ -186,6 +218,37 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
     }
   };
 
+  const handleSystemDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setSystemDragActive(true);
+    } else if (e.type === "dragleave") {
+      setSystemDragActive(false);
+    }
+  };
+
+  const handleSystemDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSystemDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (file.name.endsWith(".json") || file.type === "application/json") {
+        try {
+          const text = await file.text();
+          setSystemImportJson(text);
+          setSnackbar({ open: true, message: 'POS System Backup JSON loaded!', severity: 'success' });
+        } catch (err) {
+          setSnackbar({ open: true, message: 'Error reading system backup file.', severity: 'error' });
+        }
+      } else {
+        setSnackbar({ open: true, message: 'Invalid file format. Please drop a backup .json file.', severity: 'error' });
+      }
+    }
+  };
+
   const handleExport = () => {
     const jsonString = productService.exportProducts();
     const blob = new Blob([jsonString], { type: 'application/json' });
@@ -201,6 +264,43 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
     setSnackbar({
       open: true,
       message: 'Products catalog exported successfully!',
+      severity: 'success',
+    });
+  };
+
+  const handleSystemExport = async () => {
+    try {
+      const jsonString = await backupService.exportFullBackup();
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `kermes_pos_system_backup_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      setSnackbar({
+        open: true,
+        message: t('importExport.systemBackupSuccess') || 'Full POS database backed up successfully!',
+        severity: 'success',
+      });
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: 'Failed to generate POS database backup.',
+        severity: 'error',
+      });
+    }
+  };
+
+  const handleCreateSystemLocalBackup = async () => {
+    await backupService.createLocalFullBackup();
+    setSystemBackups(backupService.getLocalFullBackups());
+    setSnackbar({
+      open: true,
+      message: 'Full system local snapshot created successfully!',
       severity: 'success',
     });
   };
@@ -279,6 +379,30 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
     }
   };
 
+  const handleApplySystemImport = async () => {
+    const success = await backupService.importFullBackup(systemImportJson);
+    if (success) {
+      setProducts(productService.getAllProducts());
+      setBackups(productService.getLocalBackups());
+      setSystemBackups(backupService.getLocalFullBackups());
+      setIsSystemPreviewOpen(false);
+      setSystemImportJson('');
+      setSnackbar({
+        open: true,
+        message: t('importExport.systemRestoreSuccess') || 'Entire system database successfully restored!',
+        severity: 'success',
+      });
+      // Force quick state reload
+      setTimeout(() => window.location.reload(), 1000);
+    } else {
+      setSnackbar({
+        open: true,
+        message: 'Failed to apply system import.',
+        severity: 'error',
+      });
+    }
+  };
+
   const handleReset = () => {
     if (window.confirm('Are you sure you want to reset to the default product list? A local snapshot will be created.')) {
       productService.resetToDefault();
@@ -312,6 +436,41 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
     }
   };
 
+  const handleSystemRestore = async (timestamp: number) => {
+    if (window.confirm(t('importExport.systemSnapshotRestoreConfirm') || 'Are you sure you want to completely restore the system to this snapshot? Current sales and product data will be backed up.')) {
+      const success = await backupService.restoreFromFullBackup(timestamp);
+      if (success) {
+        setProducts(productService.getAllProducts());
+        setBackups(productService.getLocalBackups());
+        setSystemBackups(backupService.getLocalFullBackups());
+        setSnackbar({
+          open: true,
+          message: t('importExport.systemRestoreSuccess') || 'Entire system database restored successfully!',
+          severity: 'success',
+        });
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        setSnackbar({
+          open: true,
+          message: 'Failed to restore system snapshot.',
+          severity: 'error',
+        });
+      }
+    }
+  };
+
+  const handleDeleteSystemBackup = (timestamp: number) => {
+    if (window.confirm('Are you sure you want to delete this system snapshot?')) {
+      backupService.deleteLocalFullBackup(timestamp);
+      setSystemBackups(backupService.getLocalFullBackups());
+      setSnackbar({
+        open: true,
+        message: 'Snapshot deleted successfully.',
+        severity: 'success',
+      });
+    }
+  };
+
   const handleDefineDefault = () => {
     if (window.confirm('Are you sure you want to define the current product list as the default? (Mock action for Dev Mode)')) {
       setSnackbar({
@@ -328,261 +487,576 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
 
   return (
     <Box sx={{ p: 1, maxWidth: 1200, mx: 'auto' }}>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-        {t('importExport.title') || 'Import/Export Products'}
-      </Typography>
+      
+      {/* Title */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
+          {t('importExport.title') || 'Data Import / Export Manager'}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Manage product catalog menus or coordinate complete POS database snapshots and restore points.
+        </Typography>
+      </Box>
 
-      <Grid container spacing={3}>
-        {/* Left Column: Export & Snapshots */}
-        <Grid size={{ xs: 12, md: 5, lg: 4 }}>
-          <Stack spacing={3}>
-            {/* Export Card */}
-            <Paper elevation={0} sx={{ p: 3, border: `1.5px solid ${theme.palette.divider}`, borderRadius: 3, bgcolor: 'background.paper', position: 'relative', overflow: 'hidden' }}>
-              <Box sx={{ position: 'absolute', top: 0, right: 0, width: '4px', height: '100%', bgcolor: 'primary.main' }} />
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 700 }}>
-                <DownloadIcon color="primary" /> {t('importExport.exportTitle')}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                {t('importExport.exportDesc')}
-              </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 2 }}>
-                <Button
-                  variant="contained"
-                  startIcon={<DownloadIcon />}
-                  onClick={handleExport}
-                  sx={{ borderRadius: 2, flexGrow: 1 }}
-                >
-                  {t('importExport.exportTitle')}
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  startIcon={<RestoreIcon />}
-                  onClick={handleReset}
-                  sx={{ borderRadius: 2 }}
-                >
-                  {t('common.reset')}
-                </Button>
-              </Box>
+      {/* Tabs */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
+        <Tabs 
+          value={activeTab} 
+          onChange={(_, val) => handleTabChange(val)}
+          sx={{
+            '& .MuiTab-root': {
+              textTransform: 'none',
+              fontWeight: 700,
+              fontSize: '0.92rem',
+              minWidth: 160,
+              '&.Mui-selected': {
+                color: activeTab === 'system' ? 'error.main' : 'primary.main',
+              }
+            },
+            '& .MuiTabs-indicator': {
+              backgroundColor: activeTab === 'system' ? 'error.main' : 'primary.main',
+            }
+          }}
+        >
+          <Tab value="catalog" label={t('importExport.tabCatalog') || 'Product Menu Catalog'} />
+          <Tab value="system" label={t('importExport.tabSystem') || 'Full POS System Backup'} />
+        </Tabs>
+      </Box>
+
+      {/* TAB A: PRODUCT CATALOG MANAGER */}
+      {activeTab === 'catalog' && (
+        <Grid container spacing={3}>
+          {/* Left Column: Export & Snapshots */}
+          <Grid size={{ xs: 12, md: 5, lg: 4 }}>
+            <Stack spacing={3}>
               
-              {devMode && (
-                <Box sx={{ mt: 2 }}>
+              {/* Export Card */}
+              <Paper elevation={0} sx={{ p: 3, border: `1.5px solid ${theme.palette.divider}`, borderRadius: 3, bgcolor: 'background.paper', position: 'relative', overflow: 'hidden' }}>
+                <Box sx={{ position: 'absolute', top: 0, right: 0, width: '4px', height: '100%', bgcolor: 'primary.main' }} />
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 700 }}>
+                  <DownloadIcon color="primary" /> {t('importExport.exportTitle')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" paragraph>
+                  {t('importExport.exportDesc')}
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 2 }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<DownloadIcon />}
+                    onClick={handleExport}
+                    sx={{ borderRadius: 2, flexGrow: 1, textTransform: 'none', fontWeight: 600 }}
+                  >
+                    {t('importExport.exportTitle')}
+                  </Button>
                   <Button
                     variant="outlined"
-                    color="warning"
-                    fullWidth
-                    startIcon={<CodeIcon />}
-                    onClick={handleDefineDefault}
-                    sx={{ borderRadius: 2 }}
+                    color="error"
+                    startIcon={<RestoreIcon />}
+                    onClick={handleReset}
+                    sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
                   >
-                    Define Default
+                    {t('common.reset')}
                   </Button>
                 </Box>
-              )}
-            </Paper>
+                
+                {devMode && (
+                  <Box sx={{ mt: 2 }}>
+                    <Button
+                      variant="outlined"
+                      color="warning"
+                      fullWidth
+                      startIcon={<CodeIcon />}
+                      onClick={handleDefineDefault}
+                      sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                    >
+                      Define Default
+                    </Button>
+                  </Box>
+                )}
+              </Paper>
 
-            {/* Time Machine backups */}
+              {/* Time Machine backups */}
+              <Paper elevation={0} sx={{ p: 3, border: `1.5px solid ${theme.palette.divider}`, borderRadius: 3, bgcolor: 'background.paper' }}>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 700 }}>
+                  <HistoryIcon color="secondary" /> {t('importExport.snapshotsTitle') || 'Product Catalog Time Machine'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" paragraph>
+                  {t('importExport.snapshotsDesc')}
+                </Typography>
+
+                <Divider sx={{ my: 2 }} />
+
+                {backups.length === 0 ? (
+                  <Box sx={{ py: 3, fontStyle: 'italic', textAlign: 'center', color: 'text.secondary', fontSize: '0.85rem' }}>
+                    {t('importExport.noSnapshots') || 'No catalog snapshots available.'}
+                  </Box>
+                ) : (
+                  <List disablePadding>
+                    {backups.map((b, idx) => (
+                      <React.Fragment key={b.timestamp}>
+                        {idx > 0 && <Divider variant="inset" component="li" />}
+                        <ListItem
+                          disableGutters
+                          secondaryAction={
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              onClick={() => handleRestore(b.timestamp)}
+                              sx={{ borderRadius: 1.5, fontSize: '0.75rem', py: 0.5, textTransform: 'none', fontWeight: 600 }}
+                            >
+                              Restore
+                            </Button>
+                          }
+                        >
+                          <ListItemText
+                            primary={
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  {new Date(b.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })} ({new Date(b.timestamp).toLocaleDateString()})
+                                </Typography>
+                                {b.isAuto && (
+                                  <Chip 
+                                    label="Auto" 
+                                    size="small" 
+                                    color="info" 
+                                    variant="outlined"
+                                    sx={{ 
+                                      height: 18, 
+                                      fontSize: '0.65rem', 
+                                      px: 0.5,
+                                      borderColor: 'info.light',
+                                      color: 'info.main',
+                                      fontWeight: 700 
+                                    }} 
+                                  />
+                                )}
+                              </Stack>
+                            }
+                            secondary={
+                              <Typography variant="caption" color="text.secondary">
+                                {t('importExport.itemsCount').replace('{count}', String(b.count)) || `${b.count} products`}
+                              </Typography>
+                            }
+                          />
+                        </ListItem>
+                      </React.Fragment>
+                    ))}
+                  </List>
+                )}
+              </Paper>
+            </Stack>
+          </Grid>
+
+          {/* Right Column: Advanced Import */}
+          <Grid size={{ xs: 12, md: 7, lg: 8 }}>
             <Paper elevation={0} sx={{ p: 3, border: `1.5px solid ${theme.palette.divider}`, borderRadius: 3, bgcolor: 'background.paper' }}>
               <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 700 }}>
-                <HistoryIcon color="secondary" /> {t('importExport.snapshotsTitle') || 'Database Time Machine'}
+                <UploadIcon color="primary" /> {t('importExport.importTitle')}
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
-                {t('importExport.snapshotsDesc')}
+                {t('importExport.importDesc')}
               </Typography>
 
-              <Divider sx={{ my: 2 }} />
-
-              {backups.length === 0 ? (
-                <Box sx={{ py: 3, textStyle: 'italic', textAlign: 'center', color: 'text.secondary' }}>
-                  {t('importExport.noSnapshots') || 'No snapshots available.'}
-                </Box>
-              ) : (
-                <List disablePadding>
-                  {backups.map((b, idx) => (
-                    <React.Fragment key={b.timestamp}>
-                      {idx > 0 && <Divider variant="inset" component="li" />}
-                      <ListItem
-                        disableGutters
-                        secondaryAction={
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={() => handleRestore(b.timestamp)}
-                            sx={{ borderRadius: 1.5, fontSize: '0.75rem', py: 0.5 }}
-                          >
-                            Restore
-                          </Button>
-                        }
-                      >
-                        <ListItemText
-                          primary={
-                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                              {new Date(b.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })} ({new Date(b.timestamp).toLocaleDateString()})
-                            </Typography>
-                          }
-                          secondary={
-                            <Typography variant="caption" color="text.secondary">
-                              {t('importExport.itemsCount').replace('{count}', String(b.count)) || `${b.count} products`}
-                            </Typography>
-                          }
-                        />
-                      </ListItem>
-                    </React.Fragment>
-                  ))}
-                </List>
-              )}
-            </Paper>
-          </Stack>
-        </Grid>
-
-        {/* Right Column: Advanced Import */}
-        <Grid size={{ xs: 12, md: 7, lg: 8 }}>
-          <Paper elevation={0} sx={{ p: 3, border: `1.5px solid ${theme.palette.divider}`, borderRadius: 3, bgcolor: 'background.paper' }}>
-            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 700 }}>
-              <UploadIcon color="primary" /> {t('importExport.importTitle')}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" paragraph>
-              {t('importExport.importDesc')}
-            </Typography>
-
-            {/* Drag & Drop zone */}
-            <Box
-              onDragEnter={handleDrag}
-              onDragOver={handleDrag}
-              onDragLeave={handleDrag}
-              onDrop={handleDrop}
-              onClick={() => document.getElementById('json-file-input')?.click()}
-              sx={{
-                border: dragActive ? `2px dashed ${theme.palette.primary.main}` : `2px dashed ${theme.palette.divider}`,
-                borderRadius: 2.5,
-                p: 4,
-                textAlign: 'center',
-                cursor: 'pointer',
-                bgcolor: dragActive ? 'rgba(37, 99, 235, 0.04)' : 'rgba(0, 0, 0, 0.01)',
-                '&:hover': {
-                  borderColor: theme.palette.primary.main,
-                  bgcolor: 'rgba(37, 99, 235, 0.01)'
-                },
-                transition: 'all 0.25s ease',
-                mb: 3
-              }}
-            >
-              <input
-                type="file"
-                id="json-file-input"
-                accept="application/json"
-                hidden
-                onChange={async (e) => {
-                  const file = e.target.files && e.target.files[0];
-                  if (!file) return;
-                  try {
-                    const text = await file.text();
-                    setImportJson(text);
-                    setSnackbar({ open: true, message: 'JSON file loaded!', severity: 'success' });
-                  } catch (err) {
-                    setSnackbar({ open: true, message: 'Failed to read JSON file.', severity: 'error' });
-                  }
-                  e.target.value = '';
+              {/* Drag & Drop zone */}
+              <Box
+                onDragEnter={handleDrag}
+                onDragOver={handleDrag}
+                onDragLeave={handleDrag}
+                onDrop={handleDrop}
+                onClick={() => document.getElementById('json-file-input')?.click()}
+                sx={{
+                  border: dragActive ? `2px dashed ${theme.palette.primary.main}` : `2px dashed ${theme.palette.divider}`,
+                  borderRadius: 2.5,
+                  p: 4,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  bgcolor: dragActive ? alpha(theme.palette.primary.main, 0.04) : 'rgba(0, 0, 0, 0.01)',
+                  '&:hover': {
+                    borderColor: theme.palette.primary.main,
+                    bgcolor: alpha(theme.palette.primary.main, 0.02)
+                  },
+                  transition: 'all 0.25s ease',
+                  mb: 3
                 }}
-              />
-              <FileUploadIcon color="primary" sx={{ fontSize: 44, mb: 1, opacity: 0.8 }} />
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {t('importExport.dropzoneIdle')}
-              </Typography>
-            </Box>
+              >
+                <input
+                  type="file"
+                  id="json-file-input"
+                  accept="application/json"
+                  hidden
+                  onChange={async (e) => {
+                    const file = e.target.files && e.target.files[0];
+                    if (!file) return;
+                    try {
+                      const text = await file.text();
+                      setImportJson(text);
+                      setSnackbar({ open: true, message: 'JSON file loaded!', severity: 'success' });
+                    } catch (err) {
+                      setSnackbar({ open: true, message: 'Failed to read JSON file.', severity: 'error' });
+                    }
+                    e.target.value = '';
+                  }}
+                />
+                <FileUploadIcon color="primary" sx={{ fontSize: 44, mb: 1, opacity: 0.8 }} />
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {t('importExport.dropzoneIdle')}
+                </Typography>
+              </Box>
 
-            {/* Form actions / templates helper */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                {t('importExport.orPaste')}
-              </Typography>
-              <Box>
-                <Button size="small" variant="text" onClick={handleCopyTemplate} sx={{ fontSize: '0.75rem', textTransform: 'none', mr: 1 }}>
-                  Template Structure
+              {/* Form actions / templates helper */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                  {t('importExport.orPaste')}
+                </Typography>
+                <Box>
+                  <Button size="small" variant="text" onClick={handleCopyTemplate} sx={{ fontSize: '0.75rem', textTransform: 'none', mr: 1, fontWeight: 600 }}>
+                    Template Structure
+                  </Button>
+                  {importJson.trim() && (
+                    <Button size="small" variant="text" onClick={handleFormatJson} sx={{ fontSize: '0.75rem', textTransform: 'none', fontWeight: 600 }}>
+                      Format JSON
+                  </Button>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Custom Editor */}
+              <TextField
+                multiline
+                rows={12}
+                fullWidth
+                value={importJson}
+                onChange={(e) => setImportJson(e.target.value)}
+                placeholder='{"products": [...]}'
+                InputProps={{
+                  sx: {
+                    fontFamily: 'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
+                    fontSize: '0.870rem',
+                    lineHeight: '1.45',
+                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.02)',
+                    borderRadius: 2,
+                    '& .MuiInputBase-input': {
+                      scrollbarWidth: 'thin',
+                    }
+                  }
+                }}
+                sx={{ mb: 3 }}
+              />
+
+              {/* Real-time Syntax & Schema Validation Alerts */}
+              {importJson.trim() && (
+                <Box sx={{ mb: 3 }}>
+                  {validation.valid ? (
+                    <Alert severity="success" icon={<CheckCircleIcon />} sx={{ borderRadius: 2 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        {t('importExport.validateSuccess')}
+                      </Typography>
+                      <Typography variant="caption" display="block">
+                        Loaded {parsedProducts.length} items successfully. Click review below to proceed.
+                      </Typography>
+                    </Alert>
+                  ) : (
+                    <Alert severity="error" icon={<ErrorIcon />} sx={{ borderRadius: 2 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        {validation.type === 'syntax' ? 'JSON Format Error' : 'Database Schema Error'}
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 500, display: 'block' }}>
+                        {validation.type === 'syntax'
+                          ? t('importExport.validateErrorSyntax').replace('{error}', validation.error || '').replace('{line}', String(validation.line || '?'))
+                          : t('importExport.validateErrorSchema').replace('{error}', validation.error || '')}
+                      </Typography>
+                    </Alert>
+                  )}
+                </Box>
+              )}
+
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Button
+                  variant="contained"
+                  startIcon={<PlayArrowIcon />}
+                  disabled={!validation.valid}
+                  onClick={() => setIsPreviewOpen(true)}
+                  sx={{ borderRadius: 2, px: 3, textTransform: 'none', fontWeight: 600 }}
+                >
+                  Review Import Preview
                 </Button>
                 {importJson.trim() && (
-                  <Button size="small" variant="text" onClick={handleFormatJson} sx={{ fontSize: '0.75rem', textTransform: 'none' }}>
-                    Format JSON
+                  <Button
+                    variant="outlined"
+                    onClick={() => setImportJson('')}
+                    sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                  >
+                    Clear
                   </Button>
                 )}
               </Box>
-            </Box>
+            </Paper>
+          </Grid>
+        </Grid>
+      )}
 
-            {/* Custom Modern Editor block */}
-            <TextField
-              multiline
-              rows={12}
-              fullWidth
-              value={importJson}
-              onChange={(e) => setImportJson(e.target.value)}
-              placeholder='{"products": [...]}'
-              InputProps={{
-                sx: {
-                  fontFamily: 'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
-                  fontSize: '0.870rem',
-                  lineHeight: '1.45',
-                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.02)',
-                  borderRadius: 2,
-                  '& .MuiInputBase-input': {
-                    scrollbarWidth: 'thin',
-                  }
-                }
-              }}
-              sx={{ mb: 3 }}
-            />
+      {/* TAB B: DATABASE TIME MACHINE (FULL POS SNAPSHOTS) */}
+      {activeTab === 'system' && (
+        <Grid container spacing={3}>
+          {/* Left Column: Local Snapshots History */}
+          <Grid size={{ xs: 12, md: 5, lg: 4 }}>
+            <Stack spacing={3}>
+              
+              {/* Snapshot Trigger Card */}
+              <Paper elevation={0} sx={{ p: 3, border: `1.5px solid ${theme.palette.divider}`, borderRadius: 3, bgcolor: 'background.paper', position: 'relative', overflow: 'hidden' }}>
+                <Box sx={{ position: 'absolute', top: 0, right: 0, width: '4px', height: '100%', bgcolor: 'error.main' }} />
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 700 }}>
+                  <HistoryIcon color="error" /> {t('importExport.systemBackupTitle') || 'Full System Backup'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" paragraph>
+                  {t('importExport.systemBackupDesc') || 'Create a complete, single backup snapshot of products, sessions, and transaction sales logs.'}
+                </Typography>
+                
+                <Stack spacing={1.5} sx={{ mt: 2.5 }}>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    startIcon={<DownloadIcon />}
+                    onClick={handleSystemExport}
+                    sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+                  >
+                    {t('importExport.systemExportBtn') || 'Download Backup (.json)'}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<HistoryIcon />}
+                    onClick={handleCreateSystemLocalBackup}
+                    sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                  >
+                    Take Local Snapshot
+                  </Button>
+                </Stack>
+              </Paper>
 
-            {/* Real-time Syntax & Schema Validation Alerts */}
-            {importJson.trim() && (
-              <Box sx={{ mb: 3 }}>
-                {validation.valid ? (
-                  <Alert severity="success" icon={<CheckCircleIcon />} sx={{ borderRadius: 2 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                      {t('importExport.validateSuccess')}
-                    </Typography>
-                    <Typography variant="caption" display="block">
-                      Loaded {parsedProducts.length} items successfully. Click review below to proceed.
-                    </Typography>
-                  </Alert>
+              {/* Local snapshots listing */}
+              <Paper elevation={0} sx={{ p: 3, border: `1.5px solid ${theme.palette.divider}`, borderRadius: 3, bgcolor: 'background.paper' }}>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 700 }}>
+                  <RestoreIcon color="action" /> {t('importExport.systemSnapshotTitle') || 'System Snapshots History'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" paragraph>
+                  {t('importExport.systemSnapshotDesc') || 'Restore an archived full state backup point directly in the browser.'}
+                </Typography>
+
+                <Divider sx={{ my: 2 }} />
+
+                {systemBackups.length === 0 ? (
+                  <Box sx={{ py: 3, fontStyle: 'italic', textAlign: 'center', color: 'text.secondary', fontSize: '0.85rem' }}>
+                    {t('importExport.noSnapshots') || 'No full system snapshots saved.'}
+                  </Box>
                 ) : (
-                  <Alert severity="error" icon={<ErrorIcon />} sx={{ borderRadius: 2 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                      {validation.type === 'syntax' ? 'JSON Format Error' : 'Database Schema Error'}
-                    </Typography>
-                    <Typography variant="caption" sx={{ fontWeight: 500, display: 'block' }}>
-                      {validation.type === 'syntax'
-                        ? t('importExport.validateErrorSyntax').replace('{error}', validation.error || '').replace('{line}', String(validation.line || '?'))
-                        : t('importExport.validateErrorSchema').replace('{error}', validation.error || '')}
-                    </Typography>
-                  </Alert>
+                  <List disablePadding>
+                    {systemBackups.map((sb, idx) => (
+                      <React.Fragment key={sb.timestamp}>
+                        {idx > 0 && <Divider variant="inset" component="li" />}
+                        <ListItem
+                          disableGutters
+                          secondaryAction={
+                            <Stack direction="row" spacing={0.5}>
+                              <Button
+                                variant="outlined"
+                                color="error"
+                                size="small"
+                                onClick={() => handleSystemRestore(sb.timestamp)}
+                                sx={{ borderRadius: 1.5, fontSize: '0.72rem', py: 0.4, textTransform: 'none', fontWeight: 600 }}
+                              >
+                                Restore
+                              </Button>
+                              <IconButton 
+                                size="small" 
+                                color="error"
+                                onClick={() => handleDeleteSystemBackup(sb.timestamp)}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Stack>
+                          }
+                        >
+                          <ListItemText
+                            primary={
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {new Date(sb.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ({new Date(sb.timestamp).toLocaleDateString()})
+                                </Typography>
+                                {sb.isAuto && (
+                                  <Chip 
+                                    label="Auto" 
+                                    size="small" 
+                                    color="error" 
+                                    variant="outlined"
+                                    sx={{ 
+                                      height: 18, 
+                                      fontSize: '0.65rem', 
+                                      px: 0.5,
+                                      borderColor: 'error.light',
+                                      color: 'error.main',
+                                      fontWeight: 700 
+                                    }} 
+                                  />
+                                )}
+                              </Stack>
+                            }
+                            secondary={
+                              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.3 }}>
+                                {t('importExport.systemItemsCount')
+                                  .replace('{products}', String(sb.productsCount))
+                                  .replace('{sessions}', String(sb.sessionsCount))
+                                  .replace('{transactions}', String(sb.transactionsCount))
+                                  || `${sb.productsCount} products, ${sb.sessionsCount} sessions, ${sb.transactionsCount} sales`}
+                              </Typography>
+                            }
+                          />
+                        </ListItem>
+                      </React.Fragment>
+                    ))}
+                  </List>
+                )}
+              </Paper>
+            </Stack>
+          </Grid>
+
+          {/* Right Column: Restore POS Backup File */}
+          <Grid size={{ xs: 12, md: 7, lg: 8 }}>
+            <Paper elevation={0} sx={{ p: 3, border: `1.5px solid ${theme.palette.divider}`, borderRadius: 3, bgcolor: 'background.paper' }}>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 700 }}>
+                <UploadIcon color="error" /> {t('importExport.systemImportTitle') || 'Restore POS Backup File'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" paragraph>
+                {t('importExport.systemImportDesc') || 'Upload a previously downloaded POS backup file to completely restore database state.'}
+              </Typography>
+
+              {/* Drag & Drop zone */}
+              <Box
+                onDragEnter={handleSystemDrag}
+                onDragOver={handleSystemDrag}
+                onDragLeave={handleSystemDrag}
+                onDrop={handleSystemDrop}
+                onClick={() => document.getElementById('system-json-file-input')?.click()}
+                sx={{
+                  border: systemDragActive ? `2px dashed ${theme.palette.error.main}` : `2px dashed ${theme.palette.divider}`,
+                  borderRadius: 2.5,
+                  p: 5,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  bgcolor: systemDragActive ? alpha(theme.palette.error.main, 0.04) : 'rgba(0, 0, 0, 0.01)',
+                  '&:hover': {
+                    borderColor: theme.palette.error.main,
+                    bgcolor: alpha(theme.palette.error.main, 0.02)
+                  },
+                  transition: 'all 0.25s ease',
+                  mb: 3
+                }}
+              >
+                <input
+                  type="file"
+                  id="system-json-file-input"
+                  accept="application/json"
+                  hidden
+                  onChange={async (e) => {
+                    const file = e.target.files && e.target.files[0];
+                    if (!file) return;
+                    try {
+                      const text = await file.text();
+                      setSystemImportJson(text);
+                      setSnackbar({ open: true, message: 'POS Backup loaded successfully!', severity: 'success' });
+                    } catch (err) {
+                      setSnackbar({ open: true, message: 'Failed to read file.', severity: 'error' });
+                    }
+                    e.target.value = '';
+                  }}
+                />
+                <FileUploadIcon color="error" sx={{ fontSize: 44, mb: 1, opacity: 0.8 }} />
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {t('importExport.systemDropzoneIdle') || 'Drag & drop a pos_backup.json file here, or click to choose'}
+                </Typography>
+              </Box>
+
+              {/* Paste label */}
+              {systemImportJson.trim() && (
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 1 }}>
+                  Raw Backup Contents
+                </Typography>
+              )}
+
+              {/* Text Area */}
+              <TextField
+                multiline
+                rows={12}
+                fullWidth
+                value={systemImportJson}
+                onChange={(e) => setSystemImportJson(e.target.value)}
+                placeholder='{"version": "1.0.0", "products": [...], "sessions": [...], "transactions": [...] }'
+                InputProps={{
+                  sx: {
+                    fontFamily: 'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
+                    fontSize: '0.850rem',
+                    lineHeight: '1.45',
+                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.02)',
+                    borderRadius: 2,
+                    '& .MuiInputBase-input': {
+                      scrollbarWidth: 'thin',
+                    }
+                  }
+                }}
+                sx={{ mb: 3 }}
+              />
+
+              {/* Validation alert */}
+              {systemImportJson.trim() && (
+                <Box sx={{ mb: 3 }}>
+                  {systemValidation.valid ? (
+                    <Alert severity="success" icon={<CheckCircleIcon color="success" />} sx={{ borderRadius: 2 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        {t('importExport.validateSuccess') || 'Yedek dosyası doğrulaması başarılı!'}
+                      </Typography>
+                      <Typography variant="caption" display="block">
+                        Backup matches POS database specifications. Click button below to complete system restore.
+                      </Typography>
+                    </Alert>
+                  ) : (
+                    <Alert severity="error" icon={<ErrorIcon />} sx={{ borderRadius: 2 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        Invalid POS Database Backup
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 500, display: 'block' }}>
+                        Error: {systemValidation.error || 'JSON structure mismatched.'}
+                      </Typography>
+                    </Alert>
+                  )}
+                </Box>
+              )}
+
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Button
+                  variant="contained"
+                  color="error"
+                  startIcon={<PlayArrowIcon />}
+                  disabled={!systemValidation.valid}
+                  onClick={() => setIsSystemPreviewOpen(true)}
+                  sx={{ borderRadius: 2, px: 3, textTransform: 'none', fontWeight: 700 }}
+                >
+                  Restore System Snapshot
+                </Button>
+                {systemImportJson.trim() && (
+                  <Button
+                    variant="outlined"
+                    onClick={() => setSystemImportJson('')}
+                    sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                  >
+                    Clear
+                  </Button>
                 )}
               </Box>
-            )}
-
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Button
-                variant="contained"
-                startIcon={<PlayArrowIcon />}
-                disabled={!validation.valid}
-                onClick={() => setIsPreviewOpen(true)}
-                sx={{ borderRadius: 2, px: 3 }}
-              >
-                Review Import Preview
-              </Button>
-              {importJson.trim() && (
-                <Button
-                  variant="outlined"
-                  onClick={() => setImportJson('')}
-                  sx={{ borderRadius: 2 }}
-                >
-                  Clear
-                </Button>
-              )}
-            </Box>
-          </Paper>
+            </Paper>
+          </Grid>
         </Grid>
-      </Grid>
+      )}
 
-      {/* Import Dry Run Dialog */}
+      {/* Product Catalog Dry Run Preview Dialog */}
       <Dialog
         open={isPreviewOpen}
         onClose={() => setIsPreviewOpen(false)}
@@ -601,7 +1075,6 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
           </Typography>
 
           <Grid container spacing={3} sx={{ mb: 3 }}>
-            {/* Checklist */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2.5, bgcolor: 'action.hover' }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -621,7 +1094,6 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
               </Paper>
             </Grid>
 
-            {/* Counters */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2.5 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
@@ -651,7 +1123,6 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
             </Grid>
           </Grid>
 
-          {/* Strategy selection */}
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
             {t('importExport.modeLabel')}
           </Typography>
@@ -666,8 +1137,8 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
                 control={<Radio />}
                 label={
                   <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>Smart Merge</Typography>
-                    <Typography variant="caption" color="text.secondary">Appends new products, updates existing products with matching IDs, and preserves non-overlapping current database items.</Typography>
+                     <Typography variant="body2" sx={{ fontWeight: 600 }}>Smart Merge</Typography>
+                     <Typography variant="caption" color="text.secondary">Appends new products, updates existing products with matching IDs, and preserves non-overlapping current database items.</Typography>
                   </Box>
                 }
               />
@@ -686,7 +1157,6 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
             </Paper>
           </RadioGroup>
 
-          {/* Mini Table preview */}
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
             Import Items List ({parsedProducts.length})
           </Typography>
@@ -721,6 +1191,47 @@ const ImportExport: React.FC<ImportExportProps> = ({ devMode }) => {
           </Button>
           <Button onClick={handleApplyImport} variant="contained" color={importStrategy === 'overwrite' ? 'error' : 'primary'} sx={{ borderRadius: 2 }}>
             {t('importExport.actionApply')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* System Full Restore Confirm Dialog */}
+      <Dialog
+        open={isSystemPreviewOpen}
+        onClose={() => setIsSystemPreviewOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 3, p: 1 }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1.5, color: 'error.main' }}>
+          <InfoOutlinedIcon /> Confirm System Database Overwrite
+        </DialogTitle>
+        <DialogContent>
+          <Alert severity="warning" sx={{ mb: 3, borderRadius: 2 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              WARNING: Complete Overwrite Triggered
+            </Typography>
+            <Typography variant="caption">
+              This action will completely erase your active sales log database, active event sessions, and current product pricing menu to load the imported backup file.
+            </Typography>
+          </Alert>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to proceed? A local backup snapshot of your active database will be saved automatically, letting you undo this restore if needed.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5 }}>
+          <Button onClick={() => setIsSystemPreviewOpen(false)} variant="outlined" sx={{ borderRadius: 2 }}>
+            {t('common.cancel')}
+          </Button>
+          <Button 
+            onClick={handleApplySystemImport} 
+            variant="contained" 
+            color="error" 
+            sx={{ borderRadius: 2 }}
+          >
+            Confirm & Overwrite System
           </Button>
         </DialogActions>
       </Dialog>

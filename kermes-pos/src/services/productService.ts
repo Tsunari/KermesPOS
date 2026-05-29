@@ -198,14 +198,15 @@ class ProductService {
   }
 
   // Create a backup snapshot of current products in localStorage (max 3)
-  createLocalBackup(): void {
+  createLocalBackup(isAuto: boolean = false): void {
     try {
       const backupsString = localStorage.getItem('products_backups');
       const backups = backupsString ? JSON.parse(backupsString) : [];
       
       const newBackup = {
         timestamp: Date.now(),
-        products: [...this.products]
+        products: [...this.products],
+        isAuto
       };
       
       // Prepend the new backup
@@ -223,14 +224,15 @@ class ProductService {
   }
 
   // Get list of local backups
-  getLocalBackups(): { timestamp: number; count: number }[] {
+  getLocalBackups(): { timestamp: number; count: number; isAuto?: boolean }[] {
     try {
       const backupsString = localStorage.getItem('products_backups');
       if (!backupsString) return [];
-      const backups = JSON.parse(backupsString) as { timestamp: number; products: Product[] }[];
+      const backups = JSON.parse(backupsString) as { timestamp: number; products: Product[]; isAuto?: boolean }[];
       return backups.map(b => ({
         timestamp: b.timestamp,
-        count: b.products.length
+        count: b.products.length,
+        isAuto: b.isAuto
       }));
     } catch (error) {
       console.error('Failed to read local backups:', error);
@@ -243,7 +245,7 @@ class ProductService {
     try {
       const backupsString = localStorage.getItem('products_backups');
       if (!backupsString) return false;
-      const backups = JSON.parse(backupsString) as { timestamp: number; products: Product[] }[];
+      const backups = JSON.parse(backupsString) as { timestamp: number; products: Product[]; isAuto?: boolean }[];
       const targetBackup = backups.find(b => b.timestamp === timestamp);
       if (targetBackup) {
         // Create backup of current list before restoring (allows undoing a restore!)
@@ -254,7 +256,7 @@ class ProductService {
         // Update backups to replace the restored one with the backup of before restoring
         const updatedBackups = backups.map(b => {
           if (b.timestamp === timestamp) {
-            return { timestamp: Date.now(), products: currentProducts };
+            return { timestamp: Date.now(), products: currentProducts, isAuto: true };
           }
           return b;
         });
@@ -278,7 +280,7 @@ class ProductService {
     try {
       const data = JSON.parse(jsonString);
       if (Array.isArray(data.products)) {
-        this.createLocalBackup(); // Auto backup before import!
+        this.createLocalBackup(true); // Auto backup before import!
         this.products = data.products.map((p: Partial<Product> & { InStock?: boolean; instock?: boolean }) => {
           // Normalize inStock / InStock / instock to camelCase inStock
           const stockValue = p.inStock !== undefined ? p.inStock : (p.InStock !== undefined ? p.InStock : (p.instock !== undefined ? p.instock : true));
@@ -304,7 +306,7 @@ class ProductService {
     try {
       const data = JSON.parse(jsonString);
       if (Array.isArray(data.products)) {
-        this.createLocalBackup(); // Auto backup before merge!
+        this.createLocalBackup(true); // Auto backup before merge!
         const importedList = data.products.map((p: Partial<Product> & { InStock?: boolean; instock?: boolean }) => {
           const stockValue = p.inStock !== undefined ? p.inStock : (p.InStock !== undefined ? p.InStock : (p.instock !== undefined ? p.instock : true));
           return {
@@ -335,7 +337,7 @@ class ProductService {
 
   // Reset to default products from JSON file
   resetToDefault(): void {
-    this.createLocalBackup(); // Auto backup before reset!
+    this.createLocalBackup(true); // Auto backup before reset!
     this.products = typedProducts.map(p => ({ ...p }));
     this.initializeOrderField();
     this.saveProducts();

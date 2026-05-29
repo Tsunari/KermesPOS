@@ -461,6 +461,20 @@ class CartTransactionService {
             transaction.onerror = () => reject(transaction.error);
         });
     }
+
+    async importRawTransactions(transactions: CartTransaction[]): Promise<void> {
+        if (!this.db) await this.initDB();
+        return new Promise((resolve, reject) => {
+            const tx = this.db!.transaction(this.storeName, 'readwrite');
+            const store = tx.objectStore(this.storeName);
+            store.clear();
+            transactions.forEach(t => {
+                store.add(t);
+            });
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+        });
+    }
 }
 
 export const cartTransactionService = new CartTransactionService();
