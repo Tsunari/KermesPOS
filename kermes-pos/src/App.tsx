@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { doc, setDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 import {
   AppBar,
   Toolbar,
@@ -8,14 +10,8 @@ import {
   Box,
   Paper,
   Badge,
-  SpeedDial,
-  SpeedDialIcon,
-  SpeedDialAction,
-  Slider,
   Tooltip,
-  Divider,
-  Fade,
-  Popover
+  Divider
 } from '@mui/material';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import BarChartIcon from '@mui/icons-material/BarChart';
@@ -41,6 +37,7 @@ import { productService } from './services/productService';
 import SettingsPage from './components/SettingsPage';
 import ImportExport from './components/ImportExport';
 import { SettingsProvider } from './context/SettingsContext';
+import { useSettings } from './context/SettingsContext';
 import { ThemeToggle } from './components/ui/ThemeToggle';
 import { ThemeProvider } from './context/ThemeContext';
 import AppearanceSettings from './components/AppearanceSettings';
@@ -57,6 +54,7 @@ import MenuDataBridge from './components/MenuDataBridge';
 import MenuSettings from './components/MenuSettings';
 import { MenuConfigProvider } from './context/MenuConfigContext';
 import UpdateNotifier from './components/UpdateNotifier';
+import { auth, getDb } from './firebaseInit';
 
 /**
  * The `AppContent` component serves as the main application layout and logic handler for the Kermes POS system.
@@ -104,8 +102,9 @@ import UpdateNotifier from './components/UpdateNotifier';
  */
 function AppContent() {
   const { t } = useLanguage();
+  const { currency } = useSettings();
   const dispatch = useDispatch();
-  const { products, setProducts, fixedGridMode, setFixedGridMode, cardsPerRow, setCardsPerRow, recentOrdersOpen, recentOrdersDockPosition, editingTransaction, editingOnlineOrderId } = useVariableContext();
+  const { products, setProducts, fixedGridMode, setFixedGridMode, cardsPerRow, setCardsPerRow, recentOrdersOpen, recentOrdersDockPosition, editingTransaction, editingOnlineOrderId, activeKermesId } = useVariableContext();
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   const [devMode, setDevMode] = useState(false);
@@ -118,6 +117,23 @@ function AppContent() {
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
   const theme = useTheme();
+  const [hasCloudAuth, setHasCloudAuth] = useState<boolean>(() => !!auth.currentUser);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setHasCloudAuth(!!user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!activeKermesId || !hasCloudAuth) return;
+    const db = getDb();
+
+    setDoc(doc(db, 'kermeses', activeKermesId), { currency }, { merge: true }).catch((error) => {
+      console.error('Failed to sync POS currency to kermes tenant document:', error);
+    });
+  }, [currency, activeKermesId, hasCloudAuth]);
 
   // Load products from service into context on mount
   useEffect(() => {

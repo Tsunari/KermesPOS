@@ -77,6 +77,39 @@ interface SubmittedOrderView {
   status: "pending" | "imported" | "completed" | "cancelled";
 }
 
+type CurrencyCode = "EUR" | "USD" | "TRY";
+
+const currencyLocales: Record<CurrencyCode, string> = {
+  EUR: "de-DE",
+  USD: "en-US",
+  TRY: "tr-TR",
+};
+
+const currencyAliases: Record<string, CurrencyCode> = {
+  EUR: "EUR",
+  USD: "USD",
+  TRY: "TRY",
+  "€": "EUR",
+  "$": "USD",
+  "₺": "TRY",
+};
+
+function resolveCurrencyCode(currency?: string | null): CurrencyCode {
+  const trimmed = currency?.trim();
+  if (!trimmed) return "EUR";
+  return currencyAliases[trimmed] ?? "EUR";
+}
+
+function formatCurrencyAmount(amount: number, currency?: string | null): string {
+  const code = resolveCurrencyCode(currency);
+  return new Intl.NumberFormat(currencyLocales[code], {
+    style: "currency",
+    currency: code,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
 
 
 function OrderPageContent() {
@@ -394,6 +427,7 @@ function OrderPageContent() {
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const formatPrice = (amount: number) => formatCurrencyAmount(amount, kermesData?.currency);
 
   // Submit Pre-Order to Firestore
   const handleSubmitOrder = async () => {
@@ -612,7 +646,7 @@ function OrderPageContent() {
 
             <button
               onClick={clearRecoveredTicket}
-              className="mt-4 flex items-center gap-2 bg-black hover:bg-gray-800 text-white font-extrabold px-6 py-2.5 rounded-2xl shadow transition text-sm cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="mt-4 flex items-center gap-2 bg-black hover:bg-gray-800 text-white font-extrabold px-6 py-2.5 rounded-2xl shadow transition-all text-sm cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
             >
               {t("start_new_order")}
             </button>
@@ -662,7 +696,7 @@ function OrderPageContent() {
               {submittedOrder.items.map((item, idx) => (
                 <div key={idx} className="flex justify-between items-center text-sm font-semibold text-black py-0.5 border-b border-gray-100/50">
                   <span>{item.quantity}x {item.product.name}</span>
-                  <span>{t("currency")}{(item.product.price * item.quantity).toFixed(2)}</span>
+                  <span>{formatPrice(item.product.price * item.quantity)}</span>
                 </div>
               ))}
             </div>
@@ -670,7 +704,7 @@ function OrderPageContent() {
             <div className="flex justify-between items-center">
               <span className="text-sm font-bold text-gray-500">{t("total")}</span>
               <span className="text-lg font-black text-black">
-                {t("currency")}{submittedOrder.total.toFixed(2)}
+                {formatPrice(submittedOrder.total)}
               </span>
             </div>
           </div>
@@ -787,7 +821,7 @@ function OrderPageContent() {
                 </div>
                 <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                   <span className="text-base font-black text-black">
-                    {t("currency")}{product.price.toFixed(2)}
+                    {formatPrice(product.price)}
                   </span>
                   {product.inStock && (
                     <button className="bg-black hover:bg-gray-800 text-white font-extrabold text-[11px] px-3.5 py-1.5 rounded-xl shadow transition">
@@ -808,7 +842,7 @@ function OrderPageContent() {
                 {cartCount} {t("items")}
               </span>
               <span className="text-lg font-black text-black leading-tight">
-                {t("currency")}{cartTotal.toFixed(2)}
+                {formatPrice(cartTotal)}
               </span>
             </div>
             <button
@@ -842,7 +876,7 @@ function OrderPageContent() {
                     <div className="flex-1 pr-3">
                       <h4 className="text-sm font-extrabold text-black">{item.product.name}</h4>
                       <span className="text-xs font-bold text-gray-500 mt-0.5 block">
-                        {t("currency")}{item.product.price.toFixed(2)}
+                        {formatPrice(item.product.price)}
                       </span>
                     </div>
                     
@@ -865,7 +899,7 @@ function OrderPageContent() {
                         </button>
                       </div>
                       <span className="text-sm font-black text-black min-w-[50px] text-right">
-                        {t("currency")}{(item.product.price * item.quantity).toFixed(2)}
+                        {formatPrice(item.product.price * item.quantity)}
                       </span>
                     </div>
                   </div>
@@ -877,7 +911,7 @@ function OrderPageContent() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-extrabold text-gray-500">{t("total")}</span>
                   <span className="text-xl font-black text-black">
-                    {t("currency")}{cartTotal.toFixed(2)}
+                    {formatPrice(cartTotal)}
                   </span>
                 </div>
                 <button

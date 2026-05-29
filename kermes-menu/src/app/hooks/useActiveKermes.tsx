@@ -12,6 +12,7 @@ export type KermesSettings = {
 export type KermesRecord = {
   id: string;
   name: string;
+  currency: string;
   assetFolder: string;
   festivalImage: string;
   menuImage: string;
@@ -79,6 +80,7 @@ export function ActiveKermesProvider({ children }: { children: React.ReactNode }
         setKermesData({
           id: snap.id,
           name: data?.name ?? snap.id,
+          currency: typeof data?.currency === 'string' && data.currency.trim() ? data.currency : 'EUR',
           assetFolder: data?.assetFolder ?? `/kermeses/${snap.id}`,
           festivalImage: data?.festivalImage ?? '',
           menuImage: data?.menuImage ?? '',
