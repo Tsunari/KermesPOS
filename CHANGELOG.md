@@ -5,6 +5,27 @@ All notable changes to the Kermes project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.20.0] - 29-05-2026
+### Kermes POS
+#### Added
+- Implement unified pos backup service coordinating localstorage and indexeddb
+- Add raw database overwrite methods to transaction and session services
+- Add system backup translation keys to localization files
+- Currency functionality synced with menu  --menu
+- Settable currency setting introduced
+#### Changed
+- Redesign import export manager with full system database time machine tabs
+- Big statistics page redesign
+- Centralized currency setting   --admin
+- Change calculator UI redesign
+- Settings page UI glowup
+- Import/export glowup
+- Sessions page glowup
+#### Fixed
+- Cleanup old online orders flag --fix  --admin --menu
+- Json import InStock case fix --fix
+
+
 ## [1.19.0] - 26-05-2026
 ### Global
 - Online order problems fix  -menu
