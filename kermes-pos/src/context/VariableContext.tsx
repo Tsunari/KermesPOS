@@ -39,8 +39,7 @@ export interface VariableContextType {
   setProfile: (profile: PlaceProfile | null) => void;
   onlineOrders: OnlineOrderSummary[];
   setOnlineOrders: (orders: OnlineOrderSummary[]) => void;
-  onlineOrdersEnabled: boolean;
-  setOnlineOrdersEnabled: (enabled: boolean) => void;
+
   editingOnlineOrderId: string | null;
   setEditingOnlineOrderId: (id: string | null) => void;
   importedOrderId: string | null;
@@ -71,8 +70,7 @@ const defaultValues: VariableContextType = {
   setProfile: () => {},
   onlineOrders: [],
   setOnlineOrders: () => {},
-  onlineOrdersEnabled: false,
-  setOnlineOrdersEnabled: () => {},
+
   editingOnlineOrderId: null,
   setEditingOnlineOrderId: () => {},
   importedOrderId: null,
@@ -110,10 +108,7 @@ export const VariableContextProvider: React.FC<{ children: React.ReactNode }> = 
     return firestoreSyncService.getPlaceProfile();
   });
   const [onlineOrders, setOnlineOrders] = useState<OnlineOrderSummary[]>([]);
-  const [onlineOrdersEnabled, setOnlineOrdersEnabledState] = useState<boolean>(() => {
-    const saved = localStorage.getItem('onlineOrdersEnabled');
-    return saved !== null ? JSON.parse(saved) : false;
-  });
+
   const [editingOnlineOrderId, setEditingOnlineOrderId] = useState<string | null>(null);
   const [importedOrderId, setImportedOrderId] = useState<string | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -164,7 +159,7 @@ export const VariableContextProvider: React.FC<{ children: React.ReactNode }> = 
 
   // Real-time Firestore online orders listener
   useEffect(() => {
-    if (!profile || !onlineOrdersEnabled || !activeKermesId) {
+    if (!profile || !activeKermesId) {
       setOnlineOrders([]);
       return;
     }
@@ -208,7 +203,7 @@ export const VariableContextProvider: React.FC<{ children: React.ReactNode }> = 
     return () => {
       unsubscribe();
     };
-  }, [profile, onlineOrdersEnabled, activeKermesId]);
+  }, [profile, activeKermesId]);
 
   // Save kursName to localStorage on change
   const handleSetKursName = (name: string) => {
@@ -231,10 +226,7 @@ export const VariableContextProvider: React.FC<{ children: React.ReactNode }> = 
     localStorage.setItem('recentOrdersDockPosition', pos);
   };
 
-  const handleSetOnlineOrdersEnabled = (enabled: boolean) => {
-    setOnlineOrdersEnabledState(enabled);
-    localStorage.setItem('onlineOrdersEnabled', JSON.stringify(enabled));
-  };
+
 
   return (
     <VariableContext.Provider value={{
@@ -257,8 +249,7 @@ export const VariableContextProvider: React.FC<{ children: React.ReactNode }> = 
       setProfile,
       onlineOrders,
       setOnlineOrders,
-      onlineOrdersEnabled,
-      setOnlineOrdersEnabled: handleSetOnlineOrdersEnabled,
+
       editingOnlineOrderId,
       setEditingOnlineOrderId,
       importedOrderId,
