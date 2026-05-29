@@ -424,7 +424,10 @@
     },
     "changeCalculator": {
       "givenAmount": "Given Amount",
-      "change": "Change"
+      "change": "Change",
+      "title": "Change Calculator",
+      "float": "Float to Popover",
+      "dock": "Dock in Footer"
     },
     "categories": {
       "food": "Food",

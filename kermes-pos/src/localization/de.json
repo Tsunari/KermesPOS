@@ -467,7 +467,10 @@
     },
     "changeCalculator": {
       "givenAmount": "Erhalten",
-      "change": "Rückgeld"
+      "change": "Rückgeld",
+      "title": "Wechselgeldrechner",
+      "float": "Schwebendes Fenster",
+      "dock": "Unten andocken"
     },
     "Error loading sessions. Check browser console.": "Fehler beim Laden der Sitzungen. Prüfen Sie die Browser-Konsole.",
     "Error creating session. Check browser console.": "Fehler beim Erstellen der Sitzung. Prüfen Sie die Browser-Konsole.",

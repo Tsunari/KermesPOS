@@ -8,6 +8,7 @@ import {
   Popover,
   ToggleButton,
   ToggleButtonGroup,
+  Paper,
 } from '@mui/material';
 import { useLanguage } from '../../context/LanguageContext';
 import ChangeCalculator from './ChangeCalculator';
@@ -16,6 +17,9 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import HotkeySettings from '../HotkeySettings';
 import PaymentsIcon from '@mui/icons-material/Payments';         // cash
 import CreditCardIcon from '@mui/icons-material/CreditCard';    // card
+import CalculateIcon from '@mui/icons-material/Calculate';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import CloseIcon from '@mui/icons-material/Close';
 
 import { useSettings } from '../../context/SettingsContext';
 
@@ -42,6 +46,82 @@ const CartFooter: React.FC<CartFooterProps> = ({
 }) => {
   const { t } = useLanguage();
   const { formatPrice } = useSettings();
+  const [calculatorOpen, setCalculatorOpen] = React.useState(false);
+  const [calculatorMode, setCalculatorMode] = React.useState<'inline' | 'popover'>(() => {
+    if (typeof window === 'undefined') return 'inline';
+    return (localStorage.getItem('pos.calculatorMode') as 'inline' | 'popover') || 'inline';
+  });
+  const triggerRef = React.useRef<HTMLButtonElement | null>(null);
+
+  const [position, setPosition] = React.useState<{ x: number; y: number }>(() => {
+    try {
+      const saved = localStorage.getItem('pos.calculatorPosition');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Failed to parse calculator position', e);
+    }
+    return { x: 360, y: 450 }; // Default position next to the cart
+  });
+
+  const dragRef = React.useRef<{ isDragging: boolean; startX: number; startY: number; posX: number; posY: number }>({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    posX: 360,
+    posY: 450
+  });
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('input')) return;
+
+    dragRef.current = {
+      isDragging: true,
+      startX: e.clientX - position.x,
+      startY: e.clientY - position.y,
+      posX: position.x,
+      posY: position.y
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    e.preventDefault();
+  };
+
+  const handleMouseMove = React.useCallback((e: MouseEvent) => {
+    if (!dragRef.current.isDragging) return;
+    const newX = e.clientX - dragRef.current.startX;
+    const newY = e.clientY - dragRef.current.startY;
+    
+    // Bounded coordinates so the calculator card doesn't go off-screen
+    const boundedX = Math.max(0, Math.min(window.innerWidth - 290, newX));
+    const boundedY = Math.max(0, Math.min(window.innerHeight - 250, newY));
+
+    dragRef.current.posX = boundedX;
+    dragRef.current.posY = boundedY;
+
+    setPosition({ x: boundedX, y: boundedY });
+  }, []);
+
+  const handleMouseUp = React.useCallback(() => {
+    if (dragRef.current.isDragging) {
+      dragRef.current.isDragging = false;
+      localStorage.setItem('pos.calculatorPosition', JSON.stringify({
+        x: dragRef.current.posX,
+        y: dragRef.current.posY
+      }));
+    }
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+  }, [handleMouseMove]);
+
+  React.useEffect(() => {
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [handleMouseMove, handleMouseUp]);
   const formatHotkey = (h: string) => {
     if (!h) return 'Space';
     const parts = h.split('+').map(p => p.trim()).filter(Boolean);
@@ -71,13 +151,114 @@ const CartFooter: React.FC<CartFooterProps> = ({
       zIndex: 10
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, minHeight: 48 }}>
-        <Typography variant="h6" gutterBottom sx={{ m: 0, flex: 1, fontWeight: 700, fontSize: 18, color: 'text.primary' }}>
+        <Typography variant="h6" sx={{ m: 0, flex: 1, fontWeight: 700, fontSize: 18, color: 'text.primary' }}>
           {t('app.cart.total')}: {formatPrice(total)}
         </Typography>
         <Box sx={{ flexShrink: 0, ml: 2 }}>
-          <ChangeCalculator total={total} />
+          <Button
+            ref={triggerRef}
+            variant="outlined"
+            color={calculatorOpen ? "primary" : "inherit"}
+            onClick={() => setCalculatorOpen(prev => !prev)}
+            sx={{
+              borderRadius: '6px',
+              minWidth: 40,
+              minHeight: 40,
+              width: 40,
+              height: 40,
+              p: 0,
+              borderColor: calculatorOpen ? 'primary.main' : 'divider',
+              color: calculatorOpen ? 'primary.main' : 'text.secondary',
+              '&:hover': {
+                borderColor: 'primary.main',
+                color: 'primary.main',
+                bgcolor: 'action.hover',
+              },
+            }}
+          >
+            <CalculateIcon fontSize="medium" />
+          </Button>
         </Box>
       </Box>
+
+      {/* Inline Change Calculator */}
+      <ChangeCalculator
+        total={total}
+        open={calculatorOpen && calculatorMode === 'inline'}
+        mode="inline"
+        onToggleMode={() => {
+          const nextMode = 'popover';
+          setCalculatorMode(nextMode);
+          localStorage.setItem('pos.calculatorMode', nextMode);
+        }}
+      />
+
+      {/* Floating Draggable Change Calculator */}
+      {calculatorOpen && calculatorMode === 'popover' && (
+        <Paper
+          elevation={8}
+          onMouseDown={handleMouseDown}
+          sx={{
+            position: 'fixed',
+            left: position.x,
+            top: position.y,
+            width: '280px',
+            borderRadius: 2.5,
+            border: '1px solid',
+            borderColor: 'divider',
+            bgcolor: 'background.paper',
+            boxShadow: theme => theme.palette.mode === 'dark' 
+              ? '0 12px 40px rgba(0,0,0,0.65)' 
+              : '0 8px 32px rgba(0,0,0,0.12)',
+            zIndex: 1300,
+            overflow: 'hidden',
+            userSelect: 'none',
+          }}
+        >
+          {/* Drag Handle & Header */}
+          <Box
+            sx={{
+              px: 1.5,
+              py: 0.75,
+              bgcolor: 'action.hover',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              cursor: 'grab',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              '&:active': { cursor: 'grabbing' }
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <DragIndicatorIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+              <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                {t('app.changeCalculator.title') || 'Change Calculator'}
+              </Typography>
+            </Box>
+            <IconButton 
+              size="small" 
+              onClick={() => setCalculatorOpen(false)}
+              sx={{ p: 0.25, color: 'text.secondary', '&:hover': { color: 'error.main' } }}
+            >
+              <CloseIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Box>
+
+          <Box sx={{ p: 1.5 }}>
+            <ChangeCalculator
+              total={total}
+              open={calculatorOpen}
+              mode="popover"
+              onToggleMode={() => {
+                const nextMode = 'inline';
+                setCalculatorMode(nextMode);
+                localStorage.setItem('pos.calculatorMode', nextMode);
+              }}
+            />
+          </Box>
+        </Paper>
+      )}
 
       {/* Payment Method Toggle */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5, mt: 1.5 }}>

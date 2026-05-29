@@ -1,19 +1,19 @@
 import React from 'react';
-import { InputAdornment, TextField, Typography, Box, Button } from '@mui/material';
-import CalculateIcon from '@mui/icons-material/Calculate';
-import ReactDOM from 'react-dom';
+import { InputAdornment, TextField, Typography, Box, Button, Collapse, IconButton, Tooltip } from '@mui/material';
 import { useLanguage } from '../../context/LanguageContext';
 import { useSettings } from '../../context/SettingsContext';
+import LaunchIcon from '@mui/icons-material/Launch';
+import VerticalAlignBottomIcon from '@mui/icons-material/VerticalAlignBottom';
 
 interface ChangeCalculatorProps {
   total: number;
+  open: boolean;
+  mode?: 'inline' | 'popover';
+  onToggleMode?: () => void;
 }
 
-const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({ total }) => {
-  const [open, setOpen] = React.useState(false);
+const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({ total, open, mode = 'inline', onToggleMode }) => {
   const [given, setGiven] = React.useState('');
-  const [focused, setFocused] = React.useState(false);
-  const iconButtonRef = React.useRef<HTMLButtonElement>(null);
   const { formatPrice, currency } = useSettings();
   const change = given && !isNaN(Number(given)) ? Number(given) - total : 0;
   const { t } = useLanguage();
@@ -25,38 +25,49 @@ const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({ total }) => {
   };
   const currencySymbol = currencySymbols[currency] || '€';
 
-  // Portal for floating panel
-  const panel = (
+  // Automatically clear input when calculator is closed
+  React.useEffect(() => {
+    if (!open) {
+      setGiven('');
+    }
+  }, [open]);
+
+  const calculatorContent = (
     <Box
       sx={{
-        position: 'fixed',
-        top: iconButtonRef.current ? iconButtonRef.current.getBoundingClientRect().top - 100 : 20,
-        left: iconButtonRef.current ? iconButtonRef.current.getBoundingClientRect().right + 12 : 200,
-        zIndex: 2000,
-        width: 380,
-        maxWidth: '90vw',
-        boxShadow: 6,
-        p: 2,
-        bgcolor: 'background.paper',
-        borderRadius: 3,
-        minWidth: 260,
+        p: 1.25,
+        bgcolor: 'action.hover',
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'divider',
         display: 'flex',
         flexDirection: 'column',
-        gap: 2,
-        border: '1px solid',
-        borderColor: 'primary.light',
+        gap: 1.25,
+        mb: mode === 'inline' ? 1.5 : 0,
+        mt: mode === 'inline' ? 0.5 : 0,
+        width: '100%',
+        boxSizing: 'border-box',
       }}
     >
-      <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+      {/* Quick Cash Buttons */}
+      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
         {[1, 2, 5, 10, 20, 50].map((amount) => (
           <Button
             key={amount}
             variant="outlined"
             color="primary"
             size="small"
-            sx={{ flex: 1, fontWeight: 700, borderRadius: 2, px: 0 }}
+            sx={{
+              flex: 1,
+              fontWeight: 700,
+              borderRadius: 1.5,
+              px: 0,
+              py: 0.25,
+              fontSize: 11,
+              minWidth: '35px',
+              bgcolor: 'background.paper'
+            }}
             onClick={() => setGiven((prev) => {
-              // If input is empty, set to amount. If not, add to current value.
               const prevNum = parseFloat(prev.replace(',', '.')) || 0;
               return (prevNum + amount).toString();
             })}
@@ -65,16 +76,16 @@ const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({ total }) => {
           </Button>
         ))}
       </Box>
+
+      {/* Given Input Field */}
       <TextField
         label={t('app.changeCalculator.givenAmount')}
         variant="outlined"
+        size="small"
         value={given.replace('.', ',')}
         onChange={e => {
-          // Accept both comma and dot, but always store as dot for calculation
           let raw = e.target.value.replace(/[^0-9.,]/g, '');
-          // Only allow one comma or dot
           raw = raw.replace(/(,|\.){2,}/g, '$1');
-          // Enforce max 9 digits before comma and 2 after
           const match = raw.match(/^([0-9]{0,9})([.,]?)([0-9]{0,2})/);
           let formatted = '';
           if (match) {
@@ -82,11 +93,8 @@ const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({ total }) => {
             if (match[2]) formatted += ',';
             if (match[3]) formatted += match[3];
           }
-          // Store with dot for calculation
           setGiven(formatted.replace(',', '.'));
         }}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
         inputMode="decimal"
         InputProps={{
           endAdornment: (
@@ -96,90 +104,64 @@ const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({ total }) => {
                 onClick={() => setGiven('')}
                 sx={{
                   minWidth: 0,
-                  height: '32px',
-                  p: 2,
+                  height: '24px',
+                  px: 1,
                   color: 'error.main',
-                  borderRadius: '8px',
-                  boxShadow: 1,
+                  borderRadius: '4px',
                   fontWeight: 700,
-                  fontSize: 12,
+                  fontSize: 11,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  lineHeight: 1.2,
+                  mr: 1,
                 }}
               >
                 Clear
               </Button>
-              <InputAdornment position="end">{currencySymbol}</InputAdornment>
+              <InputAdornment position="end" sx={{ '& .MuiTypography-root': { fontSize: 13 } }}>{currencySymbol}</InputAdornment>
             </>
           ),
-          sx: { fontSize: 20, fontWeight: 600, borderRadius: 2 },
+          sx: { fontSize: 14, fontWeight: 600, borderRadius: 1.5, bgcolor: 'background.paper' },
         }}
         sx={{
-          bgcolor: focused ? 'background.default' : 'background.paper',
-          borderRadius: 2,
-          fontWeight: 600,
-          fontSize: 20,
-          boxShadow: 1,
+          borderRadius: 1.5,
         }}
         fullWidth
         autoFocus={open}
       />
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-          {t('app.cart.total')}: <span style={{ color: '#1976d2', fontWeight: 700 }}>{formatPrice(total)}</span>
-        </Typography>
-        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: change < 0 ? 'error.main' : 'success.main' }}>
+
+      {/* Result Row */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: 30 }}>
+        <Typography variant="body2" sx={{ fontWeight: 600, color: change < 0 ? 'error.main' : 'success.main', fontSize: 13 }}>
           {t('app.changeCalculator.change')}: <span style={{ fontWeight: 700 }}>{change >= 0 ? formatPrice(change) : formatPrice(0)}</span>
         </Typography>
+        {onToggleMode && (
+          <Tooltip title={mode === 'inline' ? t('app.changeCalculator.float') || 'Float to Popover' : t('app.changeCalculator.dock') || 'Dock in Footer'}>
+            <IconButton
+              size="small"
+              onClick={onToggleMode}
+              sx={{
+                color: 'primary.main',
+                p: 0.5,
+                '&:hover': { bgcolor: 'action.hover' }
+              }}
+            >
+              {mode === 'inline' ? <LaunchIcon sx={{ fontSize: 16 }} /> : <VerticalAlignBottomIcon sx={{ fontSize: 16 }} />}
+            </IconButton>
+          </Tooltip>
+        )}
       </Box>
     </Box>
   );
 
+  if (mode === 'popover') {
+    return calculatorContent;
+  }
+
   return (
-    <>
-      <Box sx={{
-        position: 'relative',
-        display: 'inline-block',
-        minWidth: 0
-      }}>
-        <Button
-          ref={iconButtonRef}
-          variant="contained"
-          onClick={() => setOpen(o => !o)}
-          sx={{
-            borderRadius: '6px',
-            minWidth: 40,
-            minHeight: 40,
-            width: 40,
-            height: 40,
-            p: 0,
-            bgcolor: open ? 'primary.main' : 'transparent',
-            color: open ? 'primary.contrastText' : 'primary.main',
-            border: '1.5px solid',
-            borderColor: open ? 'primary.main' : 'divider',
-            outline: 'none',
-            boxShadow: 'none',
-            transition: 'all 0.2s',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            '&:hover': {
-              bgcolor: open ? 'primary.dark' : 'action.hover',
-              borderColor: open ? 'primary.dark' : 'primary.main',
-              color: open ? 'primary.contrastText' : 'primary.main',
-              boxShadow: 'none',
-            },
-          }}
-        >
-          <CalculateIcon fontSize="medium" />
-        </Button>
-      </Box>
-      {open && typeof window !== 'undefined' && iconButtonRef.current &&
-        ReactDOM.createPortal(panel, document.body)
-      }
-    </>
+    <Collapse in={open} timeout="auto" unmountOnExit sx={{ width: '100%' }}>
+      {calculatorContent}
+    </Collapse>
   );
 };
 

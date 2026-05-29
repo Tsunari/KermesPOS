@@ -467,7 +467,10 @@
     },
     "changeCalculator": {
       "givenAmount": "Verilen miktar",
-      "change": "Para Üstü"
+      "change": "Para Üstü",
+      "title": "Para Üstü Hesaplayıcı",
+      "float": "Serbest Pencere Yap",
+      "dock": "Alt Panele Sabitle"
     },
     "Error loading sessions. Check browser console.": "Oturumlar yüklenirken hata oluştu. Tarayıcı konsolunu kontrol edin.",
     "Error creating session. Check browser console.": "Oturum oluşturulurken hata oluştu. Tarayıcı konsolunu kontrol edin.",
