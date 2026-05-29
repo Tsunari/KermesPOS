@@ -29,6 +29,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import EventIcon from '@mui/icons-material/Event';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { useLanguage } from '../context/LanguageContext';
 import { Session } from '../types/session';
 import { sessionService } from '../services/sessionService';
@@ -87,7 +91,7 @@ const SessionsPage: React.FC = () => {
       setSessions(sorted);
     } catch (error) {
       console.error('SessionsPage: Error loading sessions', error);
-      alert('Error loading sessions. Check browser console.');
+      alert(t('app.sessions.errorLoadingSessions') || 'Error loading sessions. Check browser console.');
     } finally {
       setLoading(false);
     }
@@ -113,10 +117,11 @@ const SessionsPage: React.FC = () => {
             ? new Date(conflictingSession.endDate).toLocaleDateString('de-DE')
             : 'ongoing';
           alert(
-            `Date range overlaps with existing session:\\n\\n` +
-            `"${conflictingSession.name}"\\n` +
-            `${conflictStart} - ${conflictEnd}\\n\\n` +
-            `Please choose different dates.`
+            (t('app.sessions.dateOverlapError') || 
+              `Date range overlaps with existing session:\n\n"{name}"\n{start} - {end}\n\nPlease choose different dates.`)
+              .replace('{name}', conflictingSession.name)
+              .replace('{start}', conflictStart)
+              .replace('{end}', conflictEnd)
           );
           return;
         }
@@ -151,7 +156,7 @@ const SessionsPage: React.FC = () => {
       ]);
     } catch (error) {
       console.error('SessionsPage: Error creating session', error);
-      alert('Error creating session. Check browser console.');
+      alert(t('app.sessions.errorCreatingSession') || 'Error creating session. Check browser console.');
     }
   };
 
@@ -165,7 +170,7 @@ const SessionsPage: React.FC = () => {
       handleMenuClose();
     } catch (error) {
       console.error('SessionsPage: Error completing session:', error);
-      alert('Error completing session. Check console.');
+      alert(t('app.sessions.errorCompletingSession') || 'Error completing session. Check console.');
     }
   };
 
@@ -179,7 +184,7 @@ const SessionsPage: React.FC = () => {
       handleMenuClose();
     } catch (error) {
       console.error('SessionsPage: Error pausing session:', error);
-      alert('Error pausing session. Check console.');
+      alert(t('app.sessions.errorPausingSession') || 'Error pausing session. Check console.');
     }
   };
 
@@ -201,12 +206,12 @@ const SessionsPage: React.FC = () => {
       handleMenuClose();
     } catch (error) {
       console.error('SessionsPage: Error resuming session:', error);
-      alert('Error resuming session. Check console.');
+      alert(t('app.sessions.errorResumingSession') || 'Error resuming session. Check console.');
     }
   };
 
   const handleDeleteSession = async (sessionId: string) => {
-    if (window.confirm('Are you sure you want to delete this session? The transactions will remain in the database.')) {
+    if (window.confirm(t('app.sessions.confirmDeleteSession') || 'Are you sure you want to delete this session? The transactions will remain in the database.')) {
       try {
         console.log('SessionsPage: Deleting session', sessionId);
         await sessionService.deleteSession(sessionId);
@@ -221,7 +226,7 @@ const SessionsPage: React.FC = () => {
         handleMenuClose();
       } catch (error) {
         console.error('SessionsPage: Error deleting session:', error);
-        alert('Error deleting session. Check console.');
+        alert(t('app.sessions.errorDeletingSession') || 'Error deleting session. Check console.');
       }
     }
   };
@@ -243,7 +248,7 @@ const SessionsPage: React.FC = () => {
       
       // Check if session is completed
       if (session.status === 'completed') {
-        alert('Cannot edit completed sessions.');
+        alert(t('app.sessions.cannotEditCompleted') || 'Cannot edit completed sessions.');
         return;
       }
 
@@ -262,7 +267,7 @@ const SessionsPage: React.FC = () => {
   };
 
   const handleClearManualDates = async (sessionId: string) => {
-    if (window.confirm('Clear manual date range? Transactions will no longer be retroactively linked by date.')) {
+    if (window.confirm(t('app.sessions.confirmClearDates') || 'Clear manual date range? Transactions will no longer be retroactively linked by date.')) {
       try {
         console.log('SessionsPage: Clearing manual dates for session', sessionId);
         const updatedSession = await sessionService.clearManualDateRange(sessionId);
@@ -277,7 +282,7 @@ const SessionsPage: React.FC = () => {
         setEditingSessionId(null);
       } catch (error) {
         console.error('SessionsPage: Error clearing manual dates:', error);
-        alert('Error clearing dates. Check console.');
+        alert(t('app.sessions.errorClearingDates') || 'Error clearing dates. Check console.');
       }
     }
   };
@@ -305,10 +310,11 @@ const SessionsPage: React.FC = () => {
             ? new Date(conflictingSession.endDate).toLocaleDateString('de-DE')
             : 'ongoing';
           alert(
-            `Date range overlaps with existing session:\n\n` +
-            `"${conflictingSession.name}"\n` +
-            `${conflictStart} - ${conflictEnd}\n\n` +
-            `Please choose different dates.`
+            (t('app.sessions.dateOverlapError') || 
+              `Date range overlaps with existing session:\n\n"{name}"\n{start} - {end}\n\nPlease choose different dates.`)
+              .replace('{name}', conflictingSession.name)
+              .replace('{start}', conflictStart)
+              .replace('{end}', conflictEnd)
           );
           return;
         }
@@ -328,7 +334,10 @@ const SessionsPage: React.FC = () => {
       
       console.log(`SessionsPage: Linked ${linkedCount} transactions, unlinked ${unlinkedCount}`);
       if (unlinkedCount > 0) {
-        alert(`Updated session! Moved ${unlinkedCount} transaction(s) from other sessions.`);
+        alert(
+          t('Updated session! Moved ${unlinkedCount} transaction(s) from other sessions.') || 
+          `Updated session! Moved ${unlinkedCount} transaction(s) from other sessions.`
+        );
       }
 
       // Update state with sorted order
@@ -341,7 +350,7 @@ const SessionsPage: React.FC = () => {
       setEditingSessionId(null);
     } catch (error) {
       console.error('SessionsPage: Error saving session:', error);
-      alert('Error saving session. Check console.');
+      alert(t('app.sessions.errorSavingSession') || 'Error saving session. Check console.');
     }
   };
 
@@ -361,7 +370,23 @@ const SessionsPage: React.FC = () => {
   const getStatusIcon = (status: Session['status']) => {
     switch (status) {
       case 'active':
-        return <PlayArrowIcon sx={{ fontSize: 16, mr: 0.5 }} />;
+        return (
+          <Box
+            sx={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              bgcolor: 'success.main',
+              mr: 0.5,
+              animation: 'activePulse 1.5s infinite ease-in-out',
+              '@keyframes activePulse': {
+                '0%': { transform: 'scale(0.8)', opacity: 0.5, boxShadow: '0 0 0 0 rgba(46, 125, 50, 0.7)' },
+                '70%': { transform: 'scale(1.2)', opacity: 1, boxShadow: '0 0 0 5px rgba(46, 125, 50, 0)' },
+                '100%': { transform: 'scale(0.8)', opacity: 0.5, boxShadow: '0 0 0 0 rgba(46, 125, 50, 0)' },
+              }
+            }}
+          />
+        );
       case 'paused':
         return <PauseIcon sx={{ fontSize: 16, mr: 0.5 }} />;
       case 'completed':
@@ -371,36 +396,39 @@ const SessionsPage: React.FC = () => {
     }
   };
 
-  const formatDuration = (startDate: string, endDate?: string, status?: Session['status'], updatedAt?: string, hasManualDateRange?: boolean) => {
-    const start = new Date(startDate);
+  const formatDuration = (session: Session) => {
+    const { startDate, endDate, status, updatedAt, hasManualDateRange, createdAt } = session;
     
-    // Determine end time based on session status
+    // Choose starting point: manual date vs creation timestamp
+    const start = hasManualDateRange ? new Date(startDate) : new Date(createdAt);
+    
+    // Determine ending point based on status
     let end: Date;
     
     if (hasManualDateRange && endDate) {
-      // Manual date range: use the explicit endDate
       end = new Date(endDate);
     } else if (status === 'paused' && updatedAt) {
-      // Paused: show duration until paused
       end = new Date(updatedAt);
     } else if (status === 'completed' && endDate) {
-      // Completed: show duration until completion
       end = new Date(endDate);
     } else {
-      // Active: show duration until now
       end = new Date();
     }
     
     const diffMs = end.getTime() - start.getTime();
+    
+    // If difference is negative (e.g. clock drift or future dates), return 0m
+    if (diffMs <= 0) return `0${t('app.sessions.durationMinutes') || 'm'}`;
+    
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
     // Build duration string with granularity
     const parts = [];
-    if (diffDays > 0) parts.push(`${diffDays}d`);
-    if (diffHours > 0) parts.push(`${diffHours}h`);
-    if (diffMinutes > 0 || parts.length === 0) parts.push(`${diffMinutes}m`);
+    if (diffDays > 0) parts.push(`${diffDays}${t('app.sessions.durationDays') || 'd'}`);
+    if (diffHours > 0) parts.push(`${diffHours}${t('app.sessions.durationHours') || 'h'}`);
+    if (diffMinutes > 0 || parts.length === 0) parts.push(`${diffMinutes}${t('app.sessions.durationMinutes') || 'm'}`);
     
     return parts.join(' ');
   };
@@ -440,6 +468,7 @@ const SessionsPage: React.FC = () => {
         </Box>
       ) : sessions.length === 0 ? (
         <Paper
+          component={Box}
           sx={{
             p: 4,
             textAlign: 'center',
@@ -464,7 +493,7 @@ const SessionsPage: React.FC = () => {
           </Button>
         </Paper>
       ) : (
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 2 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 2.5 }}>
           {sessions.map((session) => (
             <SessionCard
               key={session.id}
@@ -533,11 +562,20 @@ const SessionsPage: React.FC = () => {
 
       {/* Create Session Dialog */}
       <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700 }}>
+        <DialogTitle sx={{ 
+          fontWeight: 800, 
+          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+          color: '#fff',
+          pb: 2,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5
+        }}>
+          <EventIcon />
           {t('app.sessions.newSession') || 'Create New Session'}
         </DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <Stack spacing={2}>
+        <DialogContent sx={{ pt: '24px !important' }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
               fullWidth
               label={t('app.sessions.sessionName') || 'Session Name'}
@@ -548,8 +586,8 @@ const SessionsPage: React.FC = () => {
             />
             <TextField
               fullWidth
-              label={t('app.sessions.description') || 'Description (Optional)'}
-              placeholder="Add notes or details about this session..."
+              label={t('app.sessions.sessionDescription') || 'Description (Optional)'}
+              placeholder={t('app.sessions.descriptionPlaceholder') || "Add notes or details about this session..."}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               multiline
@@ -576,7 +614,7 @@ const SessionsPage: React.FC = () => {
                 />
               }
             >
-              {t('app.sessions.dateRange') || 'Link transactions by date range (optional)'}
+              {t('app.sessions.linkDatesLabel') || 'Link transactions by date range (optional)'}
             </Button>
             
             <Collapse in={expandCreateDates} timeout="auto" unmountOnExit>
@@ -588,7 +626,7 @@ const SessionsPage: React.FC = () => {
                   value={formData.startDate}
                   onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                   InputLabelProps={{ shrink: true }}
-                  helperText="Transactions on or after this date will be linked to this session"
+                  helperText={t('app.sessions.startDateHelper') || "Transactions on or after this date will be linked to this session"}
                 />
                 <TextField
                   fullWidth
@@ -597,7 +635,7 @@ const SessionsPage: React.FC = () => {
                   value={formData.endDate}
                   onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                   InputLabelProps={{ shrink: true }}
-                  helperText="Leave blank for ongoing session. Transactions until this date will be linked."
+                  helperText={t('app.sessions.endDateHelper') || "Leave blank for ongoing session. Transactions until this date will be linked."}
                 />
               </Stack>
             </Collapse>
@@ -624,11 +662,20 @@ const SessionsPage: React.FC = () => {
 
       {/* Edit Session Dialog */}
       <Dialog open={isEditDialogOpen} onClose={() => setIsEditDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700 }}>
+        <DialogTitle sx={{ 
+          fontWeight: 800, 
+          background: `linear-gradient(135deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.dark} 100%)`,
+          color: '#fff',
+          pb: 2,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5
+        }}>
+          <EditIcon />
           {t('common.edit') || 'Edit Session'}
         </DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <Stack spacing={2}>
+        <DialogContent sx={{ pt: '24px !important' }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
               fullWidth
               label={t('app.sessions.sessionName') || 'Session Name'}
@@ -638,7 +685,7 @@ const SessionsPage: React.FC = () => {
             />
             <TextField
               fullWidth
-              label={t('app.sessions.description') || 'Description (Optional)'}
+              label={t('app.sessions.sessionDescription') || 'Description (Optional)'}
               value={editFormData.description}
               onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
               multiline
@@ -665,7 +712,7 @@ const SessionsPage: React.FC = () => {
                 />
               }
             >
-              {t('app.sessions.dateRange') || 'Link transactions by date range (optional)'}
+              {t('app.sessions.linkDatesLabel') || 'Link transactions by date range (optional)'}
             </Button>
             
             <Collapse in={expandEditDates} timeout="auto" unmountOnExit>
@@ -677,7 +724,7 @@ const SessionsPage: React.FC = () => {
                   value={editFormData.startDate}
                   onChange={(e) => setEditFormData({ ...editFormData, startDate: e.target.value })}
                   InputLabelProps={{ shrink: true }}
-                  helperText="Changing dates will retroactively link transactions in that range"
+                  helperText={t('app.sessions.editStartDateHelper') || "Changing dates will retroactively link transactions in that range"}
                 />
                 <TextField
                   fullWidth
@@ -686,7 +733,7 @@ const SessionsPage: React.FC = () => {
                   value={editFormData.endDate}
                   onChange={(e) => setEditFormData({ ...editFormData, endDate: e.target.value })}
                   InputLabelProps={{ shrink: true }}
-                  helperText="Transactions in overlapping date ranges will be moved from other sessions"
+                  helperText={t('app.sessions.editEndDateHelper') || "Transactions in overlapping date ranges will be moved from other sessions"}
                 />
               </Stack>
             </Collapse>
@@ -727,7 +774,7 @@ const SessionsPage: React.FC = () => {
 interface SessionCardProps {
   session: Session;
   onMenuOpen: (e: React.MouseEvent<HTMLElement>) => void;
-  formatDuration: (startDate: string, endDate?: string, status?: Session['status'], updatedAt?: string, hasManualDateRange?: boolean) => string;
+  formatDuration: (session: Session) => string;
   getStatusColor: (status: Session['status']) => 'success' | 'warning' | 'default' | 'error';
   getStatusIcon: (status: Session['status']) => React.ReactElement | null;
 }
@@ -740,6 +787,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
   getStatusIcon,
 }) => {
   const theme = useTheme();
+  const { t } = useLanguage();
   const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
@@ -778,7 +826,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
   }, [session]);
 
   const statusColor = getStatusColor(session.status);
-  const statusLabel = session.status.charAt(0).toUpperCase() + session.status.slice(1);
+  const statusLabel = t(`app.sessions.status${session.status.charAt(0).toUpperCase() + session.status.slice(1)}`) || session.status;
 
   return (
     <Card
@@ -786,19 +834,37 @@ const SessionCard: React.FC<SessionCardProps> = ({
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        '&:hover': {
-          transform: 'translateY(-8px)',
-          boxShadow: theme.shadows[12],
-        },
+        borderRadius: 4,
+        border: `1.5px solid ${theme.palette.divider}`,
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        bgcolor: 'background.paper',
         position: 'relative',
         overflow: 'hidden',
+        boxShadow: theme.palette.mode === 'dark' 
+          ? '0 4px 20px 0 rgba(0,0,0,0.3)' 
+          : '0 4px 20px 0 rgba(0,0,0,0.05)',
+        '&:hover': {
+          transform: 'translateY(-6px)',
+          boxShadow: theme.palette.mode === 'dark'
+            ? '0 12px 30px 0 rgba(0,0,0,0.5)'
+            : '0 12px 30px 0 rgba(0,0,0,0.1)',
+          borderColor: session.status === 'active' ? theme.palette.success.main : 'primary.light',
+        },
+        ...(session.status === 'active' && {
+          border: `2px solid ${theme.palette.success.main}`,
+          animation: 'cardPulse 2.5s infinite ease-in-out',
+          '@keyframes cardPulse': {
+            '0%': { boxShadow: theme.palette.mode === 'dark' ? '0 4px 20px 0 rgba(46, 125, 50, 0.15)' : '0 4px 20px 0 rgba(46, 125, 50, 0.08)' },
+            '50%': { boxShadow: theme.palette.mode === 'dark' ? '0 8px 30px 0 rgba(46, 125, 50, 0.4)' : '0 8px 30px 0 rgba(46, 125, 50, 0.18)' },
+            '100%': { boxShadow: theme.palette.mode === 'dark' ? '0 4px 20px 0 rgba(46, 125, 50, 0.15)' : '0 4px 20px 0 rgba(46, 125, 50, 0.08)' }
+          }
+        })
       }}
     >
-      {/* Status bar */}
+      {/* Status indicator bar */}
       <Box
         sx={{
-          height: 4,
+          height: 5,
           background:
             statusColor === 'success'
               ? theme.palette.success.main
@@ -808,15 +874,15 @@ const SessionCard: React.FC<SessionCardProps> = ({
         }}
       />
 
-      <CardContent sx={{ pb: 1 }}>
-        {/* Header with menu */}
+      <CardContent sx={{ pb: 2, pt: 2.5, px: 2.5, display: 'flex', flexDirection: 'column', height: '100%' }}>
+        {/* Header with action menu button */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, mb: 0.5, letterSpacing: '-0.3px', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {session.name}
             </Typography>
             {session.description && (
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {session.description}
               </Typography>
             )}
@@ -826,88 +892,236 @@ const SessionCard: React.FC<SessionCardProps> = ({
               size="small"
               color={statusColor}
               variant="outlined"
-              sx={{ mt: 0.5 }}
+              sx={{ 
+                mt: 0.5, 
+                fontWeight: 700, 
+                fontSize: 11,
+                height: 24,
+                px: 0.5,
+                bgcolor: statusColor === 'success' 
+                  ? 'success.light' + '11' 
+                  : statusColor === 'warning' 
+                  ? 'warning.light' + '11' 
+                  : 'transparent',
+                borderColor: statusColor === 'success' 
+                  ? 'success.main' + '55' 
+                  : statusColor === 'warning' 
+                  ? 'warning.main' + '55' 
+                  : 'divider'
+              }}
             />
           </Box>
-          <IconButton size="small" onClick={onMenuOpen}>
+          <IconButton size="small" onClick={onMenuOpen} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '10px', p: 0.75 }}>
             <MoreVertIcon fontSize="small" />
           </IconButton>
         </Box>
 
-        <Divider sx={{ my: 1.5 }} />
+        <Divider sx={{ my: 1 }} />
 
-        {/* Stats */}
-        <Stack spacing={1.5} sx={{ mb: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="caption" color="text.secondary">
-              Revenue
-            </Typography>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'success.main' }}>
-              {stats?.totalRevenue.toLocaleString('de-DE', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-              €
-            </Typography>
+        {/* 2x2 Glassmorphic Stats Grid */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, my: 1.5 }}>
+          {/* Revenue */}
+          <Box sx={{ 
+            p: 1.5, 
+            borderRadius: 3, 
+            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+            border: `1px solid ${theme.palette.divider}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              p: 0.75, 
+              borderRadius: 2, 
+              bgcolor: 'rgba(46, 125, 50, 0.12)',
+              color: 'success.main'
+            }}>
+              <MonetizationOnIcon fontSize="small" />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                {t('app.sessions.revenue') || 'Revenue'}
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 800, color: 'success.main', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {stats?.totalRevenue.toLocaleString('de-DE', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+                €
+              </Typography>
+            </Box>
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="caption" color="text.secondary">
-              Transactions
-            </Typography>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-              {stats?.transactionCount || 0}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="caption" color="text.secondary">
-              Items Sold
-            </Typography>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-              {stats?.totalItems || 0}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="caption" color="text.secondary">
-              Avg. Order
-            </Typography>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-              {stats?.averageOrderValue.toLocaleString('de-DE', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-              €
-            </Typography>
-          </Box>
-        </Stack>
 
-        <Divider sx={{ my: 1.5 }} />
+          {/* Transactions */}
+          <Box sx={{ 
+            p: 1.5, 
+            borderRadius: 3, 
+            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+            border: `1px solid ${theme.palette.divider}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              p: 0.75, 
+              borderRadius: 2, 
+              bgcolor: 'rgba(25, 118, 210, 0.12)',
+              color: 'primary.main'
+            }}>
+              <ReceiptIcon fontSize="small" />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                {t('app.sessions.transactions') || 'Transactions'}
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {stats?.transactionCount || 0}
+              </Typography>
+            </Box>
+          </Box>
 
-        {/* Dates */}
-        <Stack spacing={0.5} sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-          {/* Created date */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="caption">Created:</Typography>
-            <Typography variant="caption">
-              {new Date(session.createdAt).toLocaleDateString('de-DE')}
+          {/* Items Sold */}
+          <Box sx={{ 
+            p: 1.5, 
+            borderRadius: 3, 
+            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+            border: `1px solid ${theme.palette.divider}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              p: 0.75, 
+              borderRadius: 2, 
+              bgcolor: 'rgba(156, 39, 176, 0.12)',
+              color: 'secondary.main'
+            }}>
+              <ShoppingBagIcon fontSize="small" />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                {t('app.sessions.itemsSold') || 'Items'}
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {stats?.totalItems || 0}
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Avg. Order */}
+          <Box sx={{ 
+            p: 1.5, 
+            borderRadius: 3, 
+            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+            border: `1px solid ${theme.palette.divider}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              p: 0.75, 
+              borderRadius: 2, 
+              bgcolor: 'rgba(237, 108, 2, 0.12)',
+              color: 'warning.main'
+            }}>
+              <TrendingUpIcon fontSize="small" />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                {t('app.sessions.avgOrder') || 'Avg.'}
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {stats?.averageOrderValue.toLocaleString('de-DE', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+                €
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+
+        <Divider sx={{ my: 1 }} />
+
+        {/* Metadata section (Dates & Duration) */}
+        <Stack spacing={0.75} sx={{ mt: 'auto', fontSize: '0.75rem', color: 'text.secondary' }}>
+          {/* Created date/time */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="caption" sx={{ fontSize: 11 }}>{t('app.sessions.created') || 'Created'}:</Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', fontSize: 11 }}>
+              {session.hasManualDateRange 
+                ? new Date(session.createdAt).toLocaleDateString('de-DE')
+                : new Date(session.createdAt).toLocaleString('de-DE', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+              }
             </Typography>
           </Box>
           
           {/* Session date range (only if manual) */}
           {session.hasManualDateRange && (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', opacity: 0.8 }}>
-              <Typography variant="caption">Session:</Typography>
-              <Typography variant="caption">
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: 0.9 }}>
+              <Typography variant="caption" sx={{ fontSize: 11 }}>{t('app.sessions.session') || 'Session'}:</Typography>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', fontSize: 11 }}>
                 {new Date(session.startDate).toLocaleDateString('de-DE')}
                 {session.endDate && ` - ${new Date(session.endDate).toLocaleDateString('de-DE')}`}
               </Typography>
             </Box>
           )}
+
+          {/* Paused time (only if auto & paused) */}
+          {!session.hasManualDateRange && session.status === 'paused' && session.updatedAt && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: 0.9 }}>
+              <Typography variant="caption" sx={{ fontSize: 11 }}>{t('app.sessions.pausedAt') || 'Paused'}:</Typography>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', fontSize: 11 }}>
+                {new Date(session.updatedAt).toLocaleString('de-DE', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </Typography>
+            </Box>
+          )}
+
+          {/* Completed time (only if auto & completed) */}
+          {!session.hasManualDateRange && session.status === 'completed' && session.endDate && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: 0.9 }}>
+              <Typography variant="caption" sx={{ fontSize: 11 }}>{t('app.sessions.completedAt') || 'Completed'}:</Typography>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', fontSize: 11 }}>
+                {new Date(session.endDate).toLocaleString('de-DE', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </Typography>
+            </Box>
+          )}
           
           {/* Duration */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', opacity: 0.8 }}>
-            <Typography variant="caption">Duration:</Typography>
-            <Typography variant="caption">
-              {formatDuration(session.startDate, session.endDate, session.status, session.updatedAt, session.hasManualDateRange)}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: 0.9 }}>
+            <Typography variant="caption" sx={{ fontSize: 11 }}>{t('app.sessions.duration') || 'Duration'}:</Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', fontSize: 11 }}>
+              {formatDuration(session)}
             </Typography>
           </Box>
         </Stack>
