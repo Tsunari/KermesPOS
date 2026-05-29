@@ -207,7 +207,14 @@ class ProductService {
     try {
       const data = JSON.parse(jsonString);
       if (Array.isArray(data.products)) {
-        this.products = data.products as Product[];
+        this.products = data.products.map((p: Partial<Product> & { InStock?: boolean; instock?: boolean }) => {
+          // Normalize inStock / InStock / instock to camelCase inStock
+          const stockValue = p.inStock !== undefined ? p.inStock : (p.InStock !== undefined ? p.InStock : (p.instock !== undefined ? p.instock : true));
+          return {
+            ...p,
+            inStock: !!stockValue,
+          };
+        }) as Product[];
         // Ensure order fields are initialized
         this.initializeOrderField();
         this.saveProducts();
