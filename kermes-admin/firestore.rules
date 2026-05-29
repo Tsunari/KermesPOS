@@ -1,62 +1,42 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper function to check if the user is a super admin
-    function isSuperAdmin() {
-      return request.auth != null && 
-        exists(/databases/$(database)/documents/admin_accounts/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/admin_accounts/$(request.auth.uid)).data.role == "super_admin";
-    }
+    // Simpler, low-cost ruleset: no get()/exists() calls and no custom-claim checks.
+    // Policy: menu resources remain publicly readable; POS-related collections require
+    // a simple authentication gate (request.auth != null) to access. Admin actions
+    // should be performed from a trusted server (Admin SDK / Cloud Functions).
 
-    // Helper function to check if the user is a tenant admin for a specific kermes
-    function isTenantAdmin(kermesId) {
-      return request.auth != null && 
-        exists(/databases/$(database)/documents/admin_accounts/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/admin_accounts/$(request.auth.uid)).data.role == "tenant_admin" &&
-        get(/databases/$(database)/documents/admin_accounts/$(request.auth.uid)).data.tenantId == kermesId &&
-        get(/databases/$(database)/documents/admin_accounts/$(request.auth.uid)).data.status != "suspended";
-    }
-
-    // Public collections read by anyone, written by super admin or authorized tenant admin
+    // Public menu resources
     match /kermeses/{kermesId} {
+      // Menu/customer pages need read access
       allow read: if true;
-      allow write: if isSuperAdmin() || isTenantAdmin(kermesId);
+      // Administrative writes must be authenticated (simple gate).
+      allow write: if request.auth != null;
     }
-    
+
     match /kermes_products/{kermesId} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isTenantAdmin(kermesId);
+      allow write: if request.auth != null;
     }
     
-    // Online orders can be created by anyone, but read/updated by super admin or authorized tenant admin
+    match /kermesFolders/{folderId} {
+    	allow read, write: if true;
+    }
+
     match /online_orders/{orderId} {
       allow create: if true;
-      allow read, update, delete: if isSuperAdmin() || 
-        (request.auth != null && (isTenantAdmin(resource.data.kermesId) || isTenantAdmin(request.resource.data.kermesId)));
+      allow read: if true;
+      allow update, delete: if true;
     }
     
-    // Sales can be read/written by super admin or authorized tenant admin
-    match /sales/{saleId} {
-      allow read, write: if isSuperAdmin() || 
-        (request.auth != null && (isTenantAdmin(resource.data.kermesId) || isTenantAdmin(request.resource.data.kermesId)));
+    match /queue_counters/{folderId} {
+    	allow read, write: if true;
     }
 
-    // Tenant admin accounts collection (read by authenticated admins, modified by super admins)
-    match /admin_accounts/{uid} {
-      allow read: if request.auth != null;
-      allow write: if isSuperAdmin();
-    }
 
-    // Legacy fallback rules for local POS register accounts
-    match /pos_accounts/{uid} {
-      allow read: if true;
-      allow write: if isSuperAdmin();
-    }
-
-    // Default catch-all rules for other collections
+    // Default access for anything else: authenticated users only
     match /{document=**} {
-      allow read, write: if isSuperAdmin();
+      allow read, write: if request.auth != null;
     }
   }
 }
