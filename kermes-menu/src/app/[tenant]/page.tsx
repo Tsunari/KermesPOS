@@ -12,7 +12,7 @@ import { useActiveKermes } from '../hooks/useActiveKermes';
 
 const navCards = [
   { label: 'Kermesimiz', href: '/festival', icon: Festival },
-  { label: 'Online Ön Sipariş (Kasada Hızlı Teslim)', href: '/order', icon: ShoppingBag },
+  { label: <>Online Ön Sipariş<br />(Kasada Hızlı Teslim)</>, href: '/order', icon: ShoppingBag },
   { label: 'Menü', href: '/menu', icon: RestaurantMenuIcon },
   { label: 'Hakkımızda', href: '/about', icon: InfoIcon },
   { label: 'Sponsorlarımız', href: '/sponsor', icon: Recommend },
