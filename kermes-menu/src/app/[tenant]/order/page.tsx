@@ -118,10 +118,6 @@ function OrderPageContent() {
   const searchParams = useSearchParams();
   const ticketMode = searchParams.get("ticket") === "1";
 
-  // Firestore system configs
-  const [globalEnabled, setGlobalEnabled] = useState<boolean | null>(null);
-  const [systemLoading, setSystemLoading] = useState(true);
-
   // Products and cart states
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -161,50 +157,6 @@ function OrderPageContent() {
     setTrackedOrderId(stored.orderId);
     setTicketHydrated(true);
   };
-
-  // 1. Listen to Global Config & POS Listening states
-  useEffect(() => {
-    if (kermesLoading) return;
-
-    // If no kermesId, mark as closed immediately
-    if (!activeKermesId) {
-      setGlobalEnabled(false);
-      setSystemLoading(false);
-      return;
-    }
-
-    // Safety timeout: don't hang on loading indefinitely
-    const safetyTimer = setTimeout(() => setSystemLoading(false), 5000);
-
-    // Listen to global admin config. Accept either `enabled` or legacy `onlineOrderingEnabled`.
-    const unsubGlobal = onSnapshot(
-      doc(db, "system_config", "online_ordering"),
-      (snap) => {
-        if (snap.exists()) {
-          const data = snap.data();
-          // Accept either `enabled` or legacy `onlineOrderingEnabled`.
-          const resolved = typeof data?.enabled === 'boolean'
-            ? data.enabled
-            : (typeof data?.onlineOrderingEnabled === 'boolean' ? data.onlineOrderingEnabled : null);
-          setGlobalEnabled(resolved);
-        } else {
-          setGlobalEnabled(null);
-        }
-        setSystemLoading(false);
-        clearTimeout(safetyTimer);
-      },
-      () => {
-        setGlobalEnabled(null);
-        setSystemLoading(false);
-        clearTimeout(safetyTimer);
-      }
-    );
-
-    return () => {
-      clearTimeout(safetyTimer);
-      unsubGlobal();
-    };
-  }, [kermesLoading, activeKermesId]);
 
   // Hydrate previously submitted ticket from local storage.
   useEffect(() => {
@@ -328,7 +280,7 @@ function OrderPageContent() {
       .catch((err) => console.error("Error fetching fallback products:", err));
   };
 
-  if (kermesLoading || systemLoading || !ticketHydrated) {
+  if (kermesLoading || !ticketHydrated) {
     return (
       <PageContainer>
         <LoadingScreen />
@@ -336,11 +288,8 @@ function OrderPageContent() {
     );
   }
 
-  // Check ordering authorization — treat missing/global null as enabled so
-  // ordering works when admin switch is on; only explicit `false` closes it.
-  // Check ordering authorization — ordering is open unless either admin or tenant explicitly set false.
-  const tenantOnlineOrdering = kermesData?.onlineOrderingEnabled ?? null;
-  const isOrderingOpen = (globalEnabled !== false) && (tenantOnlineOrdering !== false);
+  // Ordering is controlled by the tenant document.
+  const isOrderingOpen = kermesData?.onlineOrderingEnabled !== false;
 
   if (ticketMode && !submittedOrder && !trackedOrderId) {
     return (

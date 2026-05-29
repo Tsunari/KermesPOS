@@ -2,8 +2,19 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product } from '../types/index';
 import { CartTransaction } from '../services/cartTransactionService';
 import { firestoreSyncService, PlaceProfile } from '../services/firestoreSyncService';
-import { collection, query, where, onSnapshot, doc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore';
 import { getDb } from '../firebaseInit';
+
+interface OnlineOrderSummary {
+  id: string;
+  queueNumber: string;
+  items: unknown[];
+  total: number;
+  status: string;
+  createdAt?: { seconds?: number } | null;
+  updatedAt?: string;
+  kermesId: string;
+}
 
 // Define the shape of your global variables here
 export interface VariableContextType {
@@ -24,8 +35,8 @@ export interface VariableContextType {
   // Online orders integration
   profile: PlaceProfile | null;
   setProfile: (profile: PlaceProfile | null) => void;
-  onlineOrders: any[];
-  setOnlineOrders: (orders: any[]) => void;
+  onlineOrders: OnlineOrderSummary[];
+  setOnlineOrders: (orders: OnlineOrderSummary[]) => void;
   onlineOrdersEnabled: boolean;
   setOnlineOrdersEnabled: (enabled: boolean) => void;
   editingOnlineOrderId: string | null;
@@ -91,7 +102,7 @@ export const VariableContextProvider: React.FC<{ children: React.ReactNode }> = 
   const [profile, setProfile] = useState<PlaceProfile | null>(() => {
     return firestoreSyncService.getPlaceProfile();
   });
-  const [onlineOrders, setOnlineOrders] = useState<any[]>([]);
+  const [onlineOrders, setOnlineOrders] = useState<OnlineOrderSummary[]>([]);
   const [onlineOrdersEnabled, setOnlineOrdersEnabledState] = useState<boolean>(() => {
     const saved = localStorage.getItem('onlineOrdersEnabled');
     return saved !== null ? JSON.parse(saved) : false;
@@ -125,42 +136,14 @@ export const VariableContextProvider: React.FC<{ children: React.ReactNode }> = 
       });
   }, [profile]);
 
-  useEffect(() => {
-    if (activeKermesId) {
-      localStorage.setItem('pos.activeKermesId', activeKermesId);
-    } else {
-      localStorage.removeItem('pos.activeKermesId');
-    }
-  }, [activeKermesId]);
-
-  // Sync state helpers
-  const handleSetOnlineOrdersEnabled = (enabled: boolean) => {
-    setOnlineOrdersEnabledState(enabled);
-    localStorage.setItem('onlineOrdersEnabled', JSON.stringify(enabled));
-  };
-
   // Real-time Firestore online orders listener
   useEffect(() => {
-    // Wait until all three prerequisites are satisfied
     if (!profile || !onlineOrdersEnabled || !activeKermesId) {
       setOnlineOrders([]);
-      // Mark POS as inactive in Firestore if we have enough info to do so
-      if (profile && activeKermesId) {
-        setDoc(doc(getDb(), 'system_config', `pos_listening_${activeKermesId}`), {
-          active: false,
-          updatedAt: new Date().toISOString()
-        }).catch(err => console.error('Error setting POS listening state to inactive:', err));
-      }
       return;
     }
 
     const db = getDb();
-
-    // Publish active listening state — keyed by activeKermesId (not profile.kermesId)
-    setDoc(doc(db, 'system_config', `pos_listening_${activeKermesId}`), {
-      active: true,
-      updatedAt: new Date().toISOString()
-    }).catch(err => console.error('Error setting POS listening state to active:', err));
 
     // Subscribe to pending pre-orders for this kermes
     const q = query(
@@ -198,11 +181,6 @@ export const VariableContextProvider: React.FC<{ children: React.ReactNode }> = 
 
     return () => {
       unsubscribe();
-      // Mark POS as inactive when effect cleans up
-      setDoc(doc(getDb(), 'system_config', `pos_listening_${activeKermesId}`), {
-        active: false,
-        updatedAt: new Date().toISOString()
-      }).catch(err => console.error('Error setting POS listening state to inactive:', err));
     };
   }, [profile, onlineOrdersEnabled, activeKermesId]);
 
@@ -225,6 +203,11 @@ export const VariableContextProvider: React.FC<{ children: React.ReactNode }> = 
   const handleSetRecentOrdersDockPosition = (pos: 'left' | 'right') => {
     setRecentOrdersDockPositionState(pos);
     localStorage.setItem('recentOrdersDockPosition', pos);
+  };
+
+  const handleSetOnlineOrdersEnabled = (enabled: boolean) => {
+    setOnlineOrdersEnabledState(enabled);
+    localStorage.setItem('onlineOrdersEnabled', JSON.stringify(enabled));
   };
 
   return (

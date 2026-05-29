@@ -1,9 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, doc, onSnapshot, setDoc, getDoc, deleteDoc } from "firebase/firestore";
+import { collection, doc, onSnapshot, setDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../../../firebaseInit";
-import SettingsIcon from "@mui/icons-material/Settings";
 import QueryStatsIcon from "@mui/icons-material/QueryStats";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import KermesLoading from "../../components/KermesLoading";
@@ -143,37 +142,16 @@ export default function Dashboard() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [showAllFiles, setShowAllFiles] = useState<Record<string, boolean>>({});
-  const [onlineOrderingEnabled, setOnlineOrderingEnabled] = useState(false);
 
   const [adminRole, setAdminRole] = useState<"super_admin" | "tenant_admin">("tenant_admin");
   const [adminTenantId, setAdminTenantId] = useState<string>("");
-
-  // Listen to global online pre-ordering config in real-time
-  useEffect(() => {
-    const unsub = onSnapshot(doc(db, "system_config", "online_ordering"), (snap) => {
-      if (snap.exists()) {
-        setOnlineOrderingEnabled(snap.data()?.enabled ?? false);
-      } else {
-        setOnlineOrderingEnabled(false);
-      }
-    });
-    return () => unsub();
-  }, []);
-
-  async function handleOnlineOrderingToggle() {
-    const nextVal = !onlineOrderingEnabled;
-    setOnlineOrderingEnabled(nextVal);
-    await setDoc(doc(db, "system_config", "online_ordering"), {
-      enabled: nextVal,
-      updatedAt: new Date().toISOString()
-    });
-  }
 
   // Auth check
   useEffect(() => {
     if (sessionStorage.getItem("isAdmin") === "true") {
       setIsAuth(true);
-      setAdminRole((sessionStorage.getItem("adminRole") as any) || "tenant_admin");
+      const storedRole = sessionStorage.getItem("adminRole");
+      setAdminRole(storedRole === "super_admin" ? "super_admin" : "tenant_admin");
       setAdminTenantId(sessionStorage.getItem("adminTenantId") || "");
     } else {
       router.replace("/");
@@ -421,8 +399,9 @@ export default function Dashboard() {
       setSelectedKermesId("");
       setDraft(null);
       setMessage("Kermes başarıyla silindi.");
-    } catch (error: any) {
-      setMessage(`Silme hatası: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
+      setMessage(`Silme hatası: ${errorMessage}`);
     } finally {
       setSaving(false);
     }
