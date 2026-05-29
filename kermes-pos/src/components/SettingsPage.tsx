@@ -50,6 +50,7 @@ import { cartTransactionService } from '../services/cartTransactionService';
 interface SettingsPageProps {
   devMode: boolean;
   setDevMode: (value: boolean) => void;
+  currencyManagedByCloud?: boolean;
 }
 
 interface SettingCardProps {
@@ -112,7 +113,7 @@ const SettingCard: React.FC<SettingCardProps> = ({ icon, title, description, con
   );
 };
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
+const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode, currencyManagedByCloud = false }) => {
   const muiTheme = useMuiTheme();
   const { isDarkMode, toggleTheme } = useTheme();
   const {
@@ -420,8 +421,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
 
                 <SettingCard
                   icon={<MenuBookIcon />}
-                  title="Menu Configurator"
-                  description="Customize menu presentation columns, title, and currency for customer screen."
+                  title={t('settings.menu.configuratorTitle')}
+                  description={t('settings.menu.configuratorDescription')}
                   control={
                     <Button 
                       component={Link} 
@@ -448,7 +449,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
                 <SettingCard
                   icon={<LanguageIcon />}
                   title={t('settings.language.selectLanguage')}
-                  description="Choose your preferred language for POS buttons, categories, and printing receipts."
+                  description={t('settings.language.description')}
                   control={
                     <FormControl sx={{ minWidth: 140 }}>
                       <Select
@@ -468,23 +469,31 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
 
                 <SettingCard
                   icon={<AttachMoneyIcon />}
-                  title="Currency"
-                  description="Choose the active system currency for display, printing, and receipts."
+                  title={t('settings.currency.title')}
+                  description={t('settings.currency.description')}
                   control={
-                    <FormControl sx={{ minWidth: 140 }}>
-                      <Select
-                        value={currency}
-                        onChange={(e) => setCurrency(e.target.value as any)}
-                        size="small"
-                        sx={{ borderRadius: 2 }}
-                      >
-                        <MenuItem value="EUR">Euro (€)</MenuItem>
-                        <MenuItem value="USD">Dollar ($)</MenuItem>
-                        <MenuItem value="TRY">Lira (₺)</MenuItem>
-                      </Select>
-                    </FormControl>
+                    <Stack spacing={1} alignItems="flex-start">
+                      <FormControl sx={{ minWidth: 140 }}>
+                        <Select
+                          value={currency}
+                          onChange={(e) => setCurrency(e.target.value as any)}
+                          size="small"
+                          sx={{ borderRadius: 2 }}
+                          disabled={currencyManagedByCloud}
+                        >
+                          <MenuItem value="EUR">{t('settings.currency.options.eur')}</MenuItem>
+                          <MenuItem value="USD">{t('settings.currency.options.usd')}</MenuItem>
+                          <MenuItem value="TRY">{t('settings.currency.options.try')}</MenuItem>
+                        </Select>
+                      </FormControl>
+                      {currencyManagedByCloud && (
+                        <Typography variant="caption" color="text.secondary">
+                          {t('settings.currency.cloudManagedHint')}
+                        </Typography>
+                      )}
+                    </Stack>
                   }
-                  active={true}
+                  active={currencyManagedByCloud}
                 />
               </Box>
             )}
@@ -493,7 +502,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
             {activeTab === 3 && (
               <Box>
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 800, mb: 3 }}>
-                  Security & Backup Toggles
+                  {t('settings.tabs.security')}
                 </Typography>
 
                 <SettingCard
@@ -566,7 +575,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
                   {t('settings.about.description')}
                 </Typography>
                 <Typography variant="body2" paragraph sx={{ mb: 3 }}>
-                  <strong>Support Support Email:</strong>{' '}
+                  <strong>{t('settings.about.supportEmail')}:</strong>{' '}
                   <Button
                     variant="text"
                     color="primary"
@@ -590,10 +599,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
                           {t('settings.diagnostics.title') || 'System Diagnostics'}
                         </Typography>
                         <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                          {dbStats.productsCount} Products | {dbStats.transactionsCount} Sales
+                          {dbStats.productsCount} {t('settings.diagnostics.products')} | {dbStats.transactionsCount} {t('settings.diagnostics.sales')}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          Approx size: {(dbStats.estimatedBytes / 1024).toFixed(1)} KB
+                          {t('settings.diagnostics.approxSize')}: {(dbStats.estimatedBytes / 1024).toFixed(1)} KB
                         </Typography>
                       </Box>
                     </Paper>
@@ -629,7 +638,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
                         </Typography>
                         {updateAvailable && (
                           <Chip 
-                            label={`v${updateVersion} Available`} 
+                            label={`v${updateVersion} ${t('app.updates.available')}`} 
                             size="small" 
                             color="warning" 
                             sx={{ mt: 0.5, height: 20, fontSize: '0.65rem', fontWeight: 700 }} 
@@ -644,7 +653,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
                           onClick={handleOpenUpdate}
                           sx={{ borderRadius: 1.5, px: 2 }}
                         >
-                          Update
+                          {t('app.updates.download')}
                         </Button>
                       ) : (
                         <Button 
@@ -653,7 +662,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
                           onClick={handleOpenUpdate}
                           sx={{ borderRadius: 1.5, px: 2 }}
                         >
-                          Check
+                          {t('app.updates.check')}
                         </Button>
                       )}
                     </Paper>
@@ -664,7 +673,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
 
                 {/* Actions */}
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
-                  Administrative Actions
+                  {t('settings.about.administrativeActions')}
                 </Typography>
                 
                 <Stack direction="row" spacing={2}>
@@ -686,7 +695,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode }) => {
                     rel="noopener"
                     sx={{ borderRadius: 2 }}
                   >
-                    Open Customer Menu
+                    {t('settings.about.openCustomerMenu')}
                   </Button>
                 </Stack>
               </Box>

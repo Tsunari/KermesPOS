@@ -12,6 +12,7 @@ type KermesRecord = {
   id: string;
   name: string;
   assetFolder: string;
+  currency: "EUR" | "USD" | "TRY";
   festivalImage: string;
   menuImage: string;
   ikramImage: string;
@@ -163,10 +164,12 @@ export default function Dashboard() {
     const unsubscribe = onSnapshot(collection(db, "kermeses"), (snapshot) => {
       const records = snapshot.docs.map((entry) => {
         const data = entry.data() as Partial<KermesRecord>;
+        const currency: KermesRecord["currency"] = data.currency === "USD" || data.currency === "TRY" ? data.currency : "EUR";
         return {
           id: entry.id,
           name: data.name ?? entry.id,
           assetFolder: data.assetFolder ?? `/kermeses/${entry.id}`,
+          currency,
           festivalImage: data.festivalImage ?? "",
           menuImage: data.menuImage ?? "",
           ikramImage: data.ikramImage ?? "",
@@ -249,6 +252,7 @@ export default function Dashboard() {
     return (
       draft.name !== original.name ||
       draft.assetFolder !== original.assetFolder ||
+      draft.currency !== original.currency ||
       draft.festivalImage !== original.festivalImage ||
       draft.menuImage !== original.menuImage ||
       draft.ikramImage !== original.ikramImage ||
@@ -338,6 +342,7 @@ export default function Dashboard() {
         aboutImage: findAssetFiles("about"),
         aboutTitle: DEFAULT_ABOUT_TITLE,
         aboutMarkdown: DEFAULT_ABOUT_MARKDOWN,
+        currency: "EUR",
         sponsorImages: newKermesSponsorImages,
         active: true,
         onlineOrderingEnabled: true,
@@ -842,6 +847,22 @@ export default function Dashboard() {
                         </option>
                       ))}
                     </select>
+                  </label>
+
+                  <label className="block text-sm text-black dark:text-white">
+                    Para birimi
+                    <select
+                      value={draft?.currency ?? selectedRecord.currency}
+                      onChange={(event) => updateSelectedRecord("currency", event.target.value as KermesRecord["currency"])}
+                      className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-950 px-3 py-2 text-black dark:text-white"
+                    >
+                      <option value="EUR">Euro (€)</option>
+                      <option value="USD">Dollar ($)</option>
+                      <option value="TRY">Lira (₺)</option>
+                    </select>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      POS ve menü bu değeri Firestore’dan takip eder.
+                    </p>
                   </label>
 
                   {/* Active Menu Cards Toggles */}

@@ -75,6 +75,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const updateSetting = (key: keyof Settings, value: any) => {
     setSettings(prev => {
+      if (prev[key] === value) {
+        return prev;
+      }
       const newSettings = { ...prev, [key]: value };
       localStorage.setItem('settings', JSON.stringify(newSettings));
       return newSettings;

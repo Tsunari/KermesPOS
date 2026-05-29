@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import {
   AppBar,
@@ -102,7 +102,7 @@ import { auth, getDb } from './firebaseInit';
  */
 function AppContent() {
   const { t } = useLanguage();
-  const { currency } = useSettings();
+  const { setCurrency } = useSettings();
   const dispatch = useDispatch();
   const { products, setProducts, fixedGridMode, setFixedGridMode, cardsPerRow, setCardsPerRow, recentOrdersOpen, recentOrdersDockPosition, editingTransaction, editingOnlineOrderId, activeKermesId } = useVariableContext();
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -128,12 +128,25 @@ function AppContent() {
 
   useEffect(() => {
     if (!activeKermesId || !hasCloudAuth) return;
-    const db = getDb();
 
-    setDoc(doc(db, 'kermeses', activeKermesId), { currency }, { merge: true }).catch((error) => {
-      console.error('Failed to sync POS currency to kermes tenant document:', error);
-    });
-  }, [currency, activeKermesId, hasCloudAuth]);
+    const db = getDb();
+    const unsubscribe = onSnapshot(
+      doc(db, 'kermeses', activeKermesId),
+      (snapshot) => {
+        if (!snapshot.exists()) return;
+
+        const tenantCurrency = snapshot.data()?.currency;
+        if (tenantCurrency === 'EUR' || tenantCurrency === 'USD' || tenantCurrency === 'TRY') {
+          setCurrency(tenantCurrency);
+        }
+      },
+      (error) => {
+        console.error('Failed to subscribe to tenant currency:', error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [activeKermesId, hasCloudAuth, setCurrency]);
 
   // Load products from service into context on mount
   useEffect(() => {
@@ -767,7 +780,7 @@ function AppContent() {
               />
               <Route
                 path="/settings"
-                element={<SettingsPage devMode={devMode} setDevMode={setDevMode} />}
+                element={<SettingsPage devMode={devMode} setDevMode={setDevMode} currencyManagedByCloud={hasCloudAuth} />}
               />
               <Route
                 path="/settings/menu"
