@@ -5,6 +5,16 @@ All notable changes to the Kermes project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.22.0] - 03-06-2026
+### Kermes POS
+#### Changed
+- Persist session dropdown
+- Stat page time preset with sessions and comparison analysis changes
+- Cart UI redesign
+#### Fixed
+- Fix guide card always showing --fix
+
+
 ## [1.21.0] - 02-06-2026
 ### Kermes POS
 #### Changed
