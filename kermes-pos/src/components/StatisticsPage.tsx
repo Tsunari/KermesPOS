@@ -186,6 +186,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
   const { kursName, sessions, setSessions } = useVariableContext();
 
   const auditLogRef = useRef<HTMLDivElement>(null);
+  const dayScrollContainerRef = useRef<HTMLDivElement>(null);
 
   const isDarkMode = theme.palette.mode === 'dark';
 
@@ -314,6 +315,23 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
     }
     return daysList;
   }, [selectedSessionIds, sessions]);
+
+  useEffect(() => {
+    if (selectedSessionIds.length === 1 && dayScrollContainerRef.current) {
+      const container = dayScrollContainerRef.current;
+      const timer = setTimeout(() => {
+        const activeEl = container.querySelector('.Mui-selected');
+        if (activeEl) {
+          activeEl.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'center'
+          });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedKermesDay, selectedSessionIds, kermesDays]);
 
   // Unified Reactive Filter Logic for Transactions
   const filteredTransactions = useMemo(() => {
@@ -1017,7 +1035,10 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
             </Stack>
           </Grid>
 
-          <Grid size={{ xs: 12, sm: 6, md: selectedSessionIds.length === 1 ? 8 : 4 }}>
+          <Grid 
+            size={{ xs: 12, sm: 6, md: 4 }}
+            sx={{ ml: selectedSessionIds.length === 1 ? { md: 'auto' } : 0 }}
+          >
             <Autocomplete
               multiple
               options={sessions}
@@ -1031,6 +1052,19 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                 setLogPage(1); // reset page
               }}
               filterSelectedOptions
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2.5,
+                  transition: 'all 0.2s',
+                  bgcolor: isDarkMode ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.01)',
+                  '&:hover': {
+                    bgcolor: isDarkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)',
+                  },
+                  '&.Mui-focused': {
+                    bgcolor: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                  }
+                }
+              }}
               renderTags={(value, getTagProps) =>
                 value.map((option, index) => (
                   <Chip
@@ -1040,10 +1074,20 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                     size="small"
                     variant="outlined"
                     sx={{
-                      borderRadius: 1.5,
-                      borderColor: 'divider',
-                      fontWeight: 500,
-                      bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'
+                      height: 24,
+                      fontSize: '0.75rem',
+                      borderRadius: 2,
+                      borderColor: 'primary.light',
+                      color: 'primary.main',
+                      fontWeight: 600,
+                      bgcolor: isDarkMode ? 'rgba(143,155,255,0.08)' : 'rgba(143,155,255,0.04)',
+                      '& .MuiChip-deleteIcon': {
+                        fontSize: '14px',
+                        color: 'primary.main',
+                        '&:hover': {
+                          color: 'primary.dark'
+                        }
+                      }
                     }}
                   />
                 ))
@@ -1129,16 +1173,19 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
           {selectedSessionIds.length === 1 && (
             <Grid size={12} sx={{ mt: 1 }}>
               <Divider sx={{ mb: 2 }} />
-              <Box sx={{ 
-                display: 'flex', 
-                overflowX: 'auto', 
-                maxWidth: '100%', 
-                WebkitOverflowScrolling: 'touch',
-                '&::-webkit-scrollbar': { display: 'none' },
-                msOverflowStyle: 'none',
-                scrollbarWidth: 'none',
-                py: 0.5 
-              }}>
+              <Box 
+                ref={dayScrollContainerRef}
+                sx={{ 
+                  display: 'flex', 
+                  overflowX: 'auto', 
+                  maxWidth: '100%', 
+                  WebkitOverflowScrolling: 'touch',
+                  '&::-webkit-scrollbar': { display: 'none' },
+                  msOverflowStyle: 'none',
+                  scrollbarWidth: 'none',
+                  py: 0.5 
+                }}
+              >
                 <ToggleButtonGroup
                   value={selectedKermesDay === null ? 'all' : selectedKermesDay}
                   exclusive
@@ -1149,6 +1196,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                   }}
                   size="small"
                   sx={{
+                    mx: 'auto',
                     flexWrap: 'nowrap',
                     border: '1.5px solid',
                     borderColor: 'divider',
