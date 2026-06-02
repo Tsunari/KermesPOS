@@ -18,18 +18,19 @@ import {
   TextField,
   Popover,
   Drawer,
-  InputAdornment
+  InputAdornment,
+  alpha
 } from '@mui/material';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import PrintIcon from '@mui/icons-material/Print';
 import CancelIcon from '@mui/icons-material/Cancel';
 import HistoryIcon from '@mui/icons-material/History';
 import { RootState } from '../../store';
-import { removeFromCart, clearCart, updateQuantity, addToCartWithQuantity } from '../../store/slices/cartSlice';
+import { removeFromCart, clearCart, addToCartWithQuantity, addToCart, decrementProduct } from '../../store/slices/cartSlice';
 import CartItemRow from './CartItemRow';
 import CartFooter from './CartFooter';
 import PrinterSettings from '../PrinterSettings';
-import { CartItem } from '../../types/index';
+import { CartItem, Product } from '../../types/index';
 import { useSettings } from '../../context/SettingsContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { getCategoryStyle } from '../../utils/categoryUtils';
@@ -50,9 +51,34 @@ import { getDb } from '../../firebaseInit';
 
 interface CartProps {
   devMode?: boolean;
+  productTapSeparateEnabled?: boolean;
 }
 
-const Cart: React.FC<CartProps> = ({ devMode }) => {
+interface AggregatedCartItem {
+  product: Product;
+  quantity: number;
+  ticketCount: number;
+}
+
+const aggregateCategoryItems = (items: CartItem[]): AggregatedCartItem[] => {
+  const map = new Map<string, AggregatedCartItem>();
+  items.forEach((item) => {
+    const existing = map.get(item.product.id);
+    if (existing) {
+      existing.quantity += item.quantity;
+      existing.ticketCount += 1;
+    } else {
+      map.set(item.product.id, {
+        product: item.product,
+        quantity: item.quantity,
+        ticketCount: 1,
+      });
+    }
+  });
+  return Array.from(map.values());
+};
+
+const Cart: React.FC<CartProps> = ({ devMode, productTapSeparateEnabled = true }) => {
   const { t } = useLanguage();
   const dispatch = useDispatch();
   const theme = useTheme();
@@ -670,12 +696,13 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
           )}
         </Box>
       </Box>
-      <Divider />
 
       <Box sx={{
         height: 'calc(100% - 120px)',
         overflow: 'auto',
         mb: 2,
+        pt: 0,
+        pb: 0,
         ...(!showScrollbars && {
           '&::-webkit-scrollbar': {
             display: 'none',
@@ -746,52 +773,81 @@ const Cart: React.FC<CartProps> = ({ devMode }) => {
             {t('app.cart.emptyCart')}
           </Typography>
         ) : (
-          <List>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 0.5, mx: -0.5 }}>
             {categoryOrder
               .filter(category => groupedItems[category] && groupedItems[category].length > 0)
               .map(category => {
                 const categoryStyle = getCategoryStyle(category, theme);
+                const aggregatedItems = aggregateCategoryItems(groupedItems[category]);
                 return (
-                  <React.Fragment key={category}>
+                  <Box
+                    key={category}
+                    sx={{
+                      borderRadius: 2.5,
+                      border: '1.5px solid',
+                      borderColor: alpha(categoryStyle.borderColor, 0.18),
+                      bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.005)',
+                      overflow: 'hidden',
+                      boxShadow: theme.palette.mode === 'dark' 
+                        ? '0 2px 8px rgba(0,0,0,0.2)' 
+                        : '0 1px 4px rgba(0,0,0,0.02)',
+                    }}
+                  >
+                    {/* Compact Card Header */}
                     <Box
                       sx={{
-                        p: 1,
-                        backgroundColor: categoryStyle.bgColor,
-                        borderLeft: 3,
-                        borderColor: categoryStyle.borderColor,
+                        px: 1.5,
+                        py: 0.8,
+                        bgcolor: alpha(categoryStyle.borderColor, 0.06),
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        borderBottom: '1px solid',
+                        borderColor: alpha(categoryStyle.borderColor, 0.12),
                       }}
                     >
+                      {React.createElement(categoryStyle.icon, {
+                        sx: { color: categoryStyle.borderColor, fontSize: '1.1rem' }
+                      })}
                       <Typography
-                        variant="subtitle2"
+                        variant="caption"
                         sx={{
+                          fontWeight: 800,
                           color: categoryStyle.borderColor,
-                          fontWeight: 'bold',
-                          pl: 1,
+                          textTransform: 'uppercase',
+                          fontSize: '0.72rem',
+                          letterSpacing: '0.05em',
                         }}
                       >
                         {categoryStyle.name}
                       </Typography>
                     </Box>
-                    {groupedItems[category].map((item: CartItem) => (
-                      <CartItemRow
-                        key={item.product.id}
-                        item={item}
-                        onRemove={handleRemoveItem}
-                        onIncrement={(id, quantity) => dispatch(updateQuantity({ id, quantity: quantity + 1 }))}
-                        onDecrement={(id, quantity) => {
-                          if (quantity > 1) {
-                            dispatch(updateQuantity({ id, quantity: quantity - 1 }));
-                          } else {
-                            dispatch(removeFromCart(id));
-                          }
-                        }}
-                      />
-                    ))}
-                    <Divider />
-                  </React.Fragment>
+
+                    {/* Items List */}
+                    <List disablePadding>
+                      {aggregatedItems.map((item, index) => (
+                        <React.Fragment key={item.product.id}>
+                          <CartItemRow
+                            item={item as CartItem}
+                            ticketCount={item.ticketCount}
+                            onRemove={handleRemoveItem}
+                            onIncrement={(id, quantity) => {
+                              if (productTapSeparateEnabled) {
+                                dispatch(addToCart(item.product));
+                              } else {
+                                dispatch(addToCartWithQuantity({ product: item.product, quantity: 1 }));
+                              }
+                            }}
+                            onDecrement={(id) => dispatch(decrementProduct(id))}
+                          />
+                          {index < aggregatedItems.length - 1 && <Divider />}
+                        </React.Fragment>
+                      ))}
+                    </List>
+                  </Box>
                 );
               })}
-          </List>
+          </Box>
         )}
       </Box>
 

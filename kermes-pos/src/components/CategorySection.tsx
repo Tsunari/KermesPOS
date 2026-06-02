@@ -62,9 +62,9 @@ const CategorySection: React.FC<CategorySectionProps> = ({
             gap: 1,
           }}
         >
-          <span role="img" aria-label={category}>
-            {categoryStyle.icon}
-          </span>
+          {React.createElement(categoryStyle.icon, {
+            sx: { fontSize: '1.25rem' }
+          })}
           {category.charAt(0).toUpperCase() + category.slice(1)}
           <Typography
             component="span"

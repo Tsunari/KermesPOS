@@ -29,7 +29,7 @@ interface SortableProductCardProps {
   categoryStyle: {
     bgColor: string;
     borderColor: string;
-    icon: string;
+    icon: any;
   };
 }
 

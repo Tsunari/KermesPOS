@@ -50,12 +50,16 @@ const cartSlice = createSlice({
         0
       );
     },
-    updateQuantity: (state, action: PayloadAction<{ id: string; quantity: number }>) => {
-      const item = state.items.find(
-        (item) => item.product.id === action.payload.id
-      );
-      if (item) {
-        item.quantity = action.payload.quantity;
+    decrementProduct: (state, action: PayloadAction<string>) => {
+      const lastIndex = [...state.items].reverse().findIndex(item => item.product.id === action.payload);
+      if (lastIndex >= 0) {
+        const actualIndex = state.items.length - 1 - lastIndex;
+        const item = state.items[actualIndex];
+        if (item.quantity > 1) {
+          item.quantity -= 1;
+        } else {
+          state.items.splice(actualIndex, 1);
+        }
         state.total = state.items.reduce(
           (total, item) => total + item.product.price * item.quantity,
           0
@@ -69,6 +73,6 @@ const cartSlice = createSlice({
   },
 });
 
-export const { addToCart, addToCartWithQuantity, removeFromCart, updateQuantity, clearCart } =
+export const { addToCart, addToCartWithQuantity, removeFromCart, decrementProduct, clearCart } =
   cartSlice.actions;
 export default cartSlice.reducer; 

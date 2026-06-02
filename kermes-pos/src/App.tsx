@@ -110,8 +110,24 @@ function AppContent() {
   const [devMode, setDevMode] = useState(false);
   const [selectedQuantity, setSelectedQuantity] = useState(0);
   const [isAppBarVisible, setIsAppBarVisible] = useState(true);
-  const [separateAdditionEnabled, setSeparateAdditionEnabled] = useState(false);
-  const [productTapSeparateEnabled, setProductTapSeparateEnabled] = useState(true);
+  const [separateAdditionEnabled, setSeparateAdditionEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const saved = localStorage.getItem('pos.separateAdditionEnabled');
+    return saved === 'true';
+  });
+  const [productTapSeparateEnabled, setProductTapSeparateEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const saved = localStorage.getItem('pos.productTapSeparateEnabled');
+    return saved === null ? true : saved === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('pos.separateAdditionEnabled', String(separateAdditionEnabled));
+  }, [separateAdditionEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('pos.productTapSeparateEnabled', String(productTapSeparateEnabled));
+  }, [productTapSeparateEnabled]);
   const location = useLocation();
   const isProductsPage = location.pathname === '/';
   const cartItems = useSelector((state: RootState) => state.cart.items);
@@ -449,7 +465,7 @@ function AppContent() {
                 />
               </Box>
               <Box sx={{ p: 2, flex: 1, overflow: 'auto' }}>
-                <Cart devMode={devMode} />
+                <Cart devMode={devMode} productTapSeparateEnabled={productTapSeparateEnabled} />
               </Box>
             </Paper>
 

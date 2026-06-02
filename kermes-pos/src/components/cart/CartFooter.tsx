@@ -5,21 +5,20 @@ import {
   Button,
   Tooltip,
   IconButton,
-  Popover,
   ToggleButton,
   ToggleButtonGroup,
   Paper,
 } from '@mui/material';
 import { useLanguage } from '../../context/LanguageContext';
 import ChangeCalculator from './ChangeCalculator';
-import ModernSwitch from '../ui/ModernSwitch';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import HotkeySettings from '../HotkeySettings';
 import PaymentsIcon from '@mui/icons-material/Payments';         // cash
 import CreditCardIcon from '@mui/icons-material/CreditCard';    // card
 import CalculateIcon from '@mui/icons-material/Calculate';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import CloseIcon from '@mui/icons-material/Close';
+import PrintIcon from '@mui/icons-material/Print';
+import PrintDisabledIcon from '@mui/icons-material/PrintDisabled';
 
 import { useSettings } from '../../context/SettingsContext';
 
@@ -136,7 +135,6 @@ const CartFooter: React.FC<CartFooterProps> = ({
     });
     return mapped.join('+');
   };
-  const [infoAnchorEl, setInfoAnchorEl] = React.useState<HTMLElement | null>(null);
 
   return (
     <Box sx={{
@@ -154,7 +152,32 @@ const CartFooter: React.FC<CartFooterProps> = ({
         <Typography variant="h6" sx={{ m: 0, flex: 1, fontWeight: 700, fontSize: 18, color: 'text.primary' }}>
           {t('app.cart.total')}: {formatPrice(total)}
         </Typography>
-        <Box sx={{ flexShrink: 0, ml: 2 }}>
+        <Box sx={{ flexShrink: 0, ml: 2, display: 'flex', gap: 1 }}>
+          <Tooltip title={isReceiptPrintingEnabled ? (t('app.cart.printReceiptToggleHint') || "Receipt printing is enabled. Click to disable (record sale only).") : (t('app.cart.printReceiptToggleHint') || "Receipt printing is disabled. Click to enable.")}>
+            <Button
+              variant="outlined"
+              color={isReceiptPrintingEnabled ? "primary" : "inherit"}
+              onClick={() => onToggleReceiptPrinting(!isReceiptPrintingEnabled)}
+              sx={{
+                borderRadius: '6px',
+                minWidth: 40,
+                minHeight: 40,
+                width: 40,
+                height: 40,
+                p: 0,
+                borderColor: isReceiptPrintingEnabled ? 'primary.main' : 'divider',
+                bgcolor: isReceiptPrintingEnabled ? 'rgba(25, 118, 210, 0.04)' : 'transparent',
+                color: isReceiptPrintingEnabled ? 'primary.main' : 'text.secondary',
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  bgcolor: 'action.hover',
+                },
+              }}
+            >
+              {isReceiptPrintingEnabled ? <PrintIcon fontSize="medium" /> : <PrintDisabledIcon fontSize="medium" />}
+            </Button>
+          </Tooltip>
+
           <Button
             ref={triggerRef}
             variant="outlined"
@@ -384,44 +407,6 @@ const CartFooter: React.FC<CartFooterProps> = ({
         <Box sx={{ display: 'none' }}>
           <HotkeySettings />
         </Box>
-      </Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 2, mb: 0.5 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Box
-            sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}
-            component="label"
-            htmlFor="print-receipt-toggle"
-          >
-            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
-              {t('app.cart.printReceiptToggle')}
-            </Typography>
-            <ModernSwitch
-              id="print-receipt-toggle"
-              checked={isReceiptPrintingEnabled}
-              onChange={(_, checked) => onToggleReceiptPrinting(checked)}
-            />
-          </Box>
-          <IconButton
-            size="small"
-            aria-label={t('app.cart.printReceiptToggleHint')}
-            onClick={(e) => setInfoAnchorEl(e.currentTarget)}
-            sx={{ ml: 0.5 }}
-          >
-            <InfoOutlinedIcon fontSize="small" />
-          </IconButton>
-        </Box>
-        <Popover
-          open={Boolean(infoAnchorEl)}
-          anchorEl={infoAnchorEl}
-          onClose={() => setInfoAnchorEl(null)}
-          anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
-          transformOrigin={{ vertical: 'center', horizontal: 'left' }}
-          disableRestoreFocus
-        >
-          <Box sx={{ p: 1.5, maxWidth: 260 }}>
-            <Typography variant="body2">{t('app.cart.printReceiptToggleHint')}</Typography>
-          </Box>
-        </Popover>
       </Box>
     </Box>
   );
