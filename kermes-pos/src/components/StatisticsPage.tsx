@@ -370,6 +370,33 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
     localStorage.setItem('kermes_stats_time_preset', timePreset);
   }, [timePreset]);
 
+  // Active Filter Preset Label for child tables
+  const activeFilterPresetLabel = useMemo(() => {
+    if (selectedSessionIds.length > 1) {
+      return `${selectedSessionIds.length} ${t('app.statistics.sessions') || 'Sessions'}`;
+    }
+    
+    if (selectedSessionIds.length === 1) {
+      const session = sessions.find(s => s.id === selectedSessionIds[0]);
+      const sessionName = session ? (session.name || session.id) : '';
+      if (selectedKermesDay === null) {
+        return `${sessionName} (${t('app.statistics.allDays') || 'All Days'})`;
+      }
+      return `${sessionName} (${t('app.statistics.dayShort') || 'Day'} ${selectedKermesDay})`;
+    }
+    
+    // Calendar presets
+    if (timePreset === 'today') return t('app.statistics.today') || 'Today';
+    if (timePreset === 'thisWeek') return t('app.statistics.thisWeek') || 'This Week';
+    if (timePreset === 'thisMonth') return t('app.statistics.thisMonth') || 'This Month';
+    if (timePreset === 'allTime') return t('app.statistics.allTime') || 'All Time';
+    
+    // Custom range
+    const startFormatted = new Date(customStartDate + 'T00:00:00').toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' });
+    const endFormatted = new Date(customEndDate + 'T23:59:59').toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' });
+    return `${startFormatted} - ${endFormatted}`;
+  }, [selectedSessionIds, selectedKermesDay, timePreset, customStartDate, customEndDate, sessions, t]);
+
   // Unified Reactive Filter Logic for Transactions
   const filteredTransactions = useMemo(() => {
     let txs = allTransactions;
@@ -2755,8 +2782,30 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
         fullWidth
         PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 800 }}>
-          {t('app.statistics.allSoldItems') || 'All Sold Products Analytics'}
+        <DialogTitle sx={{ fontWeight: 800, pb: 1 }}>
+          <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
+            <Typography variant="h6" sx={{ fontWeight: 800, flexGrow: 1 }}>
+              {t('app.statistics.allSoldItems') || 'All Sold Products Analytics'}
+            </Typography>
+            {activeFilterPresetLabel && (
+              <Chip
+                icon={<CalendarTodayIcon sx={{ fontSize: '0.85rem !important', color: 'primary.main' }} />}
+                label={activeFilterPresetLabel}
+                size="small"
+                variant="outlined"
+                sx={{ 
+                  borderRadius: 1.5,
+                  fontWeight: 600,
+                  fontSize: '0.78rem',
+                  borderColor: 'primary.light',
+                  bgcolor: isDarkMode ? 'rgba(143,155,255,0.08)' : 'rgba(143,155,255,0.04)',
+                  color: 'primary.main',
+                  height: 26,
+                  px: 0.5
+                }}
+              />
+            )}
+          </Stack>
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 1 }}>

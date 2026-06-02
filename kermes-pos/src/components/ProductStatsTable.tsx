@@ -76,7 +76,7 @@ const ProductStatsTable: React.FC<ProductStatsTableProps> = ({
     }
     if (change > 0) {
       return (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'success.main' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, color: 'success.main' }}>
           <TrendingUpIcon fontSize="small" />
           <Typography variant="caption" sx={{ fontWeight: 600 }}>
             +{change.toFixed(1)}%
@@ -85,7 +85,7 @@ const ProductStatsTable: React.FC<ProductStatsTableProps> = ({
       );
     }
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'error.main' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, color: 'error.main' }}>
         <TrendingDownIcon fontSize="small" />
         <Typography variant="caption" sx={{ fontWeight: 600 }}>
           {change.toFixed(1)}%
@@ -149,6 +149,7 @@ const ProductStatsTable: React.FC<ProductStatsTableProps> = ({
           }}
           sx={{ flex: 1, minWidth: 200 }}
         />
+
         <TextField
           select
           size="small"
