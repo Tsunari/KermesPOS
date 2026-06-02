@@ -338,7 +338,24 @@
       "allTime": "All Time",
       "sessionGuideTitle": "Unlock Kermes Event Tracking",
       "sessionGuideDesc": "Create a session on the Sessions page to group your sales by event, enable shift comparisons, and generate printable PDF summaries.",
-      "goToSessions": "Go to Sessions"
+      "goToSessions": "Go to Sessions",
+      "allDays": "All Days",
+      "dayShort": "Day",
+      "ordersCount": "Orders",
+      "salesVolumeTimeline": "Sales Performance Timeline",
+      "cumulative": "Cumulative across",
+      "sessions": "sessions",
+      "noPriorSession": "No prior kermes event to compare",
+      "noPriorSessionDay1": "No prior Day 1",
+      "vsPriorDay1": "vs. Day 1 of prior event",
+      "noCompareAllTime": "No comparison for all time",
+      "noCompareCustom": "No comparison for custom range",
+      "vsYesterday": "vs. yesterday",
+      "vsDayBefore": "vs. day before",
+      "vsPriorWeek": "vs. prior week",
+      "vsWeekBefore": "vs. week before",
+      "vsPriorMonth": "vs. prior month",
+      "cumulativeSelected": "Cumulative Selected Sessions"
     },
     "cart": {
       "total": "Total",
@@ -585,62 +602,6 @@
       "importExport": "Import/Export",
       "lightMode": "Switch to Light Mode",
       "darkMode": "Switch to Dark Mode"
-    }
-  },
-  "Error loading sessions. Check browser console.": "Error loading sessions. Check browser console.",
-  "Error creating session. Check browser console.": "Error creating session. Check browser console.",
-  "Error completing session. Check console.": "Error completing session. Check console.",
-  "Error pausing session. Check console.": "Error pausing session. Check console.",
-  "Error resuming session. Check console.": "Error resuming session. Check console.",
-  "Error deleting session. Check console.": "Error deleting session. Check console.",
-  "Cannot edit completed sessions.": "Cannot edit completed sessions.",
-  "Error clearing dates. Check console.": "Error clearing dates. Check console.",
-  "Updated session! Moved ${unlinkedCount} transaction(s) from other sessions.": "Updated session! Moved ${unlinkedCount} transaction(s) from other sessions.",
-  "Error saving session. Check console.": "Error saving session. Check console.",
-  "Error loading sessions": {
-    " Check browser console": {
-      "": ""
-    }
-  },
-  "Error creating session": {
-    " Check browser console": {
-      "": ""
-    }
-  },
-  "Error completing session": {
-    " Check console": {
-      "": ""
-    }
-  },
-  "Error pausing session": {
-    " Check console": {
-      "": ""
-    }
-  },
-  "Error resuming session": {
-    " Check console": {
-      "": ""
-    }
-  },
-  "Error deleting session": {
-    " Check console": {
-      "": ""
-    }
-  },
-  "Cannot edit completed sessions": {
-    "": ""
-  },
-  "Error clearing dates": {
-    " Check console": {
-      "": ""
-    }
-  },
-  "Updated session! Moved ${unlinkedCount} transaction(s) from other sessions": {
-    "": ""
-  },
-  "Error saving session": {
-    " Check console": {
-      "": ""
     }
   }
 }

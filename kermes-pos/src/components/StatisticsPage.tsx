@@ -194,6 +194,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
   
   // Selected Filter Configs
   const [selectedSessionIds, setSelectedSessionIds] = useState<string[]>([]);
+  const [selectedKermesDay, setSelectedKermesDay] = useState<number | null>(null);
   const [timePreset, setTimePreset] = useState<TimeRangePreset>('today');
   const [customStartDate, setCustomStartDate] = useState<string>(() => {
     const d = new Date();
@@ -283,6 +284,37 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
     return { ...range, preset: timePreset };
   }, [timePreset, customStartDate, customEndDate]);
 
+  // Days calculations for selected session
+  const kermesDays = useMemo(() => {
+    if (selectedSessionIds.length !== 1) return [];
+    const session = sessions.find(s => s.id === selectedSessionIds[0]);
+    if (!session) return [];
+
+    const start = new Date(session.startDate);
+    const end = session.endDate ? new Date(session.endDate) : new Date();
+
+    // Reset times to midnight for date calculations
+    const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+    const daysList = [];
+    const limit = 30; // safety ceiling
+    let current = new Date(startDate);
+    let count = 1;
+
+    while (current <= endDate && count <= limit) {
+      const label = current.toLocaleDateString(undefined, { weekday: 'short', day: '2-digit', month: '2-digit' });
+      daysList.push({
+        dayNumber: count,
+        label: label,
+        date: new Date(current)
+      });
+      current.setDate(current.getDate() + 1);
+      count++;
+    }
+    return daysList;
+  }, [selectedSessionIds, sessions]);
+
   // Unified Reactive Filter Logic for Transactions
   const filteredTransactions = useMemo(() => {
     let txs = allTransactions;
@@ -303,8 +335,17 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
           return txTime >= sStart && txTime <= sEnd;
         });
       });
+
+      // 2. If exactly one session is selected, filter by the selected day
+      if (selectedSessionIds.length === 1 && selectedKermesDay !== null) {
+        const targetDay = kermesDays.find(d => d.dayNumber === selectedKermesDay);
+        if (targetDay) {
+          const targetDateStr = targetDay.date.toDateString();
+          txs = txs.filter(tx => new Date(tx.transaction_date).toDateString() === targetDateStr);
+        }
+      }
     } else {
-      // 2. Date Range Filter (Only applies if no explicit sessions are selected to prevent filtering conflicts)
+      // 3. Date Range Filter (Only applies if no explicit sessions are selected to prevent filtering conflicts)
       const startMs = derivedDateRange.startDate.getTime();
       const endMs = derivedDateRange.endDate.getTime();
       txs = txs.filter(tx => {
@@ -314,7 +355,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
     }
 
     return txs;
-  }, [allTransactions, selectedSessionIds, derivedDateRange, sessions]);
+  }, [allTransactions, selectedSessionIds, selectedKermesDay, kermesDays, derivedDateRange, sessions]);
 
   // Compute stats on active transactions list
   const activeMetrics = useMemo(() => {
@@ -326,63 +367,223 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
     return { totalRevenue, totalTransactions, avgOrderValue, totalUnits };
   }, [filteredTransactions]);
 
-  // Baseline Comparison calculation (Yesterday / Prior Period) for subtle trend indicators
-  const trendMetrics = useMemo(() => {
-    if (selectedSessionIds.length > 0) {
-      // If we are filtering by session, find a prior session to compare against
+  // Prior Transactions and Comparison Context useMemo
+  const priorTransactionsData = useMemo(() => {
+    // 1. Multiple sessions: comparisons disabled
+    if (selectedSessionIds.length > 1) {
+      return {
+        transactions: [],
+        isValid: false,
+        label: '',
+        dateRangeText: '',
+        noCompareReason: `${t('app.statistics.cumulative') || 'Cumulative across'} ${selectedSessionIds.length} ${t('app.statistics.sessions') || 'sessions'}`
+      };
+    }
+
+    // 2. Exactly one session selected
+    if (selectedSessionIds.length === 1) {
       const firstSelectedIdx = sessions.findIndex(s => s.id === selectedSessionIds[0]);
+      const currentSession = firstSelectedIdx !== -1 ? sessions[firstSelectedIdx] : null;
       const priorSession = firstSelectedIdx !== -1 && firstSelectedIdx + 1 < sessions.length 
         ? sessions[firstSelectedIdx + 1] 
         : null;
 
-      if (!priorSession) return null;
-
-      // Extract prior transactions
-      const priorTxs = allTransactions.filter(tx => {
-        if (tx.session_id) return tx.session_id === priorSession.id;
-        const txTime = new Date(tx.transaction_date).getTime();
-        const sStart = new Date(priorSession.startDate).getTime();
-        const sEnd = priorSession.endDate ? new Date(priorSession.endDate).getTime() : Date.now();
-        return txTime >= sStart && txTime <= sEnd;
-      });
-
-      const priorRev = priorTxs.reduce((sum, tx) => sum + tx.total_amount, 0);
-      const priorCount = priorTxs.length;
-
-      const revDiff = priorRev > 0 ? ((activeMetrics.totalRevenue - priorRev) / priorRev) * 100 : 0;
-      const countDiff = priorCount > 0 ? ((activeMetrics.totalTransactions - priorCount) / priorCount) * 100 : 0;
-
-      return {
-        revenuePercent: revDiff.toFixed(1),
-        transactionsPercent: countDiff.toFixed(1),
-        compareText: t('app.statistics.fromYesterday') || 'vs. prior session'
+      // Helper to get prior session transactions
+      const getSessionTransactions = (sessionObj: any) => {
+        return allTransactions.filter(tx => {
+          if (tx.session_id) return tx.session_id === sessionObj.id;
+          const txTime = new Date(tx.transaction_date).getTime();
+          const sStart = new Date(sessionObj.startDate).getTime();
+          const sEnd = sessionObj.endDate ? new Date(sessionObj.endDate).getTime() : Date.now();
+          return txTime >= sStart && txTime <= sEnd;
+        });
       };
+
+      if (selectedKermesDay === null) {
+        // Compare entire session with entire prior session
+        if (!priorSession) {
+          return {
+            transactions: [],
+            isValid: false,
+            label: '',
+            dateRangeText: '',
+            noCompareReason: t('app.statistics.noPriorSession') || 'No prior kermes event to compare'
+          };
+        }
+        const txs = getSessionTransactions(priorSession);
+        return {
+          transactions: txs,
+          isValid: true,
+          label: t('app.statistics.vsPriorSession') || 'vs. prior event',
+          dateRangeText: priorSession.name || priorSession.id,
+          noCompareReason: ''
+        };
+      }
+
+      // If specific Day X is selected
+      if (selectedKermesDay > 1) {
+        // Compare Day X with Day X-1 of the same session
+        const prevDayObj = kermesDays.find(d => d.dayNumber === selectedKermesDay - 1);
+        if (!prevDayObj) {
+          return {
+            transactions: [],
+            isValid: false,
+            label: '',
+            dateRangeText: '',
+            noCompareReason: 'No prior day'
+          };
+        }
+        const prevDayDateStr = prevDayObj.date.toDateString();
+        const currentSessionTxs = currentSession ? getSessionTransactions(currentSession) : [];
+        const txs = currentSessionTxs.filter(tx => new Date(tx.transaction_date).toDateString() === prevDayDateStr);
+
+        return {
+          transactions: txs,
+          isValid: true,
+          label: `vs. Day ${selectedKermesDay - 1}`,
+          dateRangeText: prevDayObj.label,
+          noCompareReason: ''
+        };
+      }
+
+      // If Day 1 is selected: compare with Day 1 of prior session
+      if (selectedKermesDay === 1) {
+        if (!priorSession) {
+          return {
+            transactions: [],
+            isValid: false,
+            label: '',
+            dateRangeText: '',
+            noCompareReason: t('app.statistics.noPriorSessionDay1') || 'No prior Day 1'
+          };
+        }
+        // Day 1 of prior session is the startDate of prior session
+        const priorDay1DateStr = new Date(priorSession.startDate).toDateString();
+        const priorSessionTxs = getSessionTransactions(priorSession);
+        const txs = priorSessionTxs.filter(tx => new Date(tx.transaction_date).toDateString() === priorDay1DateStr);
+
+        const priorDay1DateFormatted = new Date(priorSession.startDate).toLocaleDateString(undefined, { weekday: 'short', day: '2-digit', month: '2-digit' });
+
+        return {
+          transactions: txs,
+          isValid: true,
+          label: t('app.statistics.vsPriorDay1') || 'vs. Day 1 of prior event',
+          dateRangeText: `${priorSession.name || priorSession.id} (${priorDay1DateFormatted})`,
+          noCompareReason: ''
+        };
+      }
+    }
+
+    // 3. No sessions selected (Calendar presets mode)
+    let priorStart: Date;
+    let priorEnd: Date;
+    let label = 'vs. prior period';
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    if (timePreset === 'today') {
+      // Compare with Yesterday
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      priorStart = yesterday;
+      priorEnd = new Date(yesterday.getTime() + 24 * 60 * 60 * 1000 - 1);
+      label = t('app.statistics.vsYesterday') || 'vs. yesterday';
+    } else if (timePreset === 'thisWeek') {
+      // Compare with Last Week (entire week: Monday to Sunday)
+      const dayOfWeek = today.getDay();
+      const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const thisMonday = new Date(today);
+      thisMonday.setDate(thisMonday.getDate() + diffToMonday);
+      
+      const lastMonday = new Date(thisMonday);
+      lastMonday.setDate(lastMonday.getDate() - 7);
+      const lastSunday = new Date(thisMonday);
+      lastSunday.setDate(lastSunday.getDate() - 1);
+      lastSunday.setHours(23, 59, 59, 999);
+      
+      priorStart = lastMonday;
+      priorEnd = lastSunday;
+      label = t('app.statistics.vsPriorWeek') || 'vs. prior week';
+    } else if (timePreset === 'thisMonth') {
+      // Compare with Last Month (entire month: 1st of last month to last of last month)
+      const firstDayOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const lastDayOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0); // day 0 is last day of prev month
+      lastDayOfLastMonth.setHours(23, 59, 59, 999);
+      
+      priorStart = firstDayOfLastMonth;
+      priorEnd = lastDayOfLastMonth;
+      label = t('app.statistics.vsPriorMonth') || 'vs. prior month';
     } else {
-      // Compare by date ranges
-      const duration = derivedDateRange.endDate.getTime() - derivedDateRange.startDate.getTime();
-      const priorStart = new Date(derivedDateRange.startDate.getTime() - duration);
-      const priorEnd = new Date(derivedDateRange.startDate.getTime() - 1);
-
-      const priorTxs = allTransactions.filter(tx => {
-        const txTime = new Date(tx.transaction_date).getTime();
-        return txTime >= priorStart.getTime() && txTime <= priorEnd.getTime();
-      });
-
-      const priorRev = priorTxs.reduce((sum, tx) => sum + tx.total_amount, 0);
-      const priorCount = priorTxs.length;
-
-      const revDiff = priorRev > 0 ? ((activeMetrics.totalRevenue - priorRev) / priorRev) * 100 : 0;
-      const countDiff = priorCount > 0 ? ((activeMetrics.totalTransactions - priorCount) / priorCount) * 100 : 0;
-
+      // allTime and custom (no comparison)
       return {
-        revenuePercent: revDiff.toFixed(1),
-        transactionsPercent: countDiff.toFixed(1),
-        compareText: timePreset === 'today' 
-          ? t('app.statistics.fromYesterday') || 'vs. yesterday'
-          : 'vs. prior period'
+        transactions: [],
+        isValid: false,
+        label: '',
+        dateRangeText: '',
+        noCompareReason: timePreset === 'allTime' 
+          ? t('app.statistics.noCompareAllTime') || 'No comparison for all time'
+          : t('app.statistics.noCompareCustom') || 'No comparison for custom range'
       };
     }
-  }, [allTransactions, selectedSessionIds, derivedDateRange, sessions, activeMetrics, timePreset, t]);
+
+    const txs = allTransactions.filter(tx => {
+      const txTime = new Date(tx.transaction_date).getTime();
+      return txTime >= priorStart.getTime() && txTime <= priorEnd.getTime();
+    });
+
+    const rangeStartFormatted = priorStart.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' });
+    const rangeEndFormatted = priorEnd.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' });
+    const dateRangeText = timePreset === 'today'
+      ? rangeStartFormatted
+      : `${rangeStartFormatted} - ${rangeEndFormatted}`;
+
+    return {
+      transactions: txs,
+      isValid: true,
+      label,
+      dateRangeText,
+      noCompareReason: ''
+    };
+  }, [allTransactions, selectedSessionIds, selectedKermesDay, kermesDays, timePreset, derivedDateRange, sessions, t]);
+
+  // Trend calculations based on prior transactions data
+  const trendMetrics = useMemo(() => {
+    const { transactions: priorTxs, isValid, label, dateRangeText, noCompareReason } = priorTransactionsData;
+
+    if (!isValid) {
+      return {
+        isValid: false,
+        revenuePercent: '0.0',
+        transactionsPercent: '0.0',
+        compareText: '',
+        priorValueText: '',
+        priorTransactionsText: '',
+        noCompareReason
+      };
+    }
+
+    const priorRev = priorTxs.reduce((sum, tx) => sum + tx.total_amount, 0);
+    const priorCount = priorTxs.length;
+
+    const revDiff = priorRev > 0 ? ((activeMetrics.totalRevenue - priorRev) / priorRev) * 100 : 0;
+    const countDiff = priorCount > 0 ? ((activeMetrics.totalTransactions - priorCount) / priorCount) * 100 : 0;
+
+    // e.g. "vs. yesterday (02.06.): €1,240.00"
+    const priorValueText = `${label} (${dateRangeText}): ${formatPrice(priorRev)}`;
+    // e.g. "vs. yesterday (02.06.): 25 Orders"
+    const priorTransactionsText = `${label} (${dateRangeText}): ${priorCount.toLocaleString()} ${t('app.statistics.ordersCount') || 'Orders'}`;
+
+    return {
+      isValid: true,
+      revenuePercent: revDiff.toFixed(1),
+      transactionsPercent: countDiff.toFixed(1),
+      compareText: `${label} (${dateRangeText})`,
+      priorValueText,
+      priorTransactionsText,
+      noCompareReason: ''
+    };
+  }, [priorTransactionsData, activeMetrics, formatPrice, t]);
 
   // Timeline Graph Grouping Data Engine
   const timelineData = useMemo(() => {
@@ -538,31 +739,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
 
   // Previous Period Stats specifically calculated for Table comparisons
   const previousPeriodStats = useMemo(() => {
-    let priorTxs: CartTransaction[] = [];
-    if (selectedSessionIds.length > 0) {
-      const firstSelectedIdx = sessions.findIndex(s => s.id === selectedSessionIds[0]);
-      const priorSession = firstSelectedIdx !== -1 && firstSelectedIdx + 1 < sessions.length 
-        ? sessions[firstSelectedIdx + 1] 
-        : null;
-
-      if (priorSession) {
-        priorTxs = allTransactions.filter(tx => {
-          if (tx.session_id) return tx.session_id === priorSession.id;
-          const txTime = new Date(tx.transaction_date).getTime();
-          const sStart = new Date(priorSession.startDate).getTime();
-          const sEnd = priorSession.endDate ? new Date(priorSession.endDate).getTime() : Date.now();
-          return txTime >= sStart && txTime <= sEnd;
-        });
-      }
-    } else {
-      const duration = derivedDateRange.endDate.getTime() - derivedDateRange.startDate.getTime();
-      const priorStart = new Date(derivedDateRange.startDate.getTime() - duration);
-      const priorEnd = new Date(derivedDateRange.startDate.getTime() - 1);
-      priorTxs = allTransactions.filter(tx => {
-        const txTime = new Date(tx.transaction_date).getTime();
-        return txTime >= priorStart.getTime() && txTime <= priorEnd.getTime();
-      });
-    }
+    const priorTxs = priorTransactionsData.transactions;
 
     const statsMap = new Map<string, { product: Product; count: number; revenue: number }>();
     priorTxs.forEach(tx => {
@@ -594,7 +771,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
       count: item.count,
       revenue: item.revenue
     }));
-  }, [allTransactions, selectedSessionIds, derivedDateRange, sessions, products]);
+  }, [priorTransactionsData, products]);
 
   // Live Audited & Filtered Logs (Bottom Section)
   const auditedTransactions = useMemo(() => {
@@ -840,16 +1017,17 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
             </Stack>
           </Grid>
 
-          {/* Session selection Bar */}
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <Grid size={{ xs: 12, sm: 6, md: selectedSessionIds.length === 1 ? 8 : 4 }}>
             <Autocomplete
               multiple
               options={sessions}
               getOptionLabel={(option) => option.name || option.id}
               size="small"
               value={sessions.filter(session => selectedSessionIds.includes(session.id))}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
               onChange={(_, value) => {
                 setSelectedSessionIds(value.map(session => session.id));
+                setSelectedKermesDay(null);
                 setLogPage(1); // reset page
               }}
               filterSelectedOptions
@@ -889,55 +1067,122 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
           </Grid>
 
           {/* Date range filter segmented control */}
-          <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <ToggleButtonGroup
-                value={timePreset}
-                exclusive
-                onChange={(_, newVal) => {
-                  if (!newVal) return;
-                  setTimePreset(newVal);
-                  if (newVal === 'custom') {
-                    setShowCustomDatePicker(true);
-                  } else {
-                    setShowCustomDatePicker(false);
-                  }
-                  setLogPage(1); // reset log index
-                }}
-                size="small"
-                sx={{
-                  border: '1.5px solid',
-                  borderColor: 'divider',
-                  borderRadius: 2,
-                  '& .MuiToggleButtonGroup-grouped': {
-                    border: 0,
-                    textTransform: 'none',
-                    px: 1.5,
-                    py: 0.75,
-                    fontWeight: 600,
-                    borderRadius: 1.5,
-                    '&.Mui-selected': {
-                      bgcolor: 'primary.main',
-                      color: 'primary.contrastText',
-                      '&:hover': { bgcolor: 'primary.dark' }
+          {selectedSessionIds.length !== 1 && (
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                {selectedSessionIds.length === 0 ? (
+                  <ToggleButtonGroup
+                    value={timePreset}
+                    exclusive
+                    onChange={(_, newVal) => {
+                      if (!newVal) return;
+                      setTimePreset(newVal);
+                      if (newVal === 'custom') {
+                        setShowCustomDatePicker(true);
+                      } else {
+                        setShowCustomDatePicker(false);
+                      }
+                      setLogPage(1); // reset log index
+                    }}
+                    size="small"
+                    sx={{
+                      border: '1.5px solid',
+                      borderColor: 'divider',
+                      borderRadius: 2,
+                      '& .MuiToggleButtonGroup-grouped': {
+                        border: 0,
+                        textTransform: 'none',
+                        px: 1.5,
+                        py: 0.75,
+                        fontWeight: 600,
+                        borderRadius: 1.5,
+                        '&.Mui-selected': {
+                          bgcolor: 'primary.main',
+                          color: 'primary.contrastText',
+                          '&:hover': { bgcolor: 'primary.dark' }
+                        }
+                      }
+                    }}
+                  >
+                    <ToggleButton value="today">{t('app.statistics.today') || 'Today'}</ToggleButton>
+                    <ToggleButton value="thisWeek">{t('app.statistics.thisWeek') || 'Week'}</ToggleButton>
+                    <ToggleButton value="thisMonth">{t('app.statistics.thisMonth') || 'Month'}</ToggleButton>
+                    <ToggleButton value="allTime">{t('app.statistics.allTime') || 'All Time'}</ToggleButton>
+                    <ToggleButton value="custom">
+                      <CalendarTodayIcon sx={{ fontSize: '1rem' }} />
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                ) : (
+                  <Chip 
+                    icon={<FilterListIcon />}
+                    label={t('app.statistics.cumulativeSelected') || 'Cumulative Selected Sessions'}
+                    color="primary"
+                    variant="outlined"
+                    sx={{ fontWeight: 600, borderRadius: 2 }}
+                  />
+                )}
+              </Stack>
+            </Grid>
+          )}
+
+          {/* Single Session Day Picker (placed full-width in a new row) */}
+          {selectedSessionIds.length === 1 && (
+            <Grid size={12} sx={{ mt: 1 }}>
+              <Divider sx={{ mb: 2 }} />
+              <Box sx={{ 
+                display: 'flex', 
+                overflowX: 'auto', 
+                maxWidth: '100%', 
+                WebkitOverflowScrolling: 'touch',
+                '&::-webkit-scrollbar': { display: 'none' },
+                msOverflowStyle: 'none',
+                scrollbarWidth: 'none',
+                py: 0.5 
+              }}>
+                <ToggleButtonGroup
+                  value={selectedKermesDay === null ? 'all' : selectedKermesDay}
+                  exclusive
+                  onChange={(_, newVal) => {
+                    if (newVal === null) return;
+                    setSelectedKermesDay(newVal === 'all' ? null : Number(newVal));
+                    setLogPage(1);
+                  }}
+                  size="small"
+                  sx={{
+                    flexWrap: 'nowrap',
+                    border: '1.5px solid',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                    '& .MuiToggleButtonGroup-grouped': {
+                      border: 0,
+                      textTransform: 'none',
+                      px: 2,
+                      py: 0.75,
+                      fontWeight: 600,
+                      borderRadius: 1.5,
+                      whiteSpace: 'nowrap',
+                      '&.Mui-selected': {
+                        bgcolor: 'primary.main',
+                        color: 'primary.contrastText',
+                        '&:hover': { bgcolor: 'primary.dark' }
+                      }
                     }
-                  }
-                }}
-              >
-                <ToggleButton value="today">{t('app.statistics.today') || 'Today'}</ToggleButton>
-                <ToggleButton value="thisWeek">{t('app.statistics.thisWeek') || 'Week'}</ToggleButton>
-                <ToggleButton value="thisMonth">{t('app.statistics.thisMonth') || 'Month'}</ToggleButton>
-                <ToggleButton value="allTime">{t('app.statistics.allTime') || 'All Time'}</ToggleButton>
-                <ToggleButton value="custom">
-                  <CalendarTodayIcon sx={{ fontSize: '1rem' }} />
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Stack>
-          </Grid>
+                  }}
+                >
+                  <ToggleButton value="all">{t('app.statistics.allDays') || 'All Days'}</ToggleButton>
+                  {kermesDays.map(d => (
+                    <ToggleButton key={d.dayNumber} value={d.dayNumber}>
+                      {t('app.statistics.dayShort') || 'Day'} {d.dayNumber} ({d.label})
+                    </ToggleButton>
+                  ))}
+                </ToggleButtonGroup>
+              </Box>
+            </Grid>
+          )}
         </Grid>
 
         {/* Custom date range collapsible panel */}
-        <Collapse in={showCustomDatePicker}>
+        <Collapse in={showCustomDatePicker && selectedSessionIds.length === 0}>
           <Divider sx={{ my: 2 }} />
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
             <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
@@ -1036,13 +1281,17 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
         </Paper>
       )}
 
-      {/* METRICS ROW (4 INTERACTIVE KPI CARDS) */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {/* KPI 1: Revenue */}
+      {/* KPI METRICS OVERVIEW GRID */}
+      <Grid container spacing={3} sx={{ mb: 4 }} alignItems="stretch">
+        
+        {/* KPI 1: Total Revenue */}
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <Card 
             elevation={0}
             sx={{ 
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
               borderRadius: 3, 
               border: '1.5px solid', 
               borderColor: 'divider',
@@ -1054,7 +1303,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
               }
             }}
           >
-            <CardContent sx={{ p: 3 }}>
+            <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%', flexGrow: 1 }}>
               <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {t('app.statistics.totalRevenue') || 'Total Revenue'}
               </Typography>
@@ -1062,27 +1311,35 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                 {formatPrice(activeMetrics.totalRevenue)}
               </Typography>
               
-              {trendMetrics && (
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                  {Number(trendMetrics.revenuePercent) >= 0 ? (
-                    <TrendingUpIcon sx={{ color: 'success.main', fontSize: '1.1rem' }} />
-                  ) : (
-                    <TrendingDownIcon sx={{ color: 'error.main', fontSize: '1.1rem' }} />
-                  )}
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      fontWeight: 700, 
-                      color: Number(trendMetrics.revenuePercent) >= 0 ? 'success.main' : 'error.main' 
-                    }}
-                  >
-                    {Number(trendMetrics.revenuePercent) >= 0 ? '+' : ''}{trendMetrics.revenuePercent}%
+              <Box sx={{ mt: 'auto', pt: 1.5, minHeight: '48px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                {trendMetrics && trendMetrics.isValid ? (
+                  <Box>
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      {Number(trendMetrics.revenuePercent) >= 0 ? (
+                        <TrendingUpIcon sx={{ color: 'success.main', fontSize: '1.1rem' }} />
+                      ) : (
+                        <TrendingDownIcon sx={{ color: 'error.main', fontSize: '1.1rem' }} />
+                      )}
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          fontWeight: 700, 
+                          color: Number(trendMetrics.revenuePercent) >= 0 ? 'success.main' : 'error.main' 
+                        }}
+                      >
+                        {Number(trendMetrics.revenuePercent) >= 0 ? '+' : ''}{trendMetrics.revenuePercent}%
+                      </Typography>
+                    </Stack>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, lineHeight: 1.2 }}>
+                      {trendMetrics.priorValueText}
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2 }}>
+                    {trendMetrics?.noCompareReason || (t('app.statistics.noComparison') || 'No comparison available')}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {trendMetrics.compareText}
-                  </Typography>
-                </Stack>
-              )}
+                )}
+              </Box>
             </CardContent>
           </Card>
         </Grid>
@@ -1092,6 +1349,9 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
           <Card 
             elevation={0}
             sx={{ 
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
               borderRadius: 3, 
               border: '1.5px solid', 
               borderColor: 'divider',
@@ -1103,7 +1363,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
               }
             }}
           >
-            <CardContent sx={{ p: 3 }}>
+            <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%', flexGrow: 1 }}>
               <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {t('app.statistics.transactions') || 'Orders Processed'}
               </Typography>
@@ -1111,27 +1371,35 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
                 {activeMetrics.totalTransactions.toLocaleString()}
               </Typography>
 
-              {trendMetrics && (
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                  {Number(trendMetrics.transactionsPercent) >= 0 ? (
-                    <TrendingUpIcon sx={{ color: 'success.main', fontSize: '1.1rem' }} />
-                  ) : (
-                    <TrendingDownIcon sx={{ color: 'error.main', fontSize: '1.1rem' }} />
-                  )}
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      fontWeight: 700, 
-                      color: Number(trendMetrics.transactionsPercent) >= 0 ? 'success.main' : 'error.main' 
-                    }}
-                  >
-                    {Number(trendMetrics.transactionsPercent) >= 0 ? '+' : ''}{trendMetrics.transactionsPercent}%
+              <Box sx={{ mt: 'auto', pt: 1.5, minHeight: '48px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                {trendMetrics && trendMetrics.isValid ? (
+                  <Box>
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      {Number(trendMetrics.transactionsPercent) >= 0 ? (
+                        <TrendingUpIcon sx={{ color: 'success.main', fontSize: '1.1rem' }} />
+                      ) : (
+                        <TrendingDownIcon sx={{ color: 'error.main', fontSize: '1.1rem' }} />
+                      )}
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          fontWeight: 700, 
+                          color: Number(trendMetrics.transactionsPercent) >= 0 ? 'success.main' : 'error.main' 
+                        }}
+                      >
+                        {Number(trendMetrics.transactionsPercent) >= 0 ? '+' : ''}{trendMetrics.transactionsPercent}%
+                      </Typography>
+                    </Stack>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, lineHeight: 1.2 }}>
+                      {trendMetrics.priorTransactionsText}
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2 }}>
+                    {trendMetrics?.noCompareReason || (t('app.statistics.noComparison') || 'No comparison available')}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {trendMetrics.compareText}
-                  </Typography>
-                </Stack>
-              )}
+                )}
+              </Box>
             </CardContent>
           </Card>
         </Grid>
@@ -1141,6 +1409,9 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
           <Card 
             elevation={0}
             sx={{ 
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
               borderRadius: 3, 
               border: '1.5px solid', 
               borderColor: 'divider',
@@ -1152,19 +1423,22 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
               }
             }}
           >
-            <CardContent sx={{ p: 3 }}>
+            <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%', flexGrow: 1 }}>
               <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {t('app.statistics.averageOrder') || 'Average Order Value'}
               </Typography>
               <Typography variant="h3" sx={{ fontWeight: 800, mt: 1, mb: 1, letterSpacing: '-1px' }}>
                 {formatPrice(activeMetrics.avgOrderValue)}
               </Typography>
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <EuroIcon sx={{ color: 'text.disabled', fontSize: '1rem' }} />
-                <Typography variant="caption" color="text.secondary">
-                  {t('app.statistics.average') || 'Per receipt basket size'}
-                </Typography>
-              </Stack>
+              
+              <Box sx={{ mt: 'auto', pt: 1.5, minHeight: '48px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <EuroIcon sx={{ color: 'text.disabled', fontSize: '1.1rem' }} />
+                  <Typography variant="caption" color="text.secondary">
+                    {t('app.statistics.average') || 'Per receipt basket size'}
+                  </Typography>
+                </Stack>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
@@ -1174,6 +1448,9 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
           <Card 
             elevation={0}
             sx={{ 
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
               borderRadius: 3, 
               border: '1.5px solid', 
               borderColor: 'divider',
@@ -1185,19 +1462,22 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
               }
             }}
           >
-            <CardContent sx={{ p: 3 }}>
+            <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%', flexGrow: 1 }}>
               <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {t('app.statistics.itemsSold') || 'Units Sold'}
               </Typography>
               <Typography variant="h3" sx={{ fontWeight: 800, mt: 1, mb: 1, letterSpacing: '-1px' }}>
                 {activeMetrics.totalUnits.toLocaleString()}
               </Typography>
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <CategoryIcon sx={{ color: 'text.disabled', fontSize: '1rem' }} />
-                <Typography variant="caption" color="text.secondary">
-                  {t('app.statistics.units') || 'Individual items logged'}
-                </Typography>
-              </Stack>
+              
+              <Box sx={{ mt: 'auto', pt: 1.5, minHeight: '48px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <CategoryIcon sx={{ color: 'text.disabled', fontSize: '1.1rem' }} />
+                  <Typography variant="caption" color="text.secondary">
+                    {t('app.statistics.units') || 'Individual items logged'}
+                  </Typography>
+                </Stack>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
@@ -2398,7 +2678,7 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
             <ProductStatsTable
               productStats={itemLeaderboard}
               previousPeriodStats={previousPeriodStats}
-              showComparison={selectedSessionIds.length === 0 && timePreset !== 'custom' && timePreset !== 'allTime'}
+              showComparison={priorTransactionsData.isValid}
             />
           </Box>
         </DialogContent>

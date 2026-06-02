@@ -338,7 +338,24 @@
       "allTime": "Alle Zeit",
       "sessionGuideTitle": "Kermes-Event-Verfolgung freischalten",
       "sessionGuideDesc": "Richten Sie Ihre Kermes-Events auf der Sitzungsseite ein, um Transaktionen zu segmentieren, die Leistung zu vergleichen und PDF-Zusammenfassungen zu erstellen.",
-      "goToSessions": "Zu den Sitzungen"
+      "goToSessions": "Zu den Sitzungen",
+      "allDays": "Alle Tage",
+      "dayShort": "Tag",
+      "ordersCount": "Bestellungen",
+      "salesVolumeTimeline": "Umsatzentwicklung im Zeitverlauf",
+      "cumulative": "Kumuliert über",
+      "sessions": "Sitzungen",
+      "noPriorSession": "Kein vorheriges Kermes-Event zum Vergleichen",
+      "noPriorSessionDay1": "Kein vorheriger Tag 1",
+      "vsPriorDay1": "im Vergleich zu Tag 1 des vorherigen Events",
+      "noCompareAllTime": "Kein Vergleich für Gesamtzeit",
+      "noCompareCustom": "Kein Vergleich für benutzerdefinierten Bereich",
+      "vsYesterday": "im Vergleich zu gestern",
+      "vsDayBefore": "im Vergleich zum Vortag",
+      "vsPriorWeek": "im Vergleich zur Vorwoche",
+      "vsWeekBefore": "im Vergleich zur Woche davor",
+      "vsPriorMonth": "im Vergleich zum Vormonat",
+      "cumulativeSelected": "Kumulierte ausgewählte Sitzungen"
     },
     "cart": {
       "total": "Gesamt",
@@ -595,52 +612,6 @@
       "importExport": "Import/Export",
       "lightMode": "In den hellen Modus wechseln",
       "darkMode": "In den dunklen Modus wechseln"
-    }
-  },
-  "Error loading sessions": {
-    " Check browser console": {
-      "": ""
-    }
-  },
-  "Error creating session": {
-    " Check browser console": {
-      "": ""
-    }
-  },
-  "Error completing session": {
-    " Check console": {
-      "": ""
-    }
-  },
-  "Error pausing session": {
-    " Check console": {
-      "": ""
-    }
-  },
-  "Error resuming session": {
-    " Check console": {
-      "": ""
-    }
-  },
-  "Error deleting session": {
-    " Check console": {
-      "": ""
-    }
-  },
-  "Cannot edit completed sessions": {
-    "": ""
-  },
-  "Error clearing dates": {
-    " Check console": {
-      "": ""
-    }
-  },
-  "Updated session! Moved ${unlinkedCount} transaction(s) from other sessions": {
-    "": ""
-  },
-  "Error saving session": {
-    " Check console": {
-      "": ""
     }
   }
 }

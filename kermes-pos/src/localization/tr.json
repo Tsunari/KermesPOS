@@ -338,7 +338,24 @@
       "allTime": "Tüm Zamanlar",
       "sessionGuideTitle": "Kermes Etkinlik Takibini Açın",
       "sessionGuideDesc": "Satışları gruplamak, performansı karşılaştırmak ve PDF tutanakları oluşturmak için Oturumlar sayfasından kermes etkinliği oluşturun.",
-      "goToSessions": "Oturumlara Git"
+      "goToSessions": "Oturumlara Git",
+      "allDays": "Tüm Günler",
+      "dayShort": "Gün",
+      "ordersCount": "Sipariş",
+      "salesVolumeTimeline": "Satış Performansı Zaman Çizelgesi",
+      "cumulative": "Kümülatif",
+      "sessions": "oturum",
+      "noPriorSession": "Karşılaştırılacak önceki kermes bulunamadı",
+      "noPriorSessionDay1": "Önceki 1. Gün bulunamadı",
+      "vsPriorDay1": "önceki kermesin 1. Gününe göre",
+      "noCompareAllTime": "Tüm zamanlar için karşılaştırma yok",
+      "noCompareCustom": "Özel tarih aralığı için karşılaştırma yok",
+      "vsYesterday": "düne göre",
+      "vsDayBefore": "önceki güne göre",
+      "vsPriorWeek": "önceki haftaya göre",
+      "vsWeekBefore": "önceki haftadan öncekine göre",
+      "vsPriorMonth": "önceki aya göre",
+      "cumulativeSelected": "Seçili Oturumlar Kümülatif"
     },
     "cart": {
       "total": "Toplam",
@@ -595,52 +612,6 @@
       "importExport": "İçe/Dışa Aktar",
       "lightMode": "Açık Moda Geç",
       "darkMode": "Karanlık Moda Geç"
-    }
-  },
-  "Error loading sessions": {
-    " Check browser console": {
-      "": ""
-    }
-  },
-  "Error creating session": {
-    " Check browser console": {
-      "": ""
-    }
-  },
-  "Error completing session": {
-    " Check console": {
-      "": ""
-    }
-  },
-  "Error pausing session": {
-    " Check console": {
-      "": ""
-    }
-  },
-  "Error resuming session": {
-    " Check console": {
-      "": ""
-    }
-  },
-  "Error deleting session": {
-    " Check console": {
-      "": ""
-    }
-  },
-  "Cannot edit completed sessions": {
-    "": ""
-  },
-  "Error clearing dates": {
-    " Check console": {
-      "": ""
-    }
-  },
-  "Updated session! Moved ${unlinkedCount} transaction(s) from other sessions": {
-    "": ""
-  },
-  "Error saving session": {
-    " Check console": {
-      "": ""
     }
   }
 }
