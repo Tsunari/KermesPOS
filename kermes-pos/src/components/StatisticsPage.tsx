@@ -194,9 +194,30 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
   const [allTransactions, setAllTransactions] = useState<CartTransaction[]>([]);
   
   // Selected Filter Configs
-  const [selectedSessionIds, setSelectedSessionIds] = useState<string[]>([]);
-  const [selectedKermesDay, setSelectedKermesDay] = useState<number | null>(null);
-  const [timePreset, setTimePreset] = useState<TimeRangePreset>('today');
+  const [selectedSessionIds, setSelectedSessionIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('kermes_stats_selected_session_ids');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [selectedKermesDay, setSelectedKermesDay] = useState<number | null>(() => {
+    try {
+      const saved = localStorage.getItem('kermes_stats_selected_kermes_day');
+      return saved !== null ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [timePreset, setTimePreset] = useState<TimeRangePreset>(() => {
+    try {
+      const saved = localStorage.getItem('kermes_stats_time_preset');
+      return (saved as TimeRangePreset) || 'today';
+    } catch {
+      return 'today';
+    }
+  });
   const [customStartDate, setCustomStartDate] = useState<string>(() => {
     const d = new Date();
     return d.toISOString().split('T')[0];
@@ -263,6 +284,9 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
         return bTime - aTime;
       });
       setSessions(sortedSessions);
+
+      // Clean up selected session IDs that don't exist anymore in the DB
+      setSelectedSessionIds(prev => prev.filter(id => sortedSessions.some(s => s.id === id)));
     } catch (error) {
       console.error('Error loading statistics data:', error);
     } finally {
@@ -332,6 +356,19 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
       return () => clearTimeout(timer);
     }
   }, [selectedKermesDay, selectedSessionIds, kermesDays]);
+
+  // Sync selection state to LocalStorage for persistence
+  useEffect(() => {
+    localStorage.setItem('kermes_stats_selected_session_ids', JSON.stringify(selectedSessionIds));
+  }, [selectedSessionIds]);
+
+  useEffect(() => {
+    localStorage.setItem('kermes_stats_selected_kermes_day', JSON.stringify(selectedKermesDay));
+  }, [selectedKermesDay]);
+
+  useEffect(() => {
+    localStorage.setItem('kermes_stats_time_preset', timePreset);
+  }, [timePreset]);
 
   // Unified Reactive Filter Logic for Transactions
   const filteredTransactions = useMemo(() => {
