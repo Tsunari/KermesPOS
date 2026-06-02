@@ -975,64 +975,66 @@ const StatisticsPage: React.FC<StatisticsPageProps> = ({ products, devMode }) =>
       </Paper>
 
       {/* Session Onboarding Guide */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 3,
-          mb: 4,
-          borderRadius: 3,
-          border: '1.5px dashed',
-          borderColor: 'primary.main',
-          bgcolor: isDarkMode ? 'rgba(143,155,255,0.03)' : 'rgba(143,155,255,0.01)',
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: { xs: 'flex-start', md: 'center' },
-          justifyContent: 'space-between',
-          gap: 3,
-        }}
-      >
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-          <Box
-            sx={{
-              p: 1.5,
-              borderRadius: 2.5,
-              bgcolor: 'primary.light',
-              color: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mt: 0.5
-            }}
-          >
-            <LightbulbOutlinedIcon />
-          </Box>
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 0.5 }}>
-              {t('app.statistics.sessionGuideTitle') || 'Unlock Kermes Event Tracking'}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 700, lineHeight: 1.6 }}>
-              {t('app.statistics.sessionGuideDesc') || 
-                'Create a session on the Sessions page to group your sales by event, enable shift comparisons, and generate printable PDF summaries.'}
-            </Typography>
-          </Box>
-        </Box>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => navigate('/sessions')}
+      {(!sessions || sessions.length === 0) && (
+        <Paper
+          elevation={0}
           sx={{
-            borderRadius: 2,
-            textTransform: 'none',
-            fontWeight: 700,
-            px: 3,
-            py: 1.2,
-            whiteSpace: 'nowrap',
-            boxShadow: '0 4px 14px 0 rgba(143,155,255,0.4)',
+            p: 3,
+            mb: 4,
+            borderRadius: 3,
+            border: '1.5px dashed',
+            borderColor: 'primary.main',
+            bgcolor: isDarkMode ? 'rgba(143,155,255,0.03)' : 'rgba(143,155,255,0.01)',
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: { xs: 'flex-start', md: 'center' },
+            justifyContent: 'space-between',
+            gap: 3,
           }}
         >
-          {t('app.statistics.goToSessions') || 'Go to Sessions'}
-        </Button>
-      </Paper>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+            <Box
+              sx={{
+                p: 1.5,
+                borderRadius: 2.5,
+                bgcolor: 'primary.light',
+                color: 'primary.main',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mt: 0.5
+              }}
+            >
+              <LightbulbOutlinedIcon />
+            </Box>
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 0.5 }}>
+                {t('app.statistics.sessionGuideTitle') || 'Unlock Kermes Event Tracking'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 700, lineHeight: 1.6 }}>
+                {t('app.statistics.sessionGuideDesc') || 
+                  'Create a session on the Sessions page to group your sales by event, enable shift comparisons, and generate printable PDF summaries.'}
+              </Typography>
+            </Box>
+          </Box>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => navigate('/sessions')}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 700,
+              px: 3,
+              py: 1.2,
+              whiteSpace: 'nowrap',
+              boxShadow: '0 4px 14px 0 rgba(143,155,255,0.4)',
+            }}
+          >
+            {t('app.statistics.goToSessions') || 'Go to Sessions'}
+          </Button>
+        </Paper>
+      )}
 
       {/* METRICS ROW (4 INTERACTIVE KPI CARDS) */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
