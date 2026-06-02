@@ -1,6 +1,6 @@
 {
   "name": "kermes-pos",
-  "version": "1.20.2",
+  "version": "1.21.0",
   "description": "POS system with USB printer support",
   "main": "main.js",
   "type": "module",
