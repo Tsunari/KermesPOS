@@ -295,6 +295,10 @@ body {
   letter-spacing: 0.5px;
 }
 
+.update-badge.hot-update {
+  background: linear-gradient(135deg, var(--success-color), var(--success-dark));
+}
+
 .details-meta {
   display: flex;
   gap: var(--spacing-md);

@@ -41,6 +41,9 @@
   const btnCheck = $('btnCheck');
   const btnDownload = $('btnDownload');
   const btnInstall = $('btnInstall');
+  const btnInstallIcon = $('btnInstallIcon');
+  const btnInstallText = $('btnInstallText');
+  const updateBadge = $('updateBadge');
   const btnSimulate = $('btnSimulate');
   const devTools = $('devTools');
 
@@ -177,8 +180,25 @@
 
       case 'available':
         showSpinner(false);
-        setStatusIcon('update', 'warning');
-        setStatus('Update available');
+        if (state.info?.frontendOnly) {
+          setStatusIcon('update', 'check');
+          setStatus('Instant update available');
+          if (updateBadge) {
+            updateBadge.textContent = 'Instant Update';
+            updateBadge.classList.add('hot-update');
+          }
+          if (btnInstallIcon) btnInstallIcon.textContent = 'refresh';
+          if (btnInstallText) btnInstallText.textContent = 'Reload POS';
+        } else {
+          setStatusIcon('update', 'warning');
+          setStatus('Update available');
+          if (updateBadge) {
+            updateBadge.textContent = 'Available';
+            updateBadge.classList.remove('hot-update');
+          }
+          if (btnInstallIcon) btnInstallIcon.textContent = 'restart_alt';
+          if (btnInstallText) btnInstallText.textContent = 'Install & Restart';
+        }
         showUpdateDetails(true, state.info);
         showReleaseNotes(true, state.info?.releaseNotes);
         showProgress(false);
@@ -206,7 +226,15 @@
       case 'downloaded':
         showSpinner(false);
         setStatusIcon('task_alt', 'check');
-        setStatus('Update ready to install');
+        if (state.info?.frontendOnly) {
+          setStatus('Update ready to apply');
+          if (btnInstallIcon) btnInstallIcon.textContent = 'refresh';
+          if (btnInstallText) btnInstallText.textContent = 'Reload POS';
+        } else {
+          setStatus('Update ready to install');
+          if (btnInstallIcon) btnInstallIcon.textContent = 'restart_alt';
+          if (btnInstallText) btnInstallText.textContent = 'Install & Restart';
+        }
         showProgress(false);
         setButtonStates({ check: true, install: true });
         break;

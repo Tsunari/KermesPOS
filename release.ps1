@@ -38,7 +38,49 @@ if (-not $force) {
 #endregion Pre-checks
 
 try {
-    #region Step 1: Version Increment
+    #region Auto-detect update type (Hot-Update vs Core Shell Update)
+    $lastTag = $null
+    try {
+        $lastTag = git describe --tags --abbrev=0 HEAD
+    } catch {
+        # No tags yet, first release
+    }
+    
+    $isHotUpdate = $true
+    $changedShellFiles = @()
+    
+    if ($lastTag) {
+        $changedFiles = git diff --name-only $lastTag HEAD
+        foreach ($file in $changedFiles) {
+            $normalizedFile = $file -replace '\\', '/'
+            # Check if changes happened inside kermes-electron and NOT in build/ or dist/
+            if ($normalizedFile -like "kermes-electron/*" -and $normalizedFile -notlike "kermes-electron/build/*" -and $normalizedFile -notlike "kermes-electron/dist/*") {
+                if ($normalizedFile -eq "kermes-electron/package.json") {
+                    # Check if dependencies or configuration fields changed
+                    $pkgDiff = git diff -U0 $lastTag HEAD -- "kermes-electron/package.json"
+                    if ($pkgDiff -match '"dependencies"' -or $pkgDiff -match '"devDependencies"' -or $pkgDiff -match '"build"') {
+                        $changedShellFiles += $file
+                        $isHotUpdate = $false
+                    }
+                } else {
+                    $changedShellFiles += $file
+                    $isHotUpdate = $false
+                }
+            }
+        }
+    } else {
+        $isHotUpdate = $false
+    }
+    
+    Write-Host "================================" -ForegroundColor Cyan
+    if ($isHotUpdate) {
+        Write-Host "Auto-detected: FRONTEND-ONLY HOT-UPDATE." -ForegroundColor Green
+    } else {
+        Write-Host "Auto-detected: CORE SHELL UPDATE (requires full installer)." -ForegroundColor Yellow
+        if ($changedShellFiles) {
+            Write-Host "Changed shell files: $($changedShellFiles -join ', ')" -ForegroundColor Yellow
+        }
+    }
     Write-Section "Version Increment" 1 $totalSteps
     $packageJsonPath = "./kermes-electron/package.json"
     $packageJson = Get-Content $packageJsonPath | ConvertFrom-Json
@@ -135,6 +177,14 @@ try {
     if ($null -eq $exeFile -or $null -eq $ymlFile) {
         Write-ErrorAndExit "Missing .exe or latest.yml in dist folder!"
     }
+    
+    $blockmapFile = Get-ChildItem $distPath -Filter *.blockmap | Select-Object -First 1
+    if ($null -eq $blockmapFile) {
+        Write-Host "Warning: Missing .blockmap file in dist folder!" -ForegroundColor Yellow
+    } else {
+        Write-Host "Blockmap file ready: $($blockmapFile.Name)" -ForegroundColor Green
+    }
+    
     $ymlContent = Get-Content $ymlFile.FullName -Raw
     $exeNameInYml = ($ymlContent | Select-String -Pattern 'url: (.+\.exe)' | ForEach-Object { $_.Matches[0].Groups[1].Value })
     if ($exeFile.Name -ne $exeNameInYml) {
@@ -146,6 +196,19 @@ try {
         Rename-Item $exeFile.FullName -NewName $exeNameInYml -Force
         $exeFile = Get-ChildItem $distPath -Filter $exeNameInYml | Select-Object -First 1
     }
+    
+    if ($isHotUpdate) {
+        Write-Host "Hot-update detected. Compressing frontend..." -ForegroundColor Cyan
+        $zipFile = Join-Path $distPath "frontend-update.zip"
+        if (Test-Path $zipFile) { Remove-Item $zipFile }
+        Compress-Archive -Path "./kermes-electron/build/*" -DestinationPath $zipFile -Force
+        Write-Host "Frontend zip created: frontend-update.zip" -ForegroundColor Green
+        
+        # Append hot-update flags to latest.yml
+        Add-Content -Path $ymlFile.FullName -Value "`nfrontendOnly: true" -Encoding UTF8
+        Write-Host "Appended 'frontendOnly: true' to latest.yml" -ForegroundColor Green
+    }
+    
     Write-Host "Release files ready: $($exeFile.Name), $($ymlFile.Name)" -ForegroundColor Green
     #endregion Step 7
 
@@ -271,11 +334,19 @@ try {
     $tag = "v$newVersion"
     $releaseTitle = "Kermes POS $newVersion"
     Write-Host "Creating GitHub release $tag..." -ForegroundColor Cyan
-    gh release create $tag `
-        "$($exeFile.FullName)" `
-        "$($ymlFile.FullName)" `
-        --title "$releaseTitle" `
-        --notes "$releaseNotes"
+    
+    $assetsToUpload = @(
+        "$($exeFile.FullName)",
+        "$($ymlFile.FullName)"
+    )
+    if ($null -ne $blockmapFile) {
+        $assetsToUpload += "$($blockmapFile.FullName)"
+    }
+    if ($isHotUpdate) {
+        $assetsToUpload += "$zipFile"
+    }
+    
+    gh release create $tag $assetsToUpload --title "$releaseTitle" --notes "$releaseNotes"
     if ($LASTEXITCODE -ne 0) { Write-ErrorAndExit "GitHub release failed." }
     Write-Host "Release created and assets uploaded." -ForegroundColor Green
     #endregion Step 10

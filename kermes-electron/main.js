@@ -13,6 +13,8 @@ import { fileURLToPath } from "url";
 import fs from "fs";
 import pkg from "electron-updater";
 import log from "electron-log";
+import https from "https";
+import AdmZip from "adm-zip";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,6 +28,130 @@ let updateWindow = null;
 let lastUpdateStatus = { status: "idle", info: null };
 let updateInfo = null;
 let isUpdateCheckInProgress = false;
+let activeVersion = app.getVersion();
+
+function getFrontendPath() {
+  if (!app.isPackaged) {
+    return path.join(__dirname, "build", "index.html");
+  }
+  const hotUpdateDir = path.join(app.getPath("userData"), "hot-update");
+  const indexHtml = path.join(hotUpdateDir, "index.html");
+  if (fs.existsSync(indexHtml)) {
+    return indexHtml;
+  }
+  return path.join(getBasePath(), "build", "index.html");
+}
+
+function getActiveFrontendVersion() {
+  const versionFile = path.join(app.getPath("userData"), "frontend-version.json");
+  if (fs.existsSync(versionFile)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(versionFile, "utf8"));
+      if (data && data.version) {
+        return data.version;
+      }
+    } catch (e) {
+      colorLogger.warn("[Update] Failed to read frontend-version.json:", e.message);
+    }
+  }
+  return app.getVersion();
+}
+
+function semverCompare(v1, v2) {
+  const p1 = String(v1).split('.').map(Number);
+  const p2 = String(v2).split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    const n1 = isNaN(p1[i]) ? 0 : p1[i];
+    const n2 = isNaN(p2[i]) ? 0 : p2[i];
+    if (n1 > n2) return 1;
+    if (n1 < n2) return -1;
+  }
+  return 0;
+}
+
+function downloadAndExtractHotUpdate(version) {
+  return new Promise((resolve, reject) => {
+    const url = `https://github.com/Tsunari/KermesPOS/releases/download/v${version}/frontend-update.zip`;
+    const tempZipPath = path.join(app.getPath("temp"), `frontend-update-${version}.zip`);
+    const file = fs.createWriteStream(tempZipPath);
+    
+    colorLogger.info(`[HotUpdate] Starting download from ${url}`);
+    
+    function download(downloadUrl) {
+      https.get(downloadUrl, (response) => {
+        if (response.statusCode === 302 || response.statusCode === 301) {
+          colorLogger.info(`[HotUpdate] Redirecting to ${response.headers.location}`);
+          download(response.headers.location);
+          return;
+        }
+        
+        if (response.statusCode !== 200) {
+          reject(new Error(`Failed to download update zip: HTTP ${response.statusCode}`));
+          return;
+        }
+        
+        const totalBytes = parseInt(response.headers['content-length'], 10) || 0;
+        let downloadedBytes = 0;
+        let lastProgressTime = Date.now();
+        
+        response.on('data', (chunk) => {
+          downloadedBytes += chunk.length;
+          file.write(chunk);
+          
+          const now = Date.now();
+          if (now - lastProgressTime > 100 || downloadedBytes === totalBytes) {
+            lastProgressTime = now;
+            const percent = totalBytes ? (downloadedBytes / totalBytes) * 100 : 0;
+            sendUpdateStatus("update:progress", {
+              percent: percent,
+              transferred: downloadedBytes,
+              total: totalBytes,
+              bytesPerSecond: 0
+            });
+          }
+        });
+        
+        response.on('end', () => {
+          file.end();
+          colorLogger.success(`[HotUpdate] Download completed to ${tempZipPath}`);
+          
+          try {
+            const userDataPath = app.getPath("userData");
+            const hotUpdateDir = path.join(userDataPath, "hot-update");
+            
+            colorLogger.info(`[HotUpdate] Extracting to ${hotUpdateDir}`);
+            
+            if (fs.existsSync(hotUpdateDir)) {
+              fs.rmSync(hotUpdateDir, { recursive: true, force: true });
+            }
+            fs.mkdirSync(hotUpdateDir, { recursive: true });
+            
+            const zip = new AdmZip(tempZipPath);
+            zip.extractAllTo(hotUpdateDir, true);
+            
+            const versionFile = path.join(userDataPath, "frontend-version.json");
+            fs.writeFileSync(versionFile, JSON.stringify({ version }), "utf8");
+            
+            if (fs.existsSync(tempZipPath)) {
+              fs.unlinkSync(tempZipPath);
+            }
+            
+            colorLogger.success(`[HotUpdate] Extraction successful. Version ${version} ready.`);
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
+        });
+      }).on('error', (err) => {
+        file.end();
+        if (fs.existsSync(tempZipPath)) fs.unlinkSync(tempZipPath);
+        reject(err);
+      });
+    }
+    
+    download(url);
+  });
+}
 
 function sendUpdateStatus(channel, payload) {
   // Send to update window if open
@@ -122,6 +248,17 @@ function setupAutoUpdater() {
     });
 
     autoUpdater.on("update-available", (info) => {
+      if (semverCompare(activeVersion, info.version) >= 0) {
+        isUpdateCheckInProgress = false;
+        lastUpdateStatus = { 
+          status: "not-available", 
+          info: { version: activeVersion }
+        };
+        sendUpdateStatus("update:status", lastUpdateStatus);
+        colorLogger.info(`[AutoUpdater] Remote version v${info.version} is already installed locally as hot-update.`);
+        return;
+      }
+
       isUpdateCheckInProgress = false;
       updateInfo = info;
       lastUpdateStatus = { 
@@ -130,12 +267,13 @@ function setupAutoUpdater() {
           version: info.version,
           releaseDate: info.releaseDate,
           releaseName: info.releaseName,
-          releaseNotes: info.releaseNotes
+          releaseNotes: info.releaseNotes,
+          frontendOnly: info.frontendOnly || false
         }
       };
       sendUpdateStatus("update:status", lastUpdateStatus);
       const currentVer = app.getVersion();
-      colorLogger.success(`[AutoUpdater] Update available! Current: v${currentVer} → Available: v${info.version}`);
+      colorLogger.success(`[AutoUpdater] Update available! Current: v${currentVer} (Active: v${activeVersion}) → Available: v${info.version}`);
       colorLogger.info(`[AutoUpdater] Release notes: ${info.releaseNotes}`);
       
       // Show notification to user
@@ -428,6 +566,8 @@ function getBasePath() {
 }
 
 app.on("ready", async () => {
+  activeVersion = getActiveFrontendVersion();
+  colorLogger.info(`[Update] Startup active frontend version: v${activeVersion}`);
   createWindow();
 
   // Register global shortcut to open update UI for testing
@@ -438,7 +578,7 @@ app.on("ready", async () => {
   setupAutoUpdater();
 
   if (app.isPackaged) {
-    mainWindow.loadFile("build/index.html");
+    mainWindow.loadFile(getFrontendPath());
     
     // Perform initial update check on startup (silent, non-intrusive)
     colorLogger.info('[Update] Performing initial startup check for updates...');
@@ -508,7 +648,25 @@ app.on("ready", async () => {
       return;
     }
     try {
-      await autoUpdater.downloadUpdate();
+      if (updateInfo && updateInfo.frontendOnly) {
+        lastUpdateStatus.status = "downloading";
+        sendUpdateStatus("update:status", lastUpdateStatus);
+        
+        await downloadAndExtractHotUpdate(updateInfo.version);
+        
+        activeVersion = updateInfo.version;
+        
+        lastUpdateStatus = {
+          status: "downloaded",
+          info: {
+            version: updateInfo.version,
+            frontendOnly: true
+          }
+        };
+        sendUpdateStatus("update:status", lastUpdateStatus);
+      } else {
+        await autoUpdater.downloadUpdate();
+      }
     } catch (e) {
       lastUpdateStatus = {
         status: "error",
@@ -525,7 +683,18 @@ app.on("ready", async () => {
       return;
     }
     try {
-      autoUpdater.quitAndInstall(false, true);
+      if (lastUpdateStatus.info && lastUpdateStatus.info.frontendOnly) {
+        const frontendPath = getFrontendPath();
+        mainWindow.loadFile(frontendPath);
+        
+        lastUpdateStatus = { status: "idle", info: null };
+        if (updateWindow && !updateWindow.isDestroyed()) updateWindow.close();
+        
+        // Notify main window that a hot update was applied
+        mainWindow.webContents.send("update:applied", { version: activeVersion });
+      } else {
+        autoUpdater.quitAndInstall(false, true);
+      }
     } catch (e) {
       lastUpdateStatus = {
         status: "error",
