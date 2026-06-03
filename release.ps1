@@ -208,8 +208,12 @@ try {
         Write-Host "Hot-update detected. Compressing frontend..." -ForegroundColor Cyan
         $zipFile = Join-Path $distPath "frontend-update.zip"
         if (Test-Path $zipFile) { Remove-Item $zipFile }
-        Compress-Archive -Path "./kermes-electron/build/*" -DestinationPath $zipFile -Force
-        Write-Host "Frontend zip created: frontend-update.zip" -ForegroundColor Green
+        
+        # Run node zipping script
+        node ./kermes-electron/util/zip.js
+        if (-not (Test-Path $zipFile)) {
+            Write-ErrorAndExit "Failed to generate frontend-update.zip using node script!"
+        }
         
         # Append hot-update flags to latest.yml
         Add-Content -Path $ymlFile.FullName -Value "`nfrontendOnly: true" -Encoding UTF8

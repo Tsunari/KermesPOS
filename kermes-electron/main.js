@@ -36,25 +36,55 @@ function getFrontendPath() {
   }
   const hotUpdateDir = path.join(app.getPath("userData"), "hot-update");
   const indexHtml = path.join(hotUpdateDir, "index.html");
-  if (fs.existsSync(indexHtml)) {
-    return indexHtml;
+  
+  // Ensure that we only load from hot-update if it's actually newer than the app version
+  const versionFile = path.join(app.getPath("userData"), "frontend-version.json");
+  if (fs.existsSync(indexHtml) && fs.existsSync(versionFile)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(versionFile, "utf8"));
+      if (data && data.version && semverCompare(data.version, app.getVersion()) > 0) {
+        return indexHtml;
+      }
+    } catch (e) {
+      colorLogger.warn("[Update] Failed to parse version file in getFrontendPath:", e.message);
+    }
   }
   return path.join(process.resourcesPath, "app.asar", "build", "index.html");
 }
 
 function getActiveFrontendVersion() {
   const versionFile = path.join(app.getPath("userData"), "frontend-version.json");
+  const appVersion = app.getVersion();
   if (fs.existsSync(versionFile)) {
     try {
       const data = JSON.parse(fs.readFileSync(versionFile, "utf8"));
       if (data && data.version) {
+        if (semverCompare(data.version, appVersion) <= 0) {
+          colorLogger.info(`[Update] Hot-update version (${data.version}) is older than or equal to packaged app version (${appVersion}). Cleaning up hot-update.`);
+          const hotUpdateDir = path.join(app.getPath("userData"), "hot-update");
+          if (fs.existsSync(hotUpdateDir)) {
+            try {
+              fs.rmSync(hotUpdateDir, { recursive: true, force: true });
+            } catch (err) {
+              colorLogger.warn(`[Update] Failed to remove hot-update dir on cleanup: ${err.message}`);
+            }
+          }
+          if (fs.existsSync(versionFile)) {
+            try {
+              fs.unlinkSync(versionFile);
+            } catch (err) {
+              colorLogger.warn(`[Update] Failed to delete version file: ${err.message}`);
+            }
+          }
+          return appVersion;
+        }
         return data.version;
       }
     } catch (e) {
       colorLogger.warn("[Update] Failed to read frontend-version.json:", e.message);
     }
   }
-  return app.getVersion();
+  return appVersion;
 }
 
 function semverCompare(v1, v2) {
@@ -100,6 +130,26 @@ function fetchGitHubReleases() {
       reject(err);
     });
   });
+}
+
+function copyRecursiveSync(src, dest) {
+  const exists = fs.existsSync(src);
+  const stats = exists && fs.statSync(src);
+  const isDirectory = exists && stats.isDirectory();
+  if (isDirectory) {
+    if (!fs.existsSync(dest)) {
+      fs.mkdirSync(dest, { recursive: true });
+    }
+    fs.readdirSync(src).forEach((childItemName) => {
+      copyRecursiveSync(path.join(src, childItemName), path.join(dest, childItemName));
+    });
+  } else {
+    try {
+      fs.copyFileSync(src, dest);
+    } catch (e) {
+      colorLogger.warn(`[HotUpdate] Failed to copy file ${src} to ${dest}: ${e.message}`);
+    }
+  }
 }
 
 function downloadAndExtractHotUpdate(version) {
@@ -158,22 +208,57 @@ function downloadAndExtractHotUpdate(version) {
           try {
             const userDataPath = app.getPath("userData");
             const hotUpdateDir = path.join(userDataPath, "hot-update");
+            const tempExtractDir = path.join(userDataPath, "hot-update-temp");
             
-            colorLogger.info(`[HotUpdate] Extracting to ${hotUpdateDir}`);
+            colorLogger.info(`[HotUpdate] Extracting to temporary directory ${tempExtractDir}`);
             
-            if (fs.existsSync(hotUpdateDir)) {
-              fs.rmSync(hotUpdateDir, { recursive: true, force: true });
+            if (fs.existsSync(tempExtractDir)) {
+              fs.rmSync(tempExtractDir, { recursive: true, force: true });
             }
-            fs.mkdirSync(hotUpdateDir, { recursive: true });
+            fs.mkdirSync(tempExtractDir, { recursive: true });
             
             const zip = new AdmZip(tempZipPath);
-            zip.extractAllTo(hotUpdateDir, true);
+            zip.extractAllTo(tempExtractDir, true);
+            
+            // Safe swap logic:
+            const hotUpdateOldDir = path.join(userDataPath, "hot-update-old");
+            if (fs.existsSync(hotUpdateOldDir)) {
+              try {
+                fs.rmSync(hotUpdateOldDir, { recursive: true, force: true });
+              } catch (e) {
+                colorLogger.warn(`[HotUpdate] Failed to remove previous hot-update-old: ${e.message}`);
+              }
+            }
+            
+            if (fs.existsSync(hotUpdateDir)) {
+              try {
+                fs.renameSync(hotUpdateDir, hotUpdateOldDir);
+              } catch (e) {
+                colorLogger.warn(`[HotUpdate] Failed to rename hot-update to hot-update-old: ${e.message}. Attempting direct overwrite.`);
+              }
+            }
+            
+            if (!fs.existsSync(hotUpdateDir)) {
+              fs.renameSync(tempExtractDir, hotUpdateDir);
+            } else {
+              copyRecursiveSync(tempExtractDir, hotUpdateDir);
+              fs.rmSync(tempExtractDir, { recursive: true, force: true });
+            }
             
             const versionFile = path.join(userDataPath, "frontend-version.json");
             fs.writeFileSync(versionFile, JSON.stringify({ version }), "utf8");
             
             if (fs.existsSync(tempZipPath)) {
               fs.unlinkSync(tempZipPath);
+            }
+            
+            // Attempt to clean up hot-update-old
+            if (fs.existsSync(hotUpdateOldDir)) {
+              try {
+                fs.rmSync(hotUpdateOldDir, { recursive: true, force: true });
+              } catch (e) {
+                colorLogger.warn(`[HotUpdate] Non-critical: Failed to delete hot-update-old (files may be locked): ${e.message}`);
+              }
             }
             
             colorLogger.success(`[HotUpdate] Extraction successful. Version ${version} ready.`);
@@ -646,6 +731,21 @@ function getBasePath() {
 }
 
 app.on("ready", async () => {
+  // Clean up any left-over temporary folders on startup
+  try {
+    const userDataPath = app.getPath("userData");
+    const hotUpdateOldDir = path.join(userDataPath, "hot-update-old");
+    const tempExtractDir = path.join(userDataPath, "hot-update-temp");
+    if (fs.existsSync(hotUpdateOldDir)) {
+      fs.rmSync(hotUpdateOldDir, { recursive: true, force: true });
+    }
+    if (fs.existsSync(tempExtractDir)) {
+      fs.rmSync(tempExtractDir, { recursive: true, force: true });
+    }
+  } catch (e) {
+    colorLogger.warn("[Update] Failed to clean up temporary directories on startup:", e.message);
+  }
+
   activeVersion = getActiveFrontendVersion();
   colorLogger.info(`[Update] Startup active frontend version: v${activeVersion}`);
   createWindow();
@@ -773,6 +873,17 @@ app.on("ready", async () => {
         // Notify main window that a hot update was applied
         mainWindow.webContents.send("update:applied", { version: activeVersion });
       } else {
+        // Kill print processes before running the installer
+        colorLogger.info("[Update] Killing print processes before installer launch...");
+        pythonPrintProcesses.forEach((proc) => {
+          try {
+            proc.kill();
+          } catch (e) {
+            colorLogger.warn(`[Update] Failed to kill print process: ${e.message}`);
+          }
+        });
+        pythonPrintProcesses = [];
+
         autoUpdater.quitAndInstall(false, true);
       }
     } catch (e) {

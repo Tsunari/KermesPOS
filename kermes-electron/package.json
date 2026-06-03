@@ -28,7 +28,6 @@
   "build": {
     "appId": "com.kermes.pos",
     "productName": "Kermes POS",
-    "compression": "store",
     "win": {
       "target": [
         {
@@ -39,9 +38,6 @@
         }
       ],
       "icon": "assets/Logo-light-m.ico"
-    },
-    "nsis": {
-      "useZip": true
     },
     "publish": [
       {
