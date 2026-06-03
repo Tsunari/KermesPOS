@@ -933,7 +933,7 @@ app.on("ready", async () => {
     }
   });
   ipcMain.handle("app:is-dev", () => !app.isPackaged);
-  ipcMain.handle("app:get-version", () => app.getVersion());
+  ipcMain.handle("app:get-version", () => activeVersion);
 
   ipcMain.on("print-cart", async (event, { cartData, selectedPrinter }) => {
     // Kill any previous print jobs before starting new ones
