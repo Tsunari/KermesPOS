@@ -39,7 +39,7 @@ function getFrontendPath() {
   if (fs.existsSync(indexHtml)) {
     return indexHtml;
   }
-  return path.join(getBasePath(), "build", "index.html");
+  return path.join(process.resourcesPath, "app.asar", "build", "index.html");
 }
 
 function getActiveFrontendVersion() {
