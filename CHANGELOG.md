@@ -5,6 +5,15 @@ All notable changes to the Kermes project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.5] - 03-06-2026
+### Kermes Electron
+#### Changed
+- [TEST IT] add hot-update version check and cleanup logic
+- Implement recursive file copy for hot-update extraction
+- Replace zip compression with node script for frontend
+- Add temporary directory cleanup on app startup
+
+
 ## [1.23.4] - 03-06-2026
 ### Global
 - Modify release notes header format in release script --change
