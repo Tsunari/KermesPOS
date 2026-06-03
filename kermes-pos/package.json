@@ -1,6 +1,6 @@
 {
   "name": "Kermes POS",
-  "version": "1.23.5",
+  "version": "1.23.6",
   "private": true,
   "proxy": "http://localhost:3001",
   "homepage": "./",
