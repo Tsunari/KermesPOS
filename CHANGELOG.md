@@ -5,6 +5,14 @@ All notable changes to the Kermes project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.7] - 03-06-2026
+### Kermes Electron
+#### Changed
+- Refactor hot update download logic to handle redirects and errors more gracefully
+- Improve logging for hot update download process
+- Ensure cleanup of temporary files after hot update extraction
+
+
 ## [1.23.6] - 03-06-2026
 ### Kermes POS
 #### Changed
