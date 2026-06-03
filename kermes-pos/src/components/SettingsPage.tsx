@@ -113,6 +113,18 @@ const SettingCard: React.FC<SettingCardProps> = ({ icon, title, description, con
   );
 };
 
+const semverCompare = (v1: string, v2: string): number => {
+  const p1 = String(v1).replace(/^v/, '').split('.').map(Number);
+  const p2 = String(v2).replace(/^v/, '').split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    const n1 = isNaN(p1[i]) ? 0 : p1[i];
+    const n2 = isNaN(p2[i]) ? 0 : p2[i];
+    if (n1 > n2) return 1;
+    if (n1 < n2) return -1;
+  }
+  return 0;
+};
+
 const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode, currencyManagedByCloud = false }) => {
   const muiTheme = useMuiTheme();
   const { isDarkMode, toggleTheme } = useTheme();
@@ -151,8 +163,12 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode, curren
   };
   
   // Update system states
-  const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [updateVersion, setUpdateVersion] = useState<string>('');
+  const [updateAvailable, setUpdateAvailable] = useState<boolean>(() => {
+    return !!localStorage.getItem('pending_update_version');
+  });
+  const [updateVersion, setUpdateVersion] = useState<string>(() => {
+    return localStorage.getItem('pending_update_version') || '';
+  });
 
   // Diagnostic states
   const [dbStats, setDbStats] = useState({
@@ -175,19 +191,41 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ devMode, setDevMode, curren
   useEffect(() => {
     loadDiagnostics();
 
+    // Check on mount if we've already updated to or past the pending version
+    const runningVersion = require('../../package.json').version;
+    const pendingVersion = localStorage.getItem('pending_update_version');
+    if (pendingVersion && semverCompare(runningVersion, pendingVersion) >= 0) {
+      localStorage.removeItem('pending_update_version');
+      setUpdateAvailable(false);
+      setUpdateVersion('');
+    }
+
     // Listen for update status from electron
     if (typeof window !== 'undefined' && window.electronAPI?.update?.onStatus) {
       const unsubscribe = window.electronAPI.update.onStatus((payload: any) => {
         if (payload?.status === 'available' && payload?.info?.version) {
+          localStorage.setItem('pending_update_version', payload.info.version);
           setUpdateAvailable(true);
           setUpdateVersion(payload.info.version);
-        } else if (payload?.status === 'not-available' || payload?.status === 'downloaded') {
+        } else if (payload?.status === 'not-available') {
+          localStorage.removeItem('pending_update_version');
           setUpdateAvailable(false);
+          setUpdateVersion('');
         }
       });
 
+      let unsubscribeApplied: (() => void) | undefined;
+      if (window.electronAPI.update.onApplied) {
+        unsubscribeApplied = window.electronAPI.update.onApplied(() => {
+          localStorage.removeItem('pending_update_version');
+          setUpdateAvailable(false);
+          setUpdateVersion('');
+        });
+      }
+
       return () => {
         if (unsubscribe) unsubscribe();
+        if (unsubscribeApplied) unsubscribeApplied();
       };
     }
   }, []);

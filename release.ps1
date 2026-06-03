@@ -324,7 +324,7 @@ try {
     $finalChangelog = $before + $newSection + $after
     Set-Content $changelogPath -Value $finalChangelog -Encoding UTF8
     # Custom header for release notes
-    $releaseNotesHeader = "### 🚀 Kermes POS $newVersion Release Notes ($newDate)`n"
+    $releaseNotesHeader = "### Kermes POS $newVersion Release Notes ($newDate)`n"
     $releaseNotes = $releaseNotesHeader + $changelogSection
     #endregion Step 8
 

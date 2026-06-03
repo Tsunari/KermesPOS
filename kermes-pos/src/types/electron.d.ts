@@ -13,6 +13,7 @@ interface Window {
       onStatus: (callback: (payload: any) => void) => () => void;
       onProgress: (callback: (payload: any) => void) => () => void;
       onNotification: (callback: (payload: any) => void) => () => void;
+      onApplied: (callback: (payload: any) => void) => () => void;
     };
   };
 }

@@ -69,6 +69,39 @@ function semverCompare(v1, v2) {
   return 0;
 }
 
+function fetchGitHubReleases() {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: "api.github.com",
+      path: "/repos/Tsunari/KermesPOS/releases",
+      method: "GET",
+      headers: {
+        "User-Agent": "KermesPOS-Updater"
+      }
+    };
+
+    const req = https.get(options, (res) => {
+      if (res.statusCode !== 200) {
+        reject(new Error(`GitHub API returned status ${res.statusCode}`));
+        return;
+      }
+      let body = "";
+      res.on("data", (chunk) => { body += chunk; });
+      res.on("end", () => {
+        try {
+          resolve(JSON.parse(body));
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+
+    req.on("error", (err) => {
+      reject(err);
+    });
+  });
+}
+
 function downloadAndExtractHotUpdate(version) {
   return new Promise((resolve, reject) => {
     const url = `https://github.com/Tsunari/KermesPOS/releases/download/v${version}/frontend-update.zip`;
@@ -93,6 +126,7 @@ function downloadAndExtractHotUpdate(version) {
         const totalBytes = parseInt(response.headers['content-length'], 10) || 0;
         let downloadedBytes = 0;
         let lastProgressTime = Date.now();
+        const startTime = Date.now();
         
         response.on('data', (chunk) => {
           downloadedBytes += chunk.length;
@@ -102,11 +136,17 @@ function downloadAndExtractHotUpdate(version) {
           if (now - lastProgressTime > 100 || downloadedBytes === totalBytes) {
             lastProgressTime = now;
             const percent = totalBytes ? (downloadedBytes / totalBytes) * 100 : 0;
+            const elapsedSec = (now - startTime) / 1000 || 0.001;
+            const bytesPerSecond = downloadedBytes / elapsedSec;
+            const remainingBytes = totalBytes - downloadedBytes;
+            const eta = bytesPerSecond > 0 ? remainingBytes / bytesPerSecond : 0;
+            
             sendUpdateStatus("update:progress", {
               percent: percent,
               transferred: downloadedBytes,
               total: totalBytes,
-              bytesPerSecond: 0
+              bytesPerSecond: bytesPerSecond,
+              eta: eta
             });
           }
         });
@@ -247,7 +287,7 @@ function setupAutoUpdater() {
       colorLogger.info(`[AutoUpdater] Checking for updates (current: v${currentVer})...`);
     });
 
-    autoUpdater.on("update-available", (info) => {
+    autoUpdater.on("update-available", async (info) => {
       if (semverCompare(activeVersion, info.version) >= 0) {
         isUpdateCheckInProgress = false;
         lastUpdateStatus = { 
@@ -261,20 +301,45 @@ function setupAutoUpdater() {
 
       isUpdateCheckInProgress = false;
       updateInfo = info;
+
+      let releaseNotes = info.releaseNotes;
+      try {
+        colorLogger.info("[AutoUpdater] Fetching cumulative release notes from GitHub...");
+        const releases = await fetchGitHubReleases();
+        
+        // Filter releases: tag version > activeVersion and tag version <= info.version
+        const filteredReleases = releases.filter(r => {
+          const vStr = r.tag_name.replace(/^v/, '');
+          return semverCompare(vStr, activeVersion) > 0 && semverCompare(vStr, info.version) <= 0;
+        });
+
+        if (filteredReleases.length > 0) {
+          releaseNotes = filteredReleases
+            .map(r => {
+              const body = r.body || '';
+              const title = `### ${r.name || r.tag_name}`;
+              return `${title}\n${body}`;
+            })
+            .join('\n\n');
+          colorLogger.success("[AutoUpdater] Generated cumulative changelog successfully.");
+        }
+      } catch (err) {
+        colorLogger.warn(`[AutoUpdater] Failed to generate cumulative changelog: ${err.message}`);
+      }
+
       lastUpdateStatus = { 
         status: "available", 
         info: {
           version: info.version,
           releaseDate: info.releaseDate,
           releaseName: info.releaseName,
-          releaseNotes: info.releaseNotes,
+          releaseNotes: releaseNotes,
           frontendOnly: info.frontendOnly || false
         }
       };
       sendUpdateStatus("update:status", lastUpdateStatus);
       const currentVer = app.getVersion();
       colorLogger.success(`[AutoUpdater] Update available! Current: v${currentVer} (Active: v${activeVersion}) → Available: v${info.version}`);
-      colorLogger.info(`[AutoUpdater] Release notes: ${info.releaseNotes}`);
       
       // Show notification to user
       if (mainWindow && !mainWindow.isDestroyed()) {
@@ -310,12 +375,17 @@ function setupAutoUpdater() {
     });
 
     autoUpdater.on("download-progress", (progressObj) => {
+      const remainingBytes = progressObj.total - progressObj.transferred;
+      const bytesPerSecond = progressObj.bytesPerSecond || 0;
+      const eta = bytesPerSecond > 0 ? remainingBytes / bytesPerSecond : 0;
+
       lastUpdateStatus = { status: "downloading", info: progressObj };
       sendUpdateStatus("update:progress", {
         percent: progressObj.percent,
         transferred: progressObj.transferred,
         total: progressObj.total,
-        bytesPerSecond: progressObj.bytesPerSecond
+        bytesPerSecond: bytesPerSecond,
+        eta: eta
       });
       
       // Log progress every 10%
@@ -353,6 +423,7 @@ let simulateTimer = null;
 function simulateUpdateFlow() {
   if (simulateTimer) return;
   let percent = 0;
+  const totalBytes = 15.4 * 1024 * 1024; // 15.4 MB
   const step = () => {
     if (percent === 0) {
       lastUpdateStatus = { status: "checking", info: null };
@@ -360,7 +431,10 @@ function simulateUpdateFlow() {
       setTimeout(() => {
         lastUpdateStatus = {
           status: "available",
-          info: { version: "dev-1.0.1" },
+          info: { 
+            version: "dev-1.0.1",
+            releaseNotes: "### Added\n- Rebuilt updates panel with compact card design\n- Add support for new printer types\n\n### Fixed\n- Fix issue with settings tab notification dot disappearing --fix\n- Fix session dropdown state persistence --fix"
+          },
         };
         sendUpdateStatus("update:status", lastUpdateStatus);
       }, 600);
@@ -376,11 +450,17 @@ function simulateUpdateFlow() {
       return;
     }
     percent = Math.min(100, percent + Math.round(5 + Math.random() * 15));
+    const transferred = Math.round((percent / 100) * totalBytes);
+    const bytesPerSecond = 1.8 * 1024 * 1024; // 1.8 MB/s
+    const remainingBytes = totalBytes - transferred;
+    const eta = remainingBytes / bytesPerSecond;
+
     sendUpdateStatus("update:progress", {
       percent,
-      transferred: percent,
-      total: 100,
-      bytesPerSecond: 5000000,
+      transferred,
+      total: totalBytes,
+      bytesPerSecond,
+      eta
     });
   };
   simulateTimer = setInterval(step, 400);

@@ -31,7 +31,9 @@
   const progressSection = $('progressSection');
   const progressBar = $('progressBar');
   const progressText = $('progressText');
+  const downloadSize = $('downloadSize');
   const downloadSpeed = $('downloadSpeed');
+  const downloadEta = $('downloadEta');
 
   // Error
   const errorSection = $('errorSection');
@@ -138,14 +140,44 @@
     toggleClass(progressSection, 'hidden', !show);
   }
 
-  // Update progress bar
-  function setProgress(percent, speedMBps) {
+  // Update progress bar and stats
+  function setProgress(progressInfo) {
+    const percent = progressInfo.percent;
     const pct = Math.max(0, Math.min(100, Math.round(percent || 0)));
     progressBar.style.width = pct + '%';
     progressText.textContent = pct + '%';
 
-    if (speedMBps) {
-      downloadSpeed.textContent = `${speedMBps.toFixed(2)} MB/s`;
+    // Format speed
+    if (progressInfo.bytesPerSecond) {
+      const speedMBps = progressInfo.bytesPerSecond / (1024 * 1024);
+      downloadSpeed.textContent = `${speedMBps.toFixed(1)} MB/s`;
+    } else {
+      downloadSpeed.textContent = '-- MB/s';
+    }
+
+    // Format size
+    if (progressInfo.total) {
+      const totalMB = progressInfo.total / (1024 * 1024);
+      const transferredMB = (progressInfo.transferred || 0) / (1024 * 1024);
+      downloadSize.textContent = `${transferredMB.toFixed(1)} / ${totalMB.toFixed(1)} MB`;
+    } else {
+      downloadSize.textContent = '-- MB';
+    }
+
+    // Format ETA
+    if (progressInfo.eta !== undefined && progressInfo.eta > 0) {
+      const etaSec = Math.round(progressInfo.eta);
+      if (etaSec < 60) {
+        downloadEta.textContent = `${etaSec}s remaining`;
+      } else {
+        const etaMin = Math.floor(etaSec / 60);
+        const etaSecLeft = etaSec % 60;
+        downloadEta.textContent = `${etaMin}m ${etaSecLeft}s remaining`;
+      }
+    } else if (pct === 100) {
+      downloadEta.textContent = 'Completed';
+    } else {
+      downloadEta.textContent = 'Calculating...';
     }
   }
 
@@ -291,9 +323,6 @@
   if (window.electronAPI?.update?.onProgress) {
     window.electronAPI.update.onProgress((progressInfo) => {
       if (progressInfo?.percent !== undefined) {
-        const speedMBps = progressInfo.bytesPerSecond
-          ? progressInfo.bytesPerSecond / (1024 * 1024)
-          : null;
         // Ensure UI switches to downloading state so progress becomes visible
         try {
           setState({ status: 'downloading' });
@@ -301,7 +330,7 @@
           // Fallback: explicitly show progress section
           showProgress(true);
         }
-        setProgress(progressInfo.percent, speedMBps);
+        setProgress(progressInfo);
       }
     });
   }
