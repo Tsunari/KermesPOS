@@ -29,8 +29,18 @@
     "appId": "com.kermes.pos",
     "productName": "Kermes POS",
     "win": {
-      "target": "nsis",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "icon": "assets/Logo-light-m.ico"
+    },
+    "nsis": {
+      "compression": "zlib"
     },
     "publish": [
       {
@@ -47,7 +57,10 @@
         "from": "python-3.13.3-embed-amd64",
         "to": "python-3.13.3-embed-amd64",
         "filter": [
-          "**/*"
+          "**/*",
+          "!**/__pycache__",
+          "!**/*.pyc",
+          "!**/*.pyo"
         ]
       },
       {
