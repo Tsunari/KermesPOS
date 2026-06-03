@@ -39,6 +39,13 @@ if (-not $force) {
 
 try {
     #region Auto-detect update type (Hot-Update vs Core Shell Update)
+    Write-Host "Fetching latest tags from remote..." -ForegroundColor Cyan
+    try {
+        git fetch --tags
+    } catch {
+        Write-Host "Warning: Failed to fetch tags from remote. Using local tags." -ForegroundColor Yellow
+    }
+    
     $lastTag = $null
     try {
         $lastTag = git describe --tags --abbrev=0 HEAD
