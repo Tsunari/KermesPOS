@@ -337,7 +337,7 @@ function AppContent() {
                 mb: 0.5,
               }}
             >
-              Kermes POS
+              Kermes POS Test
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', width: '100%' }}>
