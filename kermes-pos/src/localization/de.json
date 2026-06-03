@@ -364,6 +364,7 @@
       "previewReceipt": "Belegvorschau",
       "clearCart": "Warenkorb leeren",
       "emptyCart": "Warenkorb ist leer",
+      "emptyCartSubtitle": "Scannen Sie einen Barcode oder tippen Sie auf Produkte im Menü, um den Warenkorb zu füllen",
       "printSuccess": "Beleg erfolgreich gedruckt",
       "printFailed": "Beleg konnte nicht gedruckt werden. Bitte versuchen Sie es erneut.",
       "printerSettingsSaved": "Druckereinstellungen gespeichert:",

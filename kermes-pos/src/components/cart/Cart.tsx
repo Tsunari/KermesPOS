@@ -699,6 +699,8 @@ const Cart: React.FC<CartProps> = ({ devMode, productTapSeparateEnabled = true }
 
       <Box sx={{
         height: 'calc(100% - 120px)',
+        display: 'flex',
+        flexDirection: 'column',
         overflow: 'auto',
         mb: 2,
         pt: 0,
@@ -769,9 +771,40 @@ const Cart: React.FC<CartProps> = ({ devMode, productTapSeparateEnabled = true }
           </Box>
         )}
         {cartItems.length === 0 ? (
-          <Typography variant="body1" sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
-            {t('app.cart.emptyCart')}
-          </Typography>
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexGrow: 1,
+            py: 4,
+            px: 2,
+            textAlign: 'center'
+          }}>
+            <Box sx={{
+              p: 2,
+              borderRadius: '50%',
+              bgcolor: theme.palette.mode === 'dark' ? 'rgba(143,155,255,0.06)' : 'rgba(143,155,255,0.03)',
+              color: 'primary.main',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mb: 2,
+              animation: 'bounceSlow 3s infinite ease-in-out',
+              '@keyframes bounceSlow': {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-6px)' }
+              }
+            }}>
+              <ShoppingBagIcon sx={{ fontSize: 54, opacity: 0.6 }} />
+            </Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 0.5 }}>
+              {t('app.cart.emptyCart') || 'Cart is empty'}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 220, lineHeight: 1.5 }}>
+              {t('app.cart.emptyCartSubtitle') || 'Scan a barcode or tap products from the catalog to add items'}
+            </Typography>
+          </Box>
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 0.5, mx: -0.5 }}>
             {categoryOrder

@@ -364,6 +364,7 @@
       "previewReceipt": "Preview Receipt",
       "clearCart": "Clear Cart",
       "emptyCart": "Cart is empty",
+      "emptyCartSubtitle": "Scan a barcode or tap products from the catalog to add items",
       "printSuccess": "Receipt printed successfully",
       "printFailed": "Failed to print receipt. Please try again.",
       "printerSettingsSaved": "Printer settings saved:",

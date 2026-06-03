@@ -364,6 +364,7 @@
       "previewReceipt": "Fiş Önizleme",
       "clearCart": "Sepeti Temizle",
       "emptyCart": "Sepet boş",
+      "emptyCartSubtitle": "Sepete ürün eklemek için barkod taratın veya menüden ürünlere dokunun",
       "printSuccess": "Fiş başarıyla yazdırıldı",
       "printFailed": "Fiş yazdırılamadı. Lütfen tekrar deneyin.",
       "printerSettingsSaved": "Yazıcı ayarları kaydedildi:",
