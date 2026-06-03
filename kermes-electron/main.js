@@ -154,34 +154,48 @@ function copyRecursiveSync(src, dest) {
 
 function downloadAndExtractHotUpdate(version) {
   return new Promise((resolve, reject) => {
-    const url = `https://github.com/Tsunari/KermesPOS/releases/download/v${version}/frontend-update.zip`;
+    const initialUrl = `https://github.com/Tsunari/KermesPOS/releases/download/v${version}/frontend-update.zip`;
     const tempZipPath = path.join(app.getPath("temp"), `frontend-update-${version}.zip`);
-    const file = fs.createWriteStream(tempZipPath);
-    
-    colorLogger.info(`[HotUpdate] Starting download from ${url}`);
-    
-    function download(downloadUrl) {
-      https.get(downloadUrl, (response) => {
-        if (response.statusCode === 302 || response.statusCode === 301) {
-          colorLogger.info(`[HotUpdate] Redirecting to ${response.headers.location}`);
-          download(response.headers.location);
+
+    colorLogger.info(`[HotUpdate] Starting download from ${initialUrl}`);
+
+    // Use http or https depending on the URL scheme (GitHub CDN can redirect to http)
+    function getModule(url) {
+      return url.startsWith("https") ? https : require("http");
+    }
+
+    function download(downloadUrl, redirectCount = 0) {
+      if (redirectCount > 10) {
+        return reject(new Error("[HotUpdate] Too many redirects"));
+      }
+
+      getModule(downloadUrl).get(downloadUrl, (response) => {
+        // Handle redirects — consume and destroy the redirect body before recursing
+        if (response.statusCode === 301 || response.statusCode === 302 || response.statusCode === 307 || response.statusCode === 308) {
+          const location = response.headers.location;
+          colorLogger.info(`[HotUpdate] Redirect (${response.statusCode}) → ${location}`);
+          response.resume(); // drain and discard the redirect response body
+          download(location, redirectCount + 1);
           return;
         }
-        
+
         if (response.statusCode !== 200) {
-          reject(new Error(`Failed to download update zip: HTTP ${response.statusCode}`));
-          return;
+          response.resume();
+          return reject(new Error(`[HotUpdate] Failed to download update zip: HTTP ${response.statusCode}`));
         }
-        
-        const totalBytes = parseInt(response.headers['content-length'], 10) || 0;
+
+        // We have the final 200 response — NOW create the WriteStream
+        const file = fs.createWriteStream(tempZipPath);
+
+        const totalBytes = parseInt(response.headers["content-length"], 10) || 0;
         let downloadedBytes = 0;
         let lastProgressTime = Date.now();
         const startTime = Date.now();
-        
-        response.on('data', (chunk) => {
+
+        response.on("data", (chunk) => {
           downloadedBytes += chunk.length;
           file.write(chunk);
-          
+
           const now = Date.now();
           if (now - lastProgressTime > 100 || downloadedBytes === totalBytes) {
             lastProgressTime = now;
@@ -190,37 +204,52 @@ function downloadAndExtractHotUpdate(version) {
             const bytesPerSecond = downloadedBytes / elapsedSec;
             const remainingBytes = totalBytes - downloadedBytes;
             const eta = bytesPerSecond > 0 ? remainingBytes / bytesPerSecond : 0;
-            
+
             sendUpdateStatus("update:progress", {
-              percent: percent,
+              percent,
               transferred: downloadedBytes,
               total: totalBytes,
-              bytesPerSecond: bytesPerSecond,
-              eta: eta
+              bytesPerSecond,
+              eta,
             });
           }
         });
-        
-        response.on('end', () => {
+
+        response.on("end", () => {
+          // Signal end of write — actual disk flush is async, so we wait for 'finish'
           file.end();
-          colorLogger.success(`[HotUpdate] Download completed to ${tempZipPath}`);
-          
+        });
+
+        response.on("error", (err) => {
+          file.destroy();
+          if (fs.existsSync(tempZipPath)) {
+            try { fs.unlinkSync(tempZipPath); } catch (_) {}
+          }
+          reject(new Error(`[HotUpdate] Response stream error: ${err.message}`));
+        });
+
+        // CRITICAL: Only open the zip after the WriteStream has fully flushed to disk.
+        // file.end() is non-blocking; opening the file before 'finish' fires gives a
+        // truncated/empty file which causes "No END header found" in AdmZip.
+        file.once("finish", () => {
+          colorLogger.success(`[HotUpdate] Download fully flushed to ${tempZipPath}`);
+
           try {
             const userDataPath = app.getPath("userData");
             const hotUpdateDir = path.join(userDataPath, "hot-update");
             const tempExtractDir = path.join(userDataPath, "hot-update-temp");
-            
+
             colorLogger.info(`[HotUpdate] Extracting to temporary directory ${tempExtractDir}`);
-            
+
             if (fs.existsSync(tempExtractDir)) {
               fs.rmSync(tempExtractDir, { recursive: true, force: true });
             }
             fs.mkdirSync(tempExtractDir, { recursive: true });
-            
+
             const zip = new AdmZip(tempZipPath);
             zip.extractAllTo(tempExtractDir, true);
-            
-            // Safe swap logic:
+
+            // Safe swap: move active folder out before replacing it
             const hotUpdateOldDir = path.join(userDataPath, "hot-update-old");
             if (fs.existsSync(hotUpdateOldDir)) {
               try {
@@ -229,52 +258,61 @@ function downloadAndExtractHotUpdate(version) {
                 colorLogger.warn(`[HotUpdate] Failed to remove previous hot-update-old: ${e.message}`);
               }
             }
-            
+
             if (fs.existsSync(hotUpdateDir)) {
               try {
                 fs.renameSync(hotUpdateDir, hotUpdateOldDir);
               } catch (e) {
-                colorLogger.warn(`[HotUpdate] Failed to rename hot-update to hot-update-old: ${e.message}. Attempting direct overwrite.`);
+                colorLogger.warn(`[HotUpdate] Failed to rename hot-update → hot-update-old: ${e.message}. Attempting direct overwrite.`);
               }
             }
-            
+
             if (!fs.existsSync(hotUpdateDir)) {
               fs.renameSync(tempExtractDir, hotUpdateDir);
             } else {
               copyRecursiveSync(tempExtractDir, hotUpdateDir);
               fs.rmSync(tempExtractDir, { recursive: true, force: true });
             }
-            
+
             const versionFile = path.join(userDataPath, "frontend-version.json");
             fs.writeFileSync(versionFile, JSON.stringify({ version }), "utf8");
-            
+
             if (fs.existsSync(tempZipPath)) {
-              fs.unlinkSync(tempZipPath);
+              try { fs.unlinkSync(tempZipPath); } catch (_) {}
             }
-            
-            // Attempt to clean up hot-update-old
+
+            // Clean up backup dir (non-critical, may be locked — cleaned on next startup)
             if (fs.existsSync(hotUpdateOldDir)) {
               try {
                 fs.rmSync(hotUpdateOldDir, { recursive: true, force: true });
               } catch (e) {
-                colorLogger.warn(`[HotUpdate] Non-critical: Failed to delete hot-update-old (files may be locked): ${e.message}`);
+                colorLogger.warn(`[HotUpdate] Non-critical: Failed to delete hot-update-old: ${e.message}`);
               }
             }
-            
+
             colorLogger.success(`[HotUpdate] Extraction successful. Version ${version} ready.`);
             resolve();
           } catch (err) {
+            // Clean up broken zip so a retry starts fresh
+            if (fs.existsSync(tempZipPath)) {
+              try { fs.unlinkSync(tempZipPath); } catch (_) {}
+            }
             reject(err);
           }
         });
-      }).on('error', (err) => {
-        file.end();
-        if (fs.existsSync(tempZipPath)) fs.unlinkSync(tempZipPath);
-        reject(err);
+
+        file.once("error", (err) => {
+          if (fs.existsSync(tempZipPath)) {
+            try { fs.unlinkSync(tempZipPath); } catch (_) {}
+          }
+          reject(new Error(`[HotUpdate] Write stream error: ${err.message}`));
+        });
+      }).on("error", (err) => {
+        reject(new Error(`[HotUpdate] Network error: ${err.message}`));
       });
     }
-    
-    download(url);
+
+    download(initialUrl);
   });
 }
 
